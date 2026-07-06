@@ -305,7 +305,23 @@
   }
 }
 </script>
-</head>
+
+    <style>
+      /* NBDT UI/UX Premium Polish */
+      :root { --nbdt-bg:#050814; --nbdt-panel:rgba(15,23,42,.72); --nbdt-border:rgba(148,163,184,.16); }
+      html { scroll-behavior:smooth; }
+      body { background: radial-gradient(circle at 20% 12%, rgba(79,70,229,.12), transparent 34%), radial-gradient(circle at 88% 18%, rgba(6,182,212,.08), transparent 30%), linear-gradient(135deg,#050814 0%,#070b18 48%,#020617 100%); }
+      button,input,select,textarea { font-variant-ligatures:none; }
+      button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid rgba(129,140,248,.95)!important; outline-offset:3px; }
+      .no-scrollbar::-webkit-scrollbar { width:9px; height:9px; }
+      .no-scrollbar::-webkit-scrollbar-thumb { background:linear-gradient(180deg,rgba(99,102,241,.65),rgba(6,182,212,.45)); border-radius:999px; border:2px solid rgba(2,6,23,.8); }
+      .no-scrollbar::-webkit-scrollbar-track { background:rgba(15,23,42,.35); }
+      [class*="cursor-grab"] { transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease,opacity .18s ease; }
+      [class*="cursor-grab"]:hover { transform:translateY(-1px) scale(1.01); border-color:rgba(129,140,248,.34)!important; box-shadow:0 12px 34px rgba(15,23,42,.42),0 0 0 1px rgba(129,140,248,.12),inset 0 1px 0 rgba(255,255,255,.08); }
+      [class*="cursor-grab"]:active { transform:scale(.99); }
+    </style>
+
+  </head>
 <body>
     <div class="atmosphere"></div>
     <div class="grid-pattern"></div>
