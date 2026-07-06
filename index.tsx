@@ -2386,9 +2386,8 @@ const ProjectPanel: React.FC<{
 };
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('nbdt_auth') === 'true';
-  });
+  // Secure Access startup screen disabled: users open the application directly.
+  const [isAuthenticated] = useState(true);
   const [activeTab, setActiveTab] = useState<'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (['roadmap', 'systems', 'sync', 'issues', 'config-report'].includes(hash)) return hash as any;
@@ -3231,13 +3230,6 @@ const App = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={() => {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('nbdt_auth', 'true');
-    }} />;
-  }
 
   return (
     <div className="bg-[#020617] w-screen h-screen overflow-hidden flex text-slate-100 font-sans">
