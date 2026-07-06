@@ -2608,8 +2608,6 @@ const App = () => {
   const [assigneeFilter, setAssigneeFilter] = useState<string>('');
   const [issueStatusFilter, setIssueStatusFilter] = useState<string>('');
   const [issueSeverityFilter, setIssueSeverityFilter] = useState<string>('');
-  const [roadmapSearch, setRoadmapSearch] = useState('');
-  const [roadmapStatusFilter, setRoadmapStatusFilter] = useState<TaskStatus | 'All'>('All');
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverCell, setDragOverCell] = useState<{ memberId: string, week: number } | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
@@ -3497,25 +3495,7 @@ const App = () => {
           <div className="flex-1 flex flex-col overflow-hidden animate-fadeIn">
             <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50">
               <div className="flex items-center gap-8">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
-                  <p className="mt-1 text-[11px] font-bold tracking-[0.18em] uppercase text-slate-500">Delivery command center · {roadmapKpis.completion}% complete</p>
-                </div>
-                <div className="hidden 2xl:flex items-center gap-3">
-                  {[
-                    { label: 'Tasks', value: roadmapKpis.total, tone: 'text-slate-100', bar: 'from-slate-500 to-slate-300' },
-                    { label: 'In Progress', value: roadmapKpis.inProgress, tone: 'text-blue-300', bar: 'from-blue-500 to-cyan-300' },
-                    { label: 'Completed', value: roadmapKpis.completed, tone: 'text-emerald-300', bar: 'from-emerald-500 to-teal-300' },
-                    { label: 'Blocked', value: roadmapKpis.blocked, tone: 'text-rose-300', bar: 'from-rose-500 to-orange-400' },
-                    { label: 'Milestones', value: roadmapKpis.milestones, tone: 'text-violet-300', bar: 'from-violet-500 to-indigo-300' },
-                  ].map(card => (
-                    <div key={card.label} className="group min-w-[108px] rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-indigo-400/40 hover:bg-white/[0.06]">
-                      <div className={`text-xl font-black leading-none ${card.tone}`}>{card.value}</div>
-                      <div className="mt-1 text-[8px] font-black uppercase tracking-[0.22em] text-slate-500">{card.label}</div>
-                      <div className="mt-2 h-[2px] overflow-hidden rounded-full bg-slate-800"><div className={`h-full w-full bg-gradient-to-r ${card.bar} opacity-70`} /></div>
-                    </div>
-                  ))}
-                </div>
+                <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
               </div>
 
               <div className="flex items-center gap-6">
@@ -3563,32 +3543,22 @@ const App = () => {
                 </button>
               </div>
               
-              <div className="flex flex-wrap items-center justify-end gap-3">
-                <div className="relative hidden xl:block">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    value={roadmapSearch}
-                    onChange={e => setRoadmapSearch(e.target.value)}
-                    placeholder="Search tasks or checklist..."
-                    className="h-11 w-[280px] rounded-2xl border border-white/10 bg-slate-950/70 pl-11 pr-4 text-xs font-bold text-slate-200 outline-none transition-all placeholder:text-slate-600 focus:border-indigo-400/70 focus:bg-slate-950 focus:shadow-[0_0_0_4px_rgba(99,102,241,0.12)]"
-                  />
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-slate-600"></div>
+                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Planned</span>
                 </div>
-                <div className="flex items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.035] p-1 backdrop-blur-xl">
-                  {roadmapStatusOptions.map(status => {
-                    const tone = status === 'Blocked' ? 'bg-rose-500' : status === 'Completed' ? 'bg-emerald-500' : status === 'In Progress' ? 'bg-blue-500' : status === 'Planned' ? 'bg-slate-500' : 'bg-violet-400';
-                    const active = roadmapStatusFilter === status;
-                    return (
-                      <button
-                        key={status}
-                        onClick={() => setRoadmapStatusFilter(status)}
-                        className={`flex min-h-[36px] items-center gap-2 rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white/10 text-white shadow-lg' : 'text-slate-500 hover:bg-white/[0.06] hover:text-slate-200'}`}
-                        title={`Filter roadmap by ${status}`}
-                      >
-                        <span className={`h-2 w-2 rounded-full ${tone} ${active ? 'shadow-[0_0_14px_currentColor]' : ''}`} />
-                        {status}
-                      </button>
-                    );
-                  })}
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">In Progress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Completed</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Blocked</span>
                 </div>
               </div>
             </div>
@@ -3686,7 +3656,7 @@ const App = () => {
                           {isAdmin && <button onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} className="opacity-0 group-hover/ms-cell:opacity-100 p-2 bg-indigo-600 rounded-full text-white transition-all z-20 scale-75 hover:scale-100"><Plus size={16}/></button>}
                         </div>
                      ))}
-                     {filteredRoadmapTasks.filter(t => t.isMilestone).map(m => {
+                     {project.tasks.filter(t => t.isMilestone).map(m => {
                         const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
                         if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
                         const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
@@ -3805,7 +3775,7 @@ const App = () => {
                                {isAdmin && <button onClick={() => setDraftTask({ id: `t-${Date.now()}`, label: 'NEW TASK', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: member.id })} className="opacity-0 hover:opacity-100 absolute inset-0 flex items-center justify-center transition-all bg-indigo-500/5 transition-opacity"><Plus size={14} className="text-indigo-500" /></button>}
                             </div>
                           ))}
-                          {filteredRoadmapTasks.filter(t => t.memberId === member.id && !t.isMilestone).map(task => {
+                          {project.tasks.filter(t => t.memberId === member.id && !t.isMilestone).map(task => {
                             const statusConfigs = {
                               'Completed': { dot: 'bg-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-50', glow: '' },
                               'In Progress': { dot: 'bg-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-50', glow: '' },
@@ -5104,7 +5074,7 @@ const App = () => {
                 </div>
               </div>
 
-              <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.05)] overflow-hidden relative w-80">
+              <div className="bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.05)] overflow-hidden relative w-72">
                 {/* Internal Light Leak from the connector */}
                 <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-20 h-32 blur-[40px] opacity-20 rounded-full ${hoveredTaskInfo.config.accent}`} />
                 
