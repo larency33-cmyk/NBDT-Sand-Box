@@ -2637,7 +2637,23 @@ const App = () => {
     }
   }, [project.startDate]);
 
-  const [currentStartWeek, setCurrentStartWeek] = useState(todayWeekIndex + 1);
+  const [currentStartWeek, setCurrentStartWeek] = useState(() => Math.max(1, Math.min(todayWeekIndex + 1, TOTAL_WEEKS)));
+  const [roadmapView, setRoadmapView] = useState<'weekly' | 'timeline'>('weekly');
+  const isWeeklyFocus = roadmapView === 'weekly';
+  const focusedWeekIndex = Math.max(0, Math.min(currentStartWeek - 1, TOTAL_WEEKS - 1));
+  const roadmapWeekWidth = isWeeklyFocus ? 980 : WEEK_WIDTH;
+  const visibleWeekIndexes = useMemo(() => {
+    if (isWeeklyFocus) return [focusedWeekIndex];
+    return Array.from({ length: TOTAL_WEEKS }, (_, i) => i);
+  }, [isWeeklyFocus, focusedWeekIndex]);
+  const roadmapCanvasWidth = MEMBER_LABEL_WIDTH + (isWeeklyFocus ? roadmapWeekWidth : TOTAL_WEEKS * WEEK_WIDTH);
+  const displayWeekEnd = isWeeklyFocus ? currentStartWeek : Math.min(currentStartWeek + 5, TOTAL_WEEKS);
+  const selectedWeekRange = getWeekRange(project.startDate, focusedWeekIndex);
+  const selectedWeekTasks = useMemo(() => {
+    return project.tasks.filter(task => !task.isMilestone && task.startWeek <= focusedWeekIndex && (task.startWeek + task.duration) > focusedWeekIndex);
+  }, [project.tasks, focusedWeekIndex]);
+  const selectedWeekCompleted = selectedWeekTasks.filter(task => task.status === 'Completed').length;
+  const selectedWeekBlocked = selectedWeekTasks.filter(task => task.status === 'Blocked').length;
 
   useEffect(() => {
     if (!isNaN(todayWeekIndex) && activeTab === 'roadmap') {
@@ -2648,27 +2664,33 @@ const App = () => {
   }, [activeTab, todayWeekIndex]);
 
   const scrollToWeek = (week: number) => {
-    if (!scrollContainerRef.current) return;
     const clampedWeek = Math.max(1, Math.min(week, TOTAL_WEEKS));
-    const targetScroll = (clampedWeek - 1) * WEEK_WIDTH;
+    setCurrentStartWeek(clampedWeek);
+    if (!scrollContainerRef.current) return;
+    const targetScroll = isWeeklyFocus ? 0 : (clampedWeek - 1) * WEEK_WIDTH;
     scrollContainerRef.current.scrollTo({
       left: targetScroll,
       behavior: 'smooth'
     });
-    setCurrentStartWeek(clampedWeek);
   };
 
   const handleNextWeek = () => scrollToWeek(currentStartWeek + 1);
   const handlePrevWeek = () => scrollToWeek(currentStartWeek - 1);
 
   const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
+    if (isWeeklyFocus || !scrollContainerRef.current) return;
     const scrollPos = scrollContainerRef.current.scrollLeft;
     const weekIndex = Math.round(scrollPos / WEEK_WIDTH) + 1;
     if (weekIndex !== currentStartWeek) {
       setCurrentStartWeek(weekIndex);
     }
   };
+
+  useEffect(() => {
+    if (isWeeklyFocus && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+  }, [isWeeklyFocus, currentStartWeek]);
 
   useEffect(() => {
     localStorage.setItem('nbdt_projects_list', JSON.stringify(projects));
@@ -3483,7 +3505,26 @@ const App = () => {
           <div className="flex-1 flex flex-col overflow-hidden animate-fadeIn">
             <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50">
               <div className="flex items-center gap-8">
-                <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
+                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    {isWeeklyFocus ? `Weekly Focus · Week ${currentStartWeek} · ${selectedWeekRange}` : 'Master Timeline · 28-week delivery plan'}
+                  </p>
+                </div>
+                <div className="hidden xl:flex items-center rounded-2xl border border-slate-800/80 bg-slate-950/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+                  <button
+                    onClick={() => setRoadmapView('weekly')}
+                    className={`group relative min-w-[150px] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${isWeeklyFocus ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200'}`}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2"><Calendar size={13} /> Weekly Focus</span>
+                  </button>
+                  <button
+                    onClick={() => setRoadmapView('timeline')}
+                    className={`group relative min-w-[160px] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${!isWeeklyFocus ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200'}`}
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2"><Layout size={13} /> Master Timeline</span>
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center gap-6">
@@ -3515,7 +3556,7 @@ const App = () => {
                 {/* Week Navigation */}
                 <div className="flex items-center bg-[#0a0f1d] border border-slate-800 rounded-2xl p-1 gap-2">
                    <button onClick={handlePrevWeek} disabled={currentStartWeek <= 1} className="p-2 hover:bg-slate-800 rounded-xl disabled:opacity-20 transition-colors"><ChevronLeft size={18} /></button>
-                   <span className="text-[10px] font-black tracking-widest min-w-[120px] text-center uppercase text-slate-300">WEEKS {currentStartWeek}-{Math.min(currentStartWeek + 5, TOTAL_WEEKS)}</span>
+                   <span className="text-[10px] font-black tracking-widest min-w-[150px] text-center uppercase text-slate-300">{isWeeklyFocus ? `WEEK ${currentStartWeek}` : `WEEKS ${currentStartWeek}-${displayWeekEnd}`}</span>
                    <button onClick={handleNextWeek} disabled={currentStartWeek >= TOTAL_WEEKS} className="p-2 hover:bg-slate-800 rounded-xl disabled:opacity-20 transition-colors"><ChevronRight size={18} /></button>
                 </div>
               </div>
@@ -3524,7 +3565,7 @@ const App = () => {
             {/* Sub-header with legend and jump button */}
             <div className="px-10 py-4 flex items-center justify-between border-b border-slate-900/30 bg-slate-950/20">
               <div className="flex items-center gap-4">
-                <span className="text-xs font-bold text-slate-500 tracking-[0.3em] uppercase opacity-80">Master Delivery (28 Weeks)</span>
+                <span className="text-xs font-bold text-slate-500 tracking-[0.3em] uppercase opacity-80">{isWeeklyFocus ? `Weekly Execution · ${selectedWeekTasks.length} Tasks · ${selectedWeekCompleted} Done · ${selectedWeekBlocked} Blocked` : 'Master Delivery (28 Weeks)'}</span>
                 <div className="h-px w-10 bg-slate-800"></div>
                 <button onClick={() => scrollToWeek(todayWeekIndex + 1)} className="flex items-center gap-2 text-orange-500 text-[11px] font-black tracking-widest hover:text-orange-400 transition-colors">
                   <Navigation className="w-4 h-4 rotate-45 fill-current" /> JUMP TO TODAY
@@ -3556,9 +3597,9 @@ const App = () => {
                 onScroll={handleScroll}
                 className="flex-1 overflow-x-auto overflow-y-auto bg-[#020617] no-scrollbar scroll-smooth"
             >
-               <div className="inline-block relative min-h-full" style={{ width: (TOTAL_WEEKS * WEEK_WIDTH) + MEMBER_LABEL_WIDTH }}>
-                  {daysFromStart >= 0 && daysFromStart <= TOTAL_WEEKS * 7 && (
-                    <div className="absolute top-0 bottom-0 w-[1.5px] bg-orange-500/50 z-[55] pointer-events-none" style={{ left: MEMBER_LABEL_WIDTH + ((daysFromStart + 0.5) * (WEEK_WIDTH / 7)) }}>
+               <div className="inline-block relative min-h-full" style={{ width: roadmapCanvasWidth }}>
+                  {daysFromStart >= 0 && daysFromStart <= TOTAL_WEEKS * 7 && (!isWeeklyFocus || todayWeekIndex === focusedWeekIndex) && (
+                    <div className="absolute top-0 bottom-0 w-[1.5px] bg-orange-500/50 z-[55] pointer-events-none" style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? ((daysFromStart - (focusedWeekIndex * 7) + 0.5) * (roadmapWeekWidth / 7)) : ((daysFromStart + 0.5) * (WEEK_WIDTH / 7))) }}>
                        {/* Today Indicator Label */}
                        <div className="sticky top-2 left-0 -translate-x-1/2 flex flex-col items-center z-[70]">
                           <span className="text-[8px] font-black text-orange-500 uppercase tracking-[0.3em] drop-shadow-sm">Today</span>
@@ -3586,7 +3627,7 @@ const App = () => {
                            </div>
                         </div>
                      </div>
-                     {Array.from({ length: TOTAL_WEEKS }).map((_, i) => {
+                     {visibleWeekIndexes.map((i) => {
                        const isCurrentWeek = i === todayWeekIndex;
                        const weekStart = parseLocalDate(project.startDate);
                        weekStart.setDate(weekStart.getDate() + (i * 7));
@@ -3598,7 +3639,7 @@ const App = () => {
                        });
 
                        return (
-                        <div key={i} className={`flex-shrink-0 border-r border-slate-800/20 w-[200px] flex flex-col items-center justify-center relative transition-all duration-500 ${isCurrentWeek ? 'bg-indigo-500/[0.03]' : ''}`}>
+                        <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r border-slate-800/20 flex flex-col items-center justify-center relative transition-all duration-500 ${isCurrentWeek ? 'bg-indigo-500/[0.03]' : ''}`}>
                           {isCurrentWeek && (
                             <>
                               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-80" />
@@ -3639,12 +3680,12 @@ const App = () => {
                           </div>
                         )}
                      </div>
-                     {Array.from({ length: TOTAL_WEEKS }).map((_, i) => (
-                        <div key={i} className={`flex-shrink-0 border-r border-indigo-500/10 w-[200px] h-full relative z-10 flex items-center justify-center group/ms-cell ${isAdmin && dragOverCell?.memberId === 'milestones' && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: 'milestones', week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: 'milestones', startWeek: i, isMilestone: true } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
+                     {visibleWeekIndexes.map((i) => (
+                        <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r border-indigo-500/10 h-full relative z-10 flex items-center justify-center group/ms-cell ${isAdmin && dragOverCell?.memberId === 'milestones' && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: 'milestones', week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: 'milestones', startWeek: i, isMilestone: true } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
                           {isAdmin && <button onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} className="opacity-0 group-hover/ms-cell:opacity-100 p-2 bg-indigo-600 rounded-full text-white transition-all z-20 scale-75 hover:scale-100"><Plus size={16}/></button>}
                         </div>
                      ))}
-                     {project.tasks.filter(t => t.isMilestone).map(m => {
+                     {project.tasks.filter(t => t.isMilestone && (!isWeeklyFocus || t.startWeek === focusedWeekIndex)).map(m => {
                         const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
                         if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
                         const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
@@ -3662,7 +3703,7 @@ const App = () => {
                             onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
                             onMouseLeave={() => setHoveredTaskInfo(null)}
                             className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-20 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
-                            style={{ left: MEMBER_LABEL_WIDTH + (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2) }} 
+                            style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? (roadmapWeekWidth / 2) : (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2)) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
                           >
                              {/* Refined Flag Pin */}
@@ -3758,12 +3799,12 @@ const App = () => {
                                  )}
                               </div>
                            </div>
-                           {Array.from({ length: TOTAL_WEEKS }).map((_, i) => (
-                            <div key={i} className={`flex-shrink-0 border-r w-[200px] h-full relative z-10 transition-colors ${member.isLead && !member.isTeamLead ? 'border-indigo-500/5' : 'border-slate-800/10'} ${dragOverCell?.memberId === member.id && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: member.id, week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: member.id, startWeek: i, isMilestone: false } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
+                           {visibleWeekIndexes.map((i) => (
+                            <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r h-full relative z-10 transition-colors ${member.isLead && !member.isTeamLead ? 'border-indigo-500/5' : 'border-slate-800/10'} ${dragOverCell?.memberId === member.id && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: member.id, week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: member.id, startWeek: i, isMilestone: false } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
                                {isAdmin && <button onClick={() => setDraftTask({ id: `t-${Date.now()}`, label: 'NEW TASK', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: member.id })} className="opacity-0 hover:opacity-100 absolute inset-0 flex items-center justify-center transition-all bg-indigo-500/5 transition-opacity"><Plus size={14} className="text-indigo-500" /></button>}
                             </div>
                           ))}
-                          {project.tasks.filter(t => t.memberId === member.id && !t.isMilestone).map(task => {
+                          {project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex))).map(task => {
                             const statusConfigs = {
                               'Completed': { dot: 'bg-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-50', glow: '' },
                               'In Progress': { dot: 'bg-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-50', glow: '' },
@@ -3788,13 +3829,16 @@ const App = () => {
                                 onMouseLeave={() => setHoveredTaskInfo(null)}
                                 onClick={() => isAdmin && setDraftTask(task)} 
                                 className={`absolute top-2 bottom-2 rounded-md border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.4)] overflow-hidden bg-[#0b1120] border-slate-800/60 ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : task.status === 'Planned' ? 'opacity-70' : 'opacity-100'}`} 
-                                style={{ left: MEMBER_LABEL_WIDTH + (task.startWeek * WEEK_WIDTH) + 8, width: (task.duration * WEEK_WIDTH) - 16 }}
+                                style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 8 : (task.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 16) : ((task.duration * WEEK_WIDTH) - 16) }}
                               >
                                 {/* Accent Bar */}
                                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${config.dot}`} />
 
                                 <div className="flex items-center w-full h-full px-3">
-                                  <span className="text-[10px] font-normal truncate tracking-tight text-slate-400 group-hover/task:text-slate-200 transition-colors duration-300">{task.label}</span>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[10px] font-normal truncate tracking-tight text-slate-400 group-hover/task:text-slate-200 transition-colors duration-300">{task.label}</span>
+                                    {isWeeklyFocus && <span className="text-[7px] font-black uppercase tracking-widest text-slate-600">{task.status} · Week {focusedWeekIndex + 1}</span>}
+                                  </div>
                                   
                                   {task.checklist && task.checklist.length > 0 && (
                                     <div className="flex items-center gap-1.5 ml-auto pl-2 opacity-30">
