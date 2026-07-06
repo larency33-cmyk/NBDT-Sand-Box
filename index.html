@@ -307,7 +307,7 @@
 </script>
 
     <style>
-      /* NBDT SAFE UI POLISH STEP 1 + 2 + 3 - CSS ONLY, no React logic changes */
+      /* NBDT SAFE UI POLISH STEP 1 + 2 + 3 + 4 - CSS ONLY, no React logic changes */
       :root {
         --nbdt-bg-0: #020617;
         --nbdt-bg-1: #071022;
@@ -332,7 +332,6 @@
         color: var(--nbdt-text);
       }
 
-      /* Accessibility: visible focus without app logic changes */
       button:focus-visible,
       input:focus-visible,
       select:focus-visible,
@@ -343,7 +342,6 @@
         box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.15) !important;
       }
 
-      /* Scrollbar visibility for wide roadmap */
       *::-webkit-scrollbar { width: 10px; height: 10px; }
       *::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.42); }
       *::-webkit-scrollbar-thumb {
@@ -376,7 +374,7 @@
       [class*="text-slate-600"] { color: #64748b !important; }
       [class*="text-slate-500"] { color: #7f8ea3 !important; }
 
-      /* Step 2: Roadmap task cards */
+      /* Roadmap task cards: stronger readable cards with preserved layout */
       [class*="cursor-grab"][class*="rounded"] {
         background:
           linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(8, 13, 27, 0.86)) !important;
@@ -419,7 +417,6 @@
       [class*="z-[9999]"] h3,
       [class*="z-[9999]"] [class*="font-black"] { color: #f8fafc !important; }
 
-      /* Step 3: stronger command-center structure without changing layout */
       aside {
         background:
           radial-gradient(circle at 18% 4%, rgba(99,102,241,0.16), transparent 28%),
@@ -428,11 +425,8 @@
       }
 
       aside button,
-      aside [class*="rounded"] {
-        backdrop-filter: blur(12px);
-      }
+      aside [class*="rounded"] { backdrop-filter: blur(12px); }
 
-      /* Active/primary navigation item looks more intentional */
       aside [class*="bg-indigo"],
       aside [class*="bg-violet"],
       aside [class*="bg-purple"],
@@ -442,25 +436,15 @@
           inset 0 1px 0 rgba(255,255,255,0.08) !important;
       }
 
-      /* Header separation and premium glass line */
       header {
         background:
           linear-gradient(180deg, rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.38)) !important;
         backdrop-filter: blur(14px);
       }
 
-      /* Week/date rows become easier to scan */
       [class*="tracking-[0.3em]"],
       [class*="tracking-widest"] { text-rendering: geometricPrecision; }
 
-      /* Milestone cards: slightly clearer visual anchor */
-      [class*="Milestones"],
-      button:has(svg + span),
-      button:has(span) {
-        text-rendering: geometricPrecision;
-      }
-
-      /* Date input block gets a cleaner console look */
       input[type="date"],
       input[type="text"],
       input[type="search"] {
@@ -468,11 +452,58 @@
         border-color: rgba(148, 163, 184, 0.18) !important;
       }
 
-      /* Status dots glow slightly so planned/in progress/completed/blocked read faster */
       .bg-emerald-500, .bg-emerald-400 { box-shadow: 0 0 16px rgba(52, 211, 153, 0.28); }
       .bg-blue-500, .bg-blue-400 { box-shadow: 0 0 16px rgba(59, 130, 246, 0.28); }
       .bg-red-500, .bg-rose-500 { box-shadow: 0 0 16px rgba(239, 68, 68, 0.28); }
       .bg-orange-500, .bg-amber-500 { box-shadow: 0 0 16px rgba(245, 158, 11, 0.24); }
+
+      /* Step 4: premium roadmap clarity - safer micro-tuning */
+      [class*="cursor-grab"] {
+        min-height: 34px;
+      }
+
+      [class*="cursor-grab"] [class*="text-[10px]"],
+      [class*="cursor-grab"] [class*="text-[9px]"] {
+        font-size: 10.5px !important;
+        line-height: 1.25rem !important;
+      }
+
+      /* Make the left team/member rail feel like a stable visual anchor */
+      main [class*="font-black"][class*="uppercase"],
+      main [class*="font-bold"][class*="uppercase"] {
+        text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+      }
+
+      /* Week columns and major separators become easier to scan on wide displays */
+      main [class*="border-l"],
+      main [class*="border-r"] {
+        border-color: rgba(99, 102, 241, 0.13) !important;
+      }
+
+      main [class*="border-t"],
+      main [class*="border-b"] {
+        border-color: rgba(148, 163, 184, 0.12) !important;
+      }
+
+      /* Milestone lane: stronger premium anchor without changing height */
+      main button[class*="bg-indigo"],
+      main button[class*="bg-violet"],
+      main button[class*="bg-purple"] {
+        background-image: linear-gradient(135deg, rgba(99,102,241,0.98), rgba(79,70,229,0.94)) !important;
+        box-shadow: 0 14px 34px rgba(79,70,229,0.28), inset 0 1px 0 rgba(255,255,255,0.14) !important;
+      }
+
+      /* Tooltip/popover: more readable meta rows */
+      [class*="z-[9999]"] [class*="text-[9px]"],
+      [class*="z-[9999]"] [class*="text-[10px]"] {
+        letter-spacing: 0.02em;
+      }
+
+      /* Completed/disabled-looking cards stay readable but less dominant */
+      [class*="cursor-grab"]:has([class*="opacity-30"]),
+      [class*="cursor-grab"]:has([class*="opacity-40"]) {
+        opacity: 0.88;
+      }
 
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
