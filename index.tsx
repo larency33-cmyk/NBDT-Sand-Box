@@ -17,9 +17,7 @@ import {
   Ship,
   Calendar,
   Box,
-  Send,
-  Loader2,
-  Navigation,
+Navigation,
   ChevronLeft,
   Flag,
   Save,
@@ -97,7 +95,6 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update, remove, get } from 'firebase/database';
@@ -2612,10 +2609,6 @@ const App = () => {
   const [assigneeFilter, setAssigneeFilter] = useState<string>('');
   const [issueStatusFilter, setIssueStatusFilter] = useState<string>('');
   const [issueSeverityFilter, setIssueSeverityFilter] = useState<string>('');
-  const [showChat, setShowChat] = useState(false);
-  const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverCell, setDragOverCell] = useState<{ memberId: string, week: number } | null>(null);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
@@ -3131,24 +3124,6 @@ const App = () => {
         : [...prev.issues, i]
     }));
     setDraftIssue(null);
-  };
-
-  const askGemini = async () => {
-    if (!chatInput.trim() || isTyping) return;
-    const userPrompt = chatInput.trim();
-    setChatInput('');
-    setChatHistory(prev => [...prev, { role: 'user', text: userPrompt }]);
-    setIsTyping(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: `Project State: ${JSON.stringify(project)}. Question: ${userPrompt}`,
-      });
-      setChatHistory(prev => [...prev, { role: 'ai', text: response.text || "No response." }]);
-    } catch (e) {
-      setChatHistory(prev => [...prev, { role: 'ai', text: "AI Error. Check key." }]);
-    } finally { setIsTyping(false); }
   };
 
   const toggleFilter = (f: string) => {
@@ -4572,30 +4547,6 @@ const App = () => {
               rows={project.configReportRows || INITIAL_CONFIG_REPORT_ROWS}
               onRowsChange={(newRows) => handleAction(prev => ({ ...prev, configReportRows: newRows }))}
             />
-          </div>
-        )}
-
-        {showChat && (
-          <div className="fixed inset-y-0 right-0 w-[420px] bg-[#0a0f1d] border-l border-slate-800 shadow-2xl flex flex-col z-[90] animate-fadeIn">
-             <div className="p-8 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3">
-                    <Sparkles size={20} className="text-blue-400" />
-                    <span className="font-black text-lg uppercase tracking-tighter text-white">Roadmap Intelligence</span>
-                </div>
-                <button onClick={() => setShowChat(false)} className="text-slate-500 hover:text-white transition-colors"><X size={28}/></button>
-             </div>
-             <div className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar">
-                {chatHistory.map((m, i) => (
-                   <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[90%] p-5 rounded-2xl text-xs leading-relaxed shadow-lg ${m.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800/80 text-slate-200 border border-slate-700/50'}`}>{m.text}</div>
-                   </div>
-                ))}
-                {isTyping && <div className="flex justify-start"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>}
-             </div>
-             <div className="p-8 bg-[#020617] border-t border-slate-800 flex gap-3 shrink-0">
-                <input type="text" placeholder="Ask AI about systems or roadmap..." className="flex-1 bg-[#0a0f1d] border border-slate-800 rounded-xl px-4 py-3.5 text-xs outline-none focus:border-indigo-500 text-white transition-all" value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && askGemini()} />
-                <button onClick={askGemini} className="p-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg transition-all active:scale-90"><Send size={16}/></button>
-             </div>
           </div>
         )}
 
