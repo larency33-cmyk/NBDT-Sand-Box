@@ -3676,7 +3676,7 @@ const App = () => {
                   </div>
 
                    {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-16' : 'h-48'}`}>
+                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] h-16`}>
                      <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
                         {isAdmin ? (
                           <button 
@@ -3713,45 +3713,30 @@ const App = () => {
                             onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }} 
                             onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
                             onMouseLeave={() => setHoveredTaskInfo(null)}
-                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-20 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex items-center z-20 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
                             style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? (roadmapWeekWidth / 2) : (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2)) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
                           >
-                             {/* Refined Flag Pin */}
-                             <div className={`relative flex flex-col items-center ${isWeeklyFocus ? 'h-8 justify-center' : 'h-16 justify-end'}`}>
-                                <div className={`w-8 h-8 rounded-full border-2 border-[#020617] flex items-center justify-center relative z-10 transition-all duration-500 group-hover/m:scale-110 group-hover/m:-translate-y-1 ${mConfig.accent} ${mConfig.glow}`}>
-                                   <Flag size={12} className="text-white fill-white/20" />
-                                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-white/40 pointer-events-none" />
-                                </div>
-                                <div className={`w-[2px] ${isWeeklyFocus ? 'h-2' : 'h-6 group-hover/m:h-8'} -mt-1 bg-gradient-to-b from-current to-transparent opacity-40 transition-all duration-500 ${mConfig.text.replace('text-', 'bg-')}`} />
-                             </div>
-                             
-                             <div className={`mt-1 bg-gradient-to-b from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl ${isWeeklyFocus ? 'px-4 py-1.5 min-w-[220px] h-[42px]' : 'px-4 pt-4 pb-3 min-w-[160px] h-[100px]'} flex flex-col items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-1 group-hover/m:shadow-[0_25px_50px_rgba(0,0,0,0.7)] transition-all duration-500 relative`}>
+                             {/* Compact standardized milestone card - flag moved inside the card */}
+                             <div className={`bg-gradient-to-r from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-3 py-2 min-w-[220px] h-[42px] flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_20px_45px_rgba(0,0,0,0.6)] transition-all duration-500 relative overflow-hidden`}>
                                 {/* Subtle internal glow */}
                                 <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
-                                
-                                <div className="w-full h-5 flex items-center justify-center relative z-10">
+
+                                <div className={`relative z-10 w-8 h-8 rounded-xl border border-white/10 flex items-center justify-center shrink-0 transition-all duration-500 group-hover/m:scale-105 ${mConfig.accent} ${mConfig.glow}`}>
+                                   <Flag size={13} className="text-white fill-white/20" />
+                                   <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-transparent via-white/15 to-white/30 pointer-events-none" />
+                                </div>
+
+                                <div className="relative z-10 flex flex-col justify-center min-w-0 flex-1">
                                    <span className="text-[12px] font-semibold text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300">{m.label}</span>
-                                </div>
-                                <div className="w-full h-4 flex items-center justify-center mt-1 relative z-10">
-                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
-                                </div>
-                                
-                                <div className={`${isWeeklyFocus ? 'hidden' : 'mt-auto flex'} items-center justify-center h-6 w-full relative z-10`}>
-                                   {m.checklist && m.checklist.length > 0 ? (
-                                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-2.5 py-1 border border-white/5">
-                                         <div className="flex -space-x-1">
-                                            {m.checklist.slice(0, 4).map((item, i) => (
-                                               <div key={item.id} className={`w-1.5 h-1.5 rounded-full border border-[#0a0f1d] ${item.completed ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} style={{ zIndex: 4-i }} />
-                                            ))}
-                                         </div>
-                                         <span className="text-[9px] font-black tracking-tighter text-slate-400">
-                                            {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
-                                         </span>
-                                      </div>
-                                   ) : (
-                                      <div className={`w-12 h-1 rounded-full opacity-20 ${mConfig.accent}`} />
-                                   )}
+                                   <div className="flex items-center gap-2 mt-0.5 min-w-0">
+                                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest shrink-0">{mDateStr}</span>
+                                      {m.checklist && m.checklist.length > 0 && (
+                                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest truncate">
+                                          · {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
+                                        </span>
+                                      )}
+                                   </div>
                                 </div>
                              </div>
                           </div>
