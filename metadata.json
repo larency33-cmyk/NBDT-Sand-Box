@@ -1,0 +1,7 @@
+{
+  "name": "Legend OTS Project Hub",
+  "description": "Advanced project roadmap and assignment tracking system for Legend OTS.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
