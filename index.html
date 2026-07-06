@@ -305,7 +305,116 @@
   }
 }
 </script>
-</head>
+
+    <style>
+      /* NBDT SAFE UI POLISH STEP 1 - CSS ONLY, no React logic changes */
+      :root {
+        --nbdt-bg-0: #020617;
+        --nbdt-bg-1: #071022;
+        --nbdt-glass: rgba(15, 23, 42, 0.62);
+        --nbdt-border: rgba(148, 163, 184, 0.16);
+        --nbdt-text: #e5edf8;
+        --nbdt-muted: #94a3b8;
+        --nbdt-indigo: #6366f1;
+        --nbdt-cyan: #22d3ee;
+        --nbdt-emerald: #34d399;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        background: var(--nbdt-bg-0);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 16% 10%, rgba(99, 102, 241, 0.14), transparent 30%),
+          radial-gradient(circle at 88% 18%, rgba(34, 211, 238, 0.08), transparent 28%),
+          radial-gradient(circle at 70% 105%, rgba(16, 185, 129, 0.06), transparent 26%),
+          linear-gradient(135deg, #020617 0%, #071022 48%, #020617 100%) !important;
+        color: var(--nbdt-text);
+      }
+
+      /* Keep keyboard accessibility visible without changing app logic */
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      [role="button"]:focus-visible {
+        outline: 2px solid rgba(129, 140, 248, 0.95) !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.15) !important;
+      }
+
+      /* Better scrollbar visibility for wide roadmap work */
+      *::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.42);
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.72), rgba(34, 211, 238, 0.46));
+        border-radius: 999px;
+        border: 2px solid rgba(2, 6, 23, 0.88);
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, rgba(129, 140, 248, 0.92), rgba(45, 212, 191, 0.72));
+      }
+
+      /* Softer premium hover on interactive buttons only */
+      button {
+        transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:active {
+        transform: translateY(0) scale(0.99);
+      }
+
+      /* Improve truncated text readability without changing layout */
+      .truncate {
+        letter-spacing: -0.01em;
+      }
+
+      /* Gentle glass highlight on cards/panels using common Tailwind class patterns */
+      [class*="border-slate-800"],
+      [class*="border-slate-900"] {
+        border-color: rgba(148, 163, 184, 0.14) !important;
+      }
+
+      [class*="bg-slate-900/"],
+      [class*="bg-[#0a0f1d]"] {
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 12px 34px rgba(2,6,23,0.18);
+      }
+
+      /* Make tiny muted labels slightly more legible on dark UI */
+      [class*="text-slate-600"] {
+        color: #64748b !important;
+      }
+
+      [class*="text-slate-500"] {
+        color: #7f8ea3 !important;
+      }
+
+      /* Respect users who prefer reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+
+  </head>
 <body>
     <div class="atmosphere"></div>
     <div class="grid-pattern"></div>
