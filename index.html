@@ -307,7 +307,7 @@
 </script>
 
     <style>
-      /* NBDT SAFE UI POLISH STEP 1 - CSS ONLY, no React logic changes */
+      /* NBDT SAFE UI POLISH STEP 1 + STEP 2 - CSS ONLY, no React logic changes */
       :root {
         --nbdt-bg-0: #020617;
         --nbdt-bg-1: #071022;
@@ -334,7 +334,6 @@
         color: var(--nbdt-text);
       }
 
-      /* Keep keyboard accessibility visible without changing app logic */
       button:focus-visible,
       input:focus-visible,
       select:focus-visible,
@@ -345,7 +344,6 @@
         box-shadow: 0 0 0 5px rgba(99, 102, 241, 0.15) !important;
       }
 
-      /* Better scrollbar visibility for wide roadmap work */
       *::-webkit-scrollbar {
         width: 10px;
         height: 10px;
@@ -365,7 +363,6 @@
         background: linear-gradient(180deg, rgba(129, 140, 248, 0.92), rgba(45, 212, 191, 0.72));
       }
 
-      /* Softer premium hover on interactive buttons only */
       button {
         transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
       }
@@ -378,12 +375,10 @@
         transform: translateY(0) scale(0.99);
       }
 
-      /* Improve truncated text readability without changing layout */
       .truncate {
         letter-spacing: -0.01em;
       }
 
-      /* Gentle glass highlight on cards/panels using common Tailwind class patterns */
       [class*="border-slate-800"],
       [class*="border-slate-900"] {
         border-color: rgba(148, 163, 184, 0.14) !important;
@@ -394,7 +389,6 @@
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 12px 34px rgba(2,6,23,0.18);
       }
 
-      /* Make tiny muted labels slightly more legible on dark UI */
       [class*="text-slate-600"] {
         color: #64748b !important;
       }
@@ -403,7 +397,58 @@
         color: #7f8ea3 !important;
       }
 
-      /* Respect users who prefer reduced motion */
+      /* Step 2: Roadmap task cards, hover panel and readability */
+      [class*="cursor-grab"][class*="rounded"] {
+        background:
+          linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(8, 13, 27, 0.86)) !important;
+        border-color: rgba(148, 163, 184, 0.18) !important;
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.055),
+          0 8px 22px rgba(2, 6, 23, 0.22) !important;
+      }
+
+      [class*="cursor-grab"][class*="rounded"]:hover {
+        background:
+          radial-gradient(circle at 8% 50%, rgba(99,102,241,0.18), transparent 34%),
+          linear-gradient(180deg, rgba(20, 29, 52, 0.94), rgba(9, 14, 29, 0.92)) !important;
+        border-color: rgba(129, 140, 248, 0.42) !important;
+        box-shadow:
+          0 16px 36px rgba(2, 6, 23, 0.42),
+          0 0 0 1px rgba(129, 140, 248, 0.14),
+          inset 0 1px 0 rgba(255,255,255,0.08) !important;
+      }
+
+      [class*="cursor-grab"] .truncate,
+      [class*="cursor-grab"] [class*="truncate"] {
+        color: #cbd5e1 !important;
+        text-shadow: 0 1px 0 rgba(0,0,0,0.38);
+      }
+
+      [class*="cursor-grab"] [class*="text-slate-600"],
+      [class*="cursor-grab"] [class*="text-slate-500"] {
+        color: #8796ad !important;
+      }
+
+      [class*="z-[9999]"] [class*="bg-[#0f172a]"] {
+        background:
+          linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 13, 28, 0.98)) !important;
+        border-color: rgba(148, 163, 184, 0.2) !important;
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.74),
+          0 0 0 1px rgba(99, 102, 241, 0.12),
+          inset 0 1px 0 rgba(255,255,255,0.06) !important;
+      }
+
+      [class*="z-[9999]"] h3,
+      [class*="z-[9999]"] [class*="font-black"] {
+        color: #f8fafc !important;
+      }
+
+      button[class*="rounded-full"]:hover,
+      button[class*="rounded-xl"]:hover {
+        transform: translateY(-0.5px);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
           animation-duration: 0.01ms !important;
