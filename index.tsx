@@ -2641,7 +2641,7 @@ const App = () => {
   const [roadmapView, setRoadmapView] = useState<'weekly' | 'timeline'>('weekly');
   const isWeeklyFocus = roadmapView === 'weekly';
   const focusedWeekIndex = Math.max(0, Math.min(currentStartWeek - 1, TOTAL_WEEKS - 1));
-  const roadmapWeekWidth = isWeeklyFocus ? 1240 : WEEK_WIDTH;
+  const roadmapWeekWidth = isWeeklyFocus ? 960 : WEEK_WIDTH;
   const visibleWeekIndexes = useMemo(() => {
     if (isWeeklyFocus) return [focusedWeekIndex];
     return Array.from({ length: TOTAL_WEEKS }, (_, i) => i);
@@ -3511,7 +3511,7 @@ const App = () => {
                 <div>
                   <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
                   <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
-                    {isWeeklyFocus ? `Weekly Command View · Week ${currentStartWeek} · ${selectedWeekRange}` : 'Master Timeline · 28-week delivery plan'}
+                    {isWeeklyFocus ? `Weekly Board · Week ${currentStartWeek} · ${selectedWeekRange}` : 'Master Timeline · 28-week delivery plan'}
                   </p>
                 </div>
                 <div className="hidden xl:flex items-center rounded-2xl border border-slate-800/80 bg-slate-950/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
@@ -3566,9 +3566,9 @@ const App = () => {
             </header>
 
             {/* Sub-header with legend and jump button */}
-            <div className="px-10 py-4 flex items-center justify-between border-b border-slate-900/30 bg-slate-950/20">
+            <div className="px-10 py-3 flex items-center justify-between border-b border-slate-900/30 bg-slate-950/20">
               <div className="flex items-center gap-4">
-                <span className="text-xs font-bold text-slate-500 tracking-[0.3em] uppercase opacity-80">{isWeeklyFocus ? `Weekly Execution · ${selectedWeekTasks.length} Tasks · ${selectedWeekInProgress} Active · ${selectedWeekCompleted} Done · ${selectedWeekBlocked} Blocked · ${selectedWeekCompletion}% Complete` : 'Master Delivery (28 Weeks)'}</span>
+                <span className="text-xs font-bold text-slate-500 tracking-[0.3em] uppercase opacity-80">{isWeeklyFocus ? 'Team Focus Board' : 'Master Delivery (28 Weeks)'}</span>
                 <div className="h-px w-10 bg-slate-800"></div>
                 <button onClick={() => scrollToWeek(todayWeekIndex + 1)} className="flex items-center gap-2 text-orange-500 text-[11px] font-black tracking-widest hover:text-orange-400 transition-colors">
                   <Navigation className="w-4 h-4 rotate-45 fill-current" /> JUMP TO TODAY
@@ -3576,22 +3576,6 @@ const App = () => {
               </div>
               
               <div className="flex items-center gap-4">
-                {isWeeklyFocus && (
-                  <div className="hidden 2xl:flex items-center gap-2 mr-2">
-                    {[
-                      { label: 'Planned', value: selectedWeekPlanned, dot: 'bg-slate-500' },
-                      { label: 'Active', value: selectedWeekInProgress, dot: 'bg-blue-500' },
-                      { label: 'Complete', value: selectedWeekCompleted, dot: 'bg-emerald-500' },
-                      { label: 'Blocked', value: selectedWeekBlocked, dot: 'bg-red-500' },
-                    ].map(item => (
-                      <div key={item.label} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2">
-                        <div className={`w-2 h-2 rounded-full ${item.dot}`}></div>
-                        <span className="text-[9px] font-black text-slate-300 tabular-nums">{item.value}</span>
-                        <span className="text-[8px] font-black tracking-widest text-slate-500 uppercase">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-slate-600"></div>
                   <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Planned</span>
@@ -3629,22 +3613,30 @@ const App = () => {
                     </div>
                   )}
 
-                  <div className={`flex border-b border-slate-800/30 sticky top-0 z-50 bg-[#020617]/95 backdrop-blur-xl ${isWeeklyFocus ? 'h-28' : 'h-40'}`}>
+                  <div className={`flex border-b border-slate-800/30 sticky top-0 z-50 bg-[#020617]/95 backdrop-blur-xl ${isWeeklyFocus ? 'h-20' : 'h-40'}`}>
                      <div className="sticky left-0 z-[60] bg-[#020617] border-r border-slate-800/50 w-[220px] flex items-center justify-center px-4">
-                        <div className="w-full bg-[#0a0f1d] border border-slate-800 p-4 rounded-2xl shadow-xl">
-                           <h3 className="text-[10px] font-bold text-slate-500 tracking-[0.2em] mb-2 uppercase opacity-60">Timeline Start</h3>
-                           <div className="relative group/date">
-                             <input 
-                               type="date" 
-                               value={project.startDate} 
-                               readOnly={!isAdmin}
-                               onChange={(e) => isAdmin && handleAction(p => ({ ...p, startDate: e.target.value }))} 
-                               onClick={(e) => isAdmin && (e.target as any).showPicker?.()} 
-                               className={`w-full bg-slate-950 border border-slate-800 rounded-xl p-2 pr-10 text-[11px] font-bold text-indigo-400 outline-none transition-all appearance-none ${isAdmin ? 'cursor-pointer hover:border-indigo-500/50' : 'cursor-default'}`} 
-                             />
-                             {isAdmin && <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500/50 group-hover/date:text-indigo-400 pointer-events-none transition-colors" size={14} />}
-                           </div>
-                        </div>
+                        {isWeeklyFocus ? (
+                          <div className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] px-4 py-3 shadow-xl">
+                            <div className="text-[8px] font-black uppercase tracking-[0.26em] text-indigo-400/70">Focus Week</div>
+                            <div className="mt-1 text-sm font-black text-white tracking-tight">Week {currentStartWeek}</div>
+                            <div className="mt-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
+                          </div>
+                        ) : (
+                          <div className="w-full bg-[#0a0f1d] border border-slate-800 p-4 rounded-2xl shadow-xl">
+                             <h3 className="text-[10px] font-bold text-slate-500 tracking-[0.2em] mb-2 uppercase opacity-60">Timeline Start</h3>
+                             <div className="relative group/date">
+                               <input 
+                                 type="date" 
+                                 value={project.startDate} 
+                                 readOnly={!isAdmin}
+                                 onChange={(e) => isAdmin && handleAction(p => ({ ...p, startDate: e.target.value }))} 
+                                 onClick={(e) => isAdmin && (e.target as any).showPicker?.()} 
+                                 className={`w-full bg-slate-950 border border-slate-800 rounded-xl p-2 pr-10 text-[11px] font-bold text-indigo-400 outline-none transition-all appearance-none ${isAdmin ? 'cursor-pointer hover:border-indigo-500/50' : 'cursor-default'}`} 
+                               />
+                               {isAdmin && <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500/50 group-hover/date:text-indigo-400 pointer-events-none transition-colors" size={14} />}
+                             </div>
+                          </div>
+                        )}
                      </div>
                      {visibleWeekIndexes.map((i) => {
                        const isCurrentWeek = i === todayWeekIndex;
@@ -3665,13 +3657,13 @@ const App = () => {
                               <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
                             </>
                           )}
-                          <div className={`flex flex-col items-center ${isWeeklyFocus ? 'mb-4' : 'mb-6'}`}>
+                          <div className={`flex flex-col items-center ${isWeeklyFocus ? 'mb-2' : 'mb-6'}`}>
                             <span className={`text-xs font-black mb-1 transition-colors duration-500 ${isCurrentWeek ? 'text-white scale-110' : 'text-slate-400'}`}>WEEK {i + 1}</span>
                             <span className={`text-[10px] font-bold font-mono tracking-tight transition-colors duration-500 ${isCurrentWeek ? 'text-indigo-400' : 'text-slate-600'}`}>{getWeekRange(project.startDate, i)}</span>
                           </div>
 
                           {/* Days Row */}
-                          <div className={`absolute bottom-0 left-0 right-0 flex border-t border-slate-800/30 ${isWeeklyFocus ? 'h-7' : 'h-8'} bg-slate-950/20`}>
+                          <div className={`absolute bottom-0 left-0 right-0 flex border-t border-slate-800/30 ${isWeeklyFocus ? 'h-6' : 'h-8'} bg-slate-950/20`}>
                             {days.map((day, dayIdx) => (
                               <div key={dayIdx} className="flex-1 flex items-center justify-center border-r border-slate-800/10 last:border-r-0 relative group/day-label">
                                  <span className="text-[9px] font-bold text-slate-500 group-hover/day-label:text-indigo-400 transition-colors">{day.toString().padStart(2, '0')}</span>
@@ -3684,7 +3676,7 @@ const App = () => {
                   </div>
 
                    {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-24' : 'h-48'}`}>
+                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-16' : 'h-48'}`}>
                      <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
                         {isAdmin ? (
                           <button 
@@ -3734,7 +3726,7 @@ const App = () => {
                                 <div className={`w-[2px] ${isWeeklyFocus ? 'h-2' : 'h-6 group-hover/m:h-8'} -mt-1 bg-gradient-to-b from-current to-transparent opacity-40 transition-all duration-500 ${mConfig.text.replace('text-', 'bg-')}`} />
                              </div>
                              
-                             <div className={`mt-1 bg-gradient-to-b from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl ${isWeeklyFocus ? 'px-5 pt-2 pb-2 min-w-[260px] h-[58px]' : 'px-4 pt-4 pb-3 min-w-[160px] h-[100px]'} flex flex-col items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-1 group-hover/m:shadow-[0_25px_50px_rgba(0,0,0,0.7)] transition-all duration-500 relative`}>
+                             <div className={`mt-1 bg-gradient-to-b from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl ${isWeeklyFocus ? 'px-4 py-1.5 min-w-[220px] h-[42px]' : 'px-4 pt-4 pb-3 min-w-[160px] h-[100px]'} flex flex-col items-center shadow-[0_12px_40px_rgba(0,0,0,0.5)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-1 group-hover/m:shadow-[0_25px_50px_rgba(0,0,0,0.7)] transition-all duration-500 relative`}>
                                 {/* Subtle internal glow */}
                                 <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
                                 
@@ -3768,11 +3760,11 @@ const App = () => {
                   </div>
 
                   {/* Team Members Grid */}
-                  <div className="pb-40">
+                  <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
                      {project.members.map(member => (
                         <div 
                           key={member.id} 
-                          className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? 'h-[46px]' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
+                          className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? 'h-[54px]' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
                         >
                            <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
@@ -3847,7 +3839,7 @@ const App = () => {
                                 onMouseEnter={(e) => setHoveredTaskInfo({ task, memberName: member.name, config, isMilestone: false, rect: e.currentTarget.getBoundingClientRect() })}
                                 onMouseLeave={() => setHoveredTaskInfo(null)}
                                 onClick={() => isAdmin && setDraftTask(task)} 
-                                className={`absolute top-2 bottom-2 rounded-md border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.4)] overflow-hidden bg-[#0b1120] border-slate-800/60 ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : task.status === 'Planned' ? 'opacity-70' : 'opacity-100'}`} 
+                                className={`absolute ${isWeeklyFocus ? 'top-1.5 bottom-1.5 rounded-xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.4)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 to-[#0b1120]/90 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : task.status === 'Planned' ? 'opacity-70' : 'opacity-100'}`} 
                                 style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (task.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : ((task.duration * WEEK_WIDTH) - 16) }}
                               >
                                 {/* Accent Bar */}
@@ -3856,7 +3848,7 @@ const App = () => {
                                 <div className="flex items-center w-full h-full px-3">
                                   <div className="flex flex-col min-w-0">
                                     <span className={`${isWeeklyFocus ? 'text-[11px] font-semibold' : 'text-[10px] font-normal'} truncate tracking-tight text-slate-400 group-hover/task:text-slate-200 transition-colors duration-300`}>{task.label}</span>
-                                    {isWeeklyFocus && <span className="text-[7px] font-black uppercase tracking-widest text-slate-600">{task.status} · Week {focusedWeekIndex + 1}</span>}
+                                    {isWeeklyFocus && <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{task.category || task.status}</span>}
                                   </div>
                                   
                                   {task.checklist && task.checklist.length > 0 && (
