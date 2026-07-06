@@ -196,6 +196,7 @@ interface Issue {
   assigneeId?: string;
   createdAt: number;
   updatedAt: number;
+  version?: string;
 }
 
 interface ProjectMeta {
@@ -609,11 +610,12 @@ const SortableItem = ({
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`group flex items-center gap-2 p-1.5 rounded-lg border transition-all ${
-        item.completed 
-        ? `bg-${sectionColor}-500/5 border-${sectionColor}-500/20 text-${sectionColor}-400` 
-        : 'bg-slate-900/20 border-slate-800/40 text-slate-500 hover:border-slate-700/60'
-      }`}
+      className={cn(
+        'group flex items-center gap-2 p-1.5 rounded-lg border transition-all',
+        item.completed
+          ? CHECKSHEET_COLOR_CLASSES[getCheckSheetColor(sectionColor)].itemDone
+          : 'bg-slate-900/20 border-slate-800/40 text-slate-500 hover:border-slate-700/60'
+      )}
     >
       {isAdmin && (
         <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing p-1 text-slate-700 hover:text-slate-500 transition-colors shrink-0">
@@ -626,9 +628,10 @@ const SortableItem = ({
         onClick={onToggle}
         className="flex-1 flex items-center gap-2.5 text-left overflow-hidden py-0.5"
       >
-        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all shrink-0 ${
-          item.completed ? `bg-${sectionColor}-500 border-${sectionColor}-500 text-slate-950` : 'border-slate-700'
-        }`}>
+        <div className={cn(
+          'w-3.5 h-3.5 rounded border flex items-center justify-center transition-all shrink-0',
+          item.completed ? CHECKSHEET_COLOR_CLASSES[getCheckSheetColor(sectionColor)].checkboxDone : 'border-slate-700'
+        )}>
           {item.completed && <CheckCircle2 size={10} strokeWidth={4} />}
         </div>
         <span className="text-[10px] font-bold tracking-tight truncate uppercase">{item.label}</span>
@@ -707,17 +710,17 @@ const CheckSheetSection = ({
     <div className="flex flex-col h-full bg-slate-950/20 rounded-3xl border border-slate-800/40 overflow-hidden shadow-2xl">
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-800/60 bg-slate-900/40">
         <div className="flex items-center gap-2.5">
-          <Icon size={14} className={`text-${colorClass}-400`} />
+          <Icon size={14} className={CHECKSHEET_COLOR_CLASSES[getCheckSheetColor(colorClass)].icon} />
           <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em]">{title}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-1 w-12 bg-slate-800 rounded-full overflow-hidden">
              <div 
-                className={`h-full bg-${colorClass}-500 transition-all duration-500`} 
+                className={cn('h-full transition-all duration-500', CHECKSHEET_COLOR_CLASSES[getCheckSheetColor(colorClass)].progressBg)} 
                 style={{ width: `${(items.filter(i => i.completed).length / Math.max(1, items.length)) * 100}%` }}
              />
           </div>
-          <span className={`text-[9px] font-black text-${colorClass}-400/70 uppercase tabular-nums`}>
+          <span className={cn('text-[9px] font-black uppercase tabular-nums', CHECKSHEET_COLOR_CLASSES[getCheckSheetColor(colorClass)].progressText)}>
             {items.filter(i => i.completed).length}/{items.length}
           </span>
         </div>
@@ -804,6 +807,79 @@ const CheckSheetSection = ({
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+
+// Static Tailwind class maps keep production builds stable.
+// Avoid partial dynamic classes like `bg-${color}-500`, because Tailwind may not generate them.
+type CheckSheetColor = 'emerald' | 'blue' | 'amber';
+const CHECKSHEET_COLOR_CLASSES: Record<CheckSheetColor, {
+  icon: string;
+  itemDone: string;
+  checkboxDone: string;
+  progressBg: string;
+  progressText: string;
+}> = {
+  emerald: {
+    icon: 'text-emerald-400',
+    itemDone: 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400',
+    checkboxDone: 'bg-emerald-500 border-emerald-500 text-slate-950',
+    progressBg: 'bg-emerald-500',
+    progressText: 'text-emerald-400/70'
+  },
+  blue: {
+    icon: 'text-blue-400',
+    itemDone: 'bg-blue-500/5 border-blue-500/20 text-blue-400',
+    checkboxDone: 'bg-blue-500 border-blue-500 text-slate-950',
+    progressBg: 'bg-blue-500',
+    progressText: 'text-blue-400/70'
+  },
+  amber: {
+    icon: 'text-amber-400',
+    itemDone: 'bg-amber-500/5 border-amber-500/20 text-amber-400',
+    checkboxDone: 'bg-amber-500 border-amber-500 text-slate-950',
+    progressBg: 'bg-amber-500',
+    progressText: 'text-amber-400/70'
+  }
+};
+
+
+
+const ISSUE_SEVERITY_FILTER_CLASSES: Record<string, string> = {
+  Critical: 'bg-red-500/20 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]',
+  High: 'bg-orange-500/20 border-orange-500/50 text-orange-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]',
+  Medium: 'bg-amber-500/20 border-amber-500/50 text-amber-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]',
+  Low: 'bg-blue-500/20 border-blue-500/50 text-blue-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]'
+};
+
+const getCheckSheetColor = (color: string): CheckSheetColor => {
+  return (['emerald', 'blue', 'amber'] as const).includes(color as CheckSheetColor)
+    ? color as CheckSheetColor
+    : 'emerald';
+};
+
+const getSmartPopoverStyle = (rect: DOMRect): React.CSSProperties => {
+  const width = 288;
+  const estimatedHeight = 340;
+  const margin = 24;
+  const canOpenRight = rect.right + width + margin < window.innerWidth;
+  const left = canOpenRight ? rect.right + 16 : Math.max(margin, rect.left - width - 16);
+  const top = Math.min(
+    Math.max(rect.top + rect.height / 2, margin + estimatedHeight / 2),
+    window.innerHeight - margin - estimatedHeight / 2
+  );
+  return { left, top };
+};
+
+
+const EmptyState = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+  <div className="col-span-full flex min-h-[260px] flex-col items-center justify-center rounded-[2rem] border border-slate-800/60 bg-slate-900/20 p-10 text-center">
+    <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-950/60 text-slate-500">
+      <Icon size={28} />
+    </div>
+    <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">{title}</h3>
+    <p className="mt-2 max-w-md text-xs font-medium leading-relaxed text-slate-500">{description}</p>
+  </div>
+);
 
 const CircularProgress = ({ 
   percentage, 
@@ -1756,7 +1832,7 @@ const StaticIssueCard: React.FC<{
           </div>
           <div className="flex items-center gap-1.5">
             <Tag size={10} className="text-slate-500" />
-            <span className="text-[9px] font-mono font-bold text-slate-500">V{project.version}</span>
+            <span className="text-[9px] font-mono font-bold text-slate-500">V{project.version || '1.0'}</span>
           </div>
         </div>
       </div>
@@ -2052,93 +2128,6 @@ const getTaskStatusConfig = (status: TaskStatus, isLead?: boolean) => {
   }
 };
 
-const LoginPage = ({ onLogin }: { onLogin: () => void }) => {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === '741593') {
-      onLogin();
-    } else {
-      setError(true);
-      setPassword('');
-      setTimeout(() => setError(false), 2000);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-[#020617] flex items-center justify-center z-[9999]">
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md p-8 relative"
-      >
-        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/5 shadow-2xl" />
-        
-        <div className="relative flex flex-col items-center gap-8">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-2xl shadow-indigo-500/20">
-            <Lock className="text-white w-10 h-10" />
-          </div>
-
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-black text-white tracking-tight uppercase">Secure Access</h1>
-            <p className="text-slate-400 text-sm font-medium tracking-wide uppercase opacity-60">Enter password to continue</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="w-full space-y-4">
-            <div className="relative group">
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className={cn(
-                  "w-full bg-slate-950/50 border border-white/5 rounded-2xl px-6 py-5 text-xl text-center text-white outline-none transition-all placeholder:text-slate-700",
-                  "focus:border-indigo-500/30 focus:bg-slate-950/80",
-                  error && "border-red-500/50 bg-red-500/5 shake"
-                )}
-                autoFocus
-              />
-              {error && (
-                <motion.p 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="absolute -bottom-6 left-0 w-full text-center text-red-400 text-[10px] font-bold uppercase tracking-widest"
-                >
-                  Invalid Password
-                </motion.p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-white text-black font-black py-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-indigo-50 transition-all active:scale-[0.98] group"
-            >
-              <span className="uppercase tracking-widest text-sm">Unlock System</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </form>
-
-          <div className="pt-4">
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">System Operational</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-
 // --- Project Panel Components ---
 
 const ProjectPanel: React.FC<{
@@ -2387,7 +2376,6 @@ const ProjectPanel: React.FC<{
 
 const App = () => {
   // Secure Access startup screen disabled: users open the application directly.
-  const [isAuthenticated] = useState(true);
   const [activeTab, setActiveTab] = useState<'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (['roadmap', 'systems', 'sync', 'issues', 'config-report'].includes(hash)) return hash as any;
@@ -3962,7 +3950,7 @@ const App = () => {
             
             <div className="flex-1 overflow-y-auto pr-4 no-scrollbar">
                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 pb-20">
-                  {filteredSystems.map(sys => (
+                  {filteredSystems.length > 0 ? filteredSystems.map(sys => (
                     <SystemRegistryCard 
                       key={sys.id}
                       sys={sys}
@@ -3974,7 +3962,9 @@ const App = () => {
                       setActiveNamingConventionSys={setActiveNamingConventionSys}
                       setActiveLessonsLearnedSys={setActiveLessonsLearnedSys}
                     />
-                  ))}
+                  )) : (
+                    <EmptyState icon={Database} title="No systems found" description="Adjust filters or add a new system record in Admin Mode." />
+                  )}
                </div>
             </div>
           </div>
@@ -4394,7 +4384,7 @@ const App = () => {
                       className={cn(
                         "px-3 py-1.5 rounded-lg border text-[9px] font-black transition-all duration-300 uppercase tracking-tighter",
                         issueSeverityFilter === sev.label
-                        ? `bg-${sev.color}-500/20 border-${sev.color}-500/50 text-${sev.color}-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]`
+                        ? ISSUE_SEVERITY_FILTER_CLASSES[sev.label]
                         : "bg-slate-900/40 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-400"
                       )}
                     >
@@ -5018,10 +5008,7 @@ const App = () => {
               exit={{ opacity: 0, x: -10, y: "-50%", scale: 0.95 }}
               transition={{ duration: 0.2 }}
               className="fixed z-[9999] pointer-events-none"
-              style={{ 
-                left: hoveredTaskInfo.rect.right + 16, 
-                top: hoveredTaskInfo.rect.top + hoveredTaskInfo.rect.height / 2
-              }}
+              style={getSmartPopoverStyle(hoveredTaskInfo.rect)}
             >
               {/* Premium "Energy Bridge" Connector */}
               <div className="absolute right-[calc(100%-12px)] top-1/2 -translate-y-1/2 w-8 h-10 z-[-1] flex items-center justify-end overflow-visible">
@@ -5070,7 +5057,7 @@ const App = () => {
                   />
 
                   {/* Layer 3: Task Color Bleed */}
-                  <div className={`absolute inset-0 opacity-20 bg-gradient-to-br from-transparent to-${hoveredTaskInfo.config.text.split('-')[1]}-500`} />
+                  <div className={cn('absolute inset-0 opacity-20 bg-gradient-to-br from-transparent', hoveredTaskInfo.config.accent)} />
                 </div>
               </div>
 
