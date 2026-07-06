@@ -3676,7 +3676,7 @@ const App = () => {
                   </div>
 
                    {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] h-16`}>
+                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative bg-indigo-500/[0.02] h-24`}>
                      <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
                         {isAdmin ? (
                           <button 
@@ -3717,20 +3717,20 @@ const App = () => {
                             style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? (roadmapWeekWidth / 2) : (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2)) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
                           >
-                             {/* Compact standardized milestone card - flag moved inside the card */}
-                             <div className={`bg-gradient-to-r from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-3 py-2 min-w-[220px] h-[42px] flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_20px_45px_rgba(0,0,0,0.6)] transition-all duration-500 relative overflow-hidden`}>
+                             {/* Milestone card - larger readable layout with flag inside */}
+                             <div className={`bg-gradient-to-r from-[#101827]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl px-3 py-2 ${isWeeklyFocus ? 'w-[300px] h-[58px]' : 'w-[184px] h-[58px]'} flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.45)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_20px_45px_rgba(0,0,0,0.6)] transition-all duration-500 relative overflow-hidden`}>
                                 {/* Subtle internal glow */}
                                 <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
 
-                                <div className={`relative z-10 w-8 h-8 rounded-xl border border-white/10 flex items-center justify-center shrink-0 transition-all duration-500 group-hover/m:scale-105 ${mConfig.accent} ${mConfig.glow}`}>
-                                   <Flag size={13} className="text-white fill-white/20" />
+                                <div className={`relative z-10 w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center shrink-0 transition-all duration-500 group-hover/m:scale-105 ${mConfig.accent} ${mConfig.glow}`}>
+                                   <Flag size={14} className="text-white fill-white/20" />
                                    <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-transparent via-white/15 to-white/30 pointer-events-none" />
                                 </div>
 
                                 <div className="relative z-10 flex flex-col justify-center min-w-0 flex-1">
-                                   <span className="text-[12px] font-semibold text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300">{m.label}</span>
-                                   <div className="flex items-center gap-2 mt-0.5 min-w-0">
-                                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest shrink-0">{mDateStr}</span>
+                                   <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[11px]'} font-semibold text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300 leading-tight`}>{m.label}</span>
+                                   <div className="flex items-center gap-2 mt-1 min-w-0">
+                                      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest shrink-0">{mDateStr}</span>
                                       {m.checklist && m.checklist.length > 0 && (
                                         <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest truncate">
                                           · {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
