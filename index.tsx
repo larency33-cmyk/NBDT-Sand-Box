@@ -124,7 +124,6 @@ interface ChecklistItem {
   id: string;
   label: string;
   completed: boolean;
-  weekOffset?: number; // relative to parent task startWeek; 0 = parent start week
 }
 
 interface RoadmapTask {
@@ -2623,6 +2622,56 @@ const App = () => {
   }, []);
 
   const ADMIN_PASSWORD = '741593';
+  useEffect(() => {
+    const styleId = 'nbdt-typography-standards';
+    let style = document.getElementById(styleId) as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      document.head.appendChild(style);
+    }
+
+    style.textContent = `
+      :root {
+        --nbdt-font-family: "Avenir Next LT Pro", "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
+        --nbdt-heading-weight: 800;
+        --nbdt-subheading-weight: 600;
+        --nbdt-body-weight: 400;
+      }
+
+      html,
+      body,
+      #root,
+      #root * {
+        font-family: var(--nbdt-font-family) !important;
+        text-rendering: geometricPrecision;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      button,
+      input,
+      textarea,
+      select,
+      option {
+        font-family: var(--nbdt-font-family) !important;
+      }
+
+      .font-light { font-weight: 300 !important; }
+      .font-normal, .font-medium { font-weight: var(--nbdt-body-weight) !important; }
+      .font-semibold { font-weight: var(--nbdt-subheading-weight) !important; }
+      .font-bold { font-weight: 700 !important; }
+      .font-black, h1, h2, h3 { font-weight: var(--nbdt-heading-weight) !important; }
+      .font-mono { font-family: var(--nbdt-font-family) !important; font-variant-numeric: tabular-nums; }
+      h1, h2, h3, .tracking-tighter { letter-spacing: -0.035em; }
+      .uppercase.tracking-widest,
+      [class*="tracking-[0.2em]"],
+      [class*="tracking-[0.22em]"],
+      [class*="tracking-[0.24em]"],
+      [class*="tracking-[0.3em]"] { font-weight: var(--nbdt-subheading-weight) !important; }
+    `;
+  }, []);
+
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const updatedAtRef = useRef(project.updatedAt);
@@ -3014,8 +3063,8 @@ const App = () => {
     };
     handleAction(prev => ({
       ...prev,
-      tasks: prev.tasks.some(task => task.id === normalizedTask.id)   
-        ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item)   
+      tasks: prev.tasks.some(task => task.id === normalizedTask.id) 
+        ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item) 
         : [...prev.tasks, normalizedTask]
     }));
     setDraftTask(null);
@@ -3037,30 +3086,6 @@ const App = () => {
         };
       })
     }));
-  };
-
-  const clampTaskWeek = (week: number) => Math.max(0, Math.min(TOTAL_WEEKS - 1, week));
-
-  const moveDraftTaskByWeeks = (delta: number) => {
-    if (!draftTask) return;
-    const nextStartWeek = clampTaskWeek(draftTask.startWeek + delta);
-    const nextDuration = Math.max(1, Math.min(TOTAL_WEEKS - nextStartWeek, draftTask.duration || 1));
-    setDraftTask({ ...draftTask, startWeek: nextStartWeek, duration: nextDuration });
-  };
-
-  const setDraftChecklistItemWeek = (itemId: string, absoluteWeek: number) => {
-    if (!draftTask) return;
-    const targetWeek = clampTaskWeek(absoluteWeek);
-    const nextOffset = Math.max(0, targetWeek - draftTask.startWeek);
-    const nextChecklist = (draftTask.checklist || []).map(item => item.id === itemId ? { ...item, weekOffset: nextOffset } : item);
-    setDraftTask({ ...draftTask, duration: Math.max(draftTask.duration || 1, nextOffset + 1), checklist: nextChecklist });
-  };
-
-  const moveDraftChecklistItemByWeeks = (itemId: string, delta: number) => {
-    if (!draftTask) return;
-    const item = (draftTask.checklist || []).find(i => i.id === itemId);
-    if (!item) return;
-    setDraftChecklistItemWeek(itemId, draftTask.startWeek + (item.weekOffset || 0) + delta);
   };
 
   const toggleCheckSheetItem = (systemId: string, section: keyof CheckSheetData, itemId: string) => {
@@ -3813,7 +3838,7 @@ const App = () => {
                   <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
                      {project.members.map(member => {
                         const memberFocusTasks = project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex)));
-                        const maxSubtaskCount = isWeeklyFocus ? Math.max(0, ...memberFocusTasks.map(t => (t.checklist || []).filter(item => (t.startWeek + (item.weekOffset || 0)) === focusedWeekIndex).length)) : 0;
+                        const maxSubtaskCount = isWeeklyFocus ? Math.max(0, ...memberFocusTasks.map(t => (t.checklist || []).length)) : 0;
                         const dynamicWeeklyRowHeight = Math.max(96, 92 + (maxSubtaskCount * 42));
                         return (
                         <div 
@@ -3821,7 +3846,7 @@ const App = () => {
                           className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
                           style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
                         >
-                           <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
+                           <div className={`sticky left-0 z-40 w-[220px] flex px-3 shrink-0 transition-all ${isWeeklyFocus ? 'items-start pt-10' : 'items-center'} ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
                                 className={`flex-1 flex items-center gap-3 group/member cursor-pointer h-10 px-3 rounded-l-md transition-all duration-500 relative overflow-hidden [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] ${selectedMemberId === member.id ? 'bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/[0.03] hover:bg-white/[0.06]'}`}
                                 onClick={(e) => {
@@ -3886,14 +3911,9 @@ const App = () => {
                               config = { ...config, border: 'border-indigo-500/40', bg: 'bg-indigo-500/10', glow: '' };
                             }
 
-                            const fullTaskChecklist = task.checklist || [];
-                            const taskChecklist = isWeeklyFocus
-                              ? fullTaskChecklist.filter(item => (task.startWeek + (item.weekOffset || 0)) === focusedWeekIndex)
-                              : fullTaskChecklist;
-                            const taskChecklistDone = fullTaskChecklist.filter(item => item.completed).length;
-                            const taskChecklistTotal = fullTaskChecklist.length;
-                            const visibleChecklistDone = taskChecklist.filter(item => item.completed).length;
-                            const visibleChecklistTotal = taskChecklist.length;
+                            const taskChecklist = task.checklist || [];
+                            const taskChecklistDone = taskChecklist.filter(item => item.completed).length;
+                            const taskChecklistTotal = taskChecklist.length;
                             const taskProgress = taskChecklistTotal > 0
                               ? Math.round((taskChecklistDone / taskChecklistTotal) * 100)
                               : task.status === 'Completed' ? 100 : task.status === 'In Progress' ? 50 : 0;
@@ -3907,7 +3927,7 @@ const App = () => {
                                 onMouseEnter={(e) => !isWeeklyFocus && setHoveredTaskInfo({ task, memberName: member.name, config, isMilestone: false, rect: e.currentTarget.getBoundingClientRect() })}
                                 onMouseLeave={() => setHoveredTaskInfo(null)}
                                 onClick={() => isAdmin && setDraftTask(task)} 
-                                className={`absolute ${isWeeklyFocus ? 'top-2 bottom-2 rounded-2xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 via-[#0d1524]/95 to-[#08111f]/95 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : task.status === 'Planned' ? 'opacity-70' : 'opacity-100'}`} 
+                                className={`absolute ${isWeeklyFocus ? 'top-2 bottom-2 rounded-2xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 via-[#0d1524]/95 to-[#08111f]/95 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : isWeeklyFocus ? 'opacity-100' : task.status === 'Planned' ? 'opacity-85' : 'opacity-100'}`} 
                                 style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (task.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : ((task.duration * WEEK_WIDTH) - 16) }}
                               >
                                 {/* Accent Bar */}
@@ -3923,15 +3943,15 @@ const App = () => {
                                       </div>
                                       <div className="flex flex-col min-w-0 flex-1">
                                         <div className="flex items-center gap-2 min-w-0">
-                                          <span className="text-[12px] font-bold truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
+                                          <span className="text-[15px] font-black truncate tracking-tight text-white drop-shadow-[0_1px_10px_rgba(0,0,0,0.75)] group-hover/task:text-indigo-50 transition-colors duration-300">{task.label}</span>
                                           <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                                         </div>
                                         <div className="mt-1 flex items-center gap-2 min-w-0">
-                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">{task.status}</span>
+                                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-200/95">{task.status}</span>
                                           <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">•</span>
-                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 truncate">{taskChecklistDone}/{taskChecklistTotal || 0} subtasks</span>
+                                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-200/80 truncate">{taskChecklistDone}/{taskChecklistTotal || 0} subtasks</span>
                                         </div>
-                                        <div className="mt-2 h-1.5 rounded-full bg-slate-800/80 overflow-hidden border border-white/5">
+                                        <div className="mt-2 h-2.5 rounded-full bg-slate-950/85 overflow-hidden border border-white/10 shadow-inner">
                                           <div className={`h-full rounded-full ${task.status === 'Blocked' ? 'bg-rose-500' : task.status === 'Completed' ? 'bg-emerald-500' : task.status === 'In Progress' ? 'bg-blue-500' : 'bg-slate-500'} shadow-[0_0_12px_currentColor] transition-all duration-700`} style={{ width: `${taskProgress}%` }} />
                                         </div>
                                       </div>
@@ -3939,11 +3959,11 @@ const App = () => {
 
                                     <div className="min-w-0 flex flex-col justify-start h-full">
                                       <div className="flex items-center justify-between gap-3 mb-2">
-                                        <span className="text-[8px] font-black uppercase tracking-[0.22em] text-slate-500">Subtasks</span>
-                                        {visibleChecklistTotal > 0 && <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{visibleChecklistDone} of {visibleChecklistTotal} this week</span>}
+                                        <span className="text-[9px] font-black uppercase tracking-[0.24em] text-slate-300/90">Subtasks</span>
+                                        {taskChecklistTotal > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{taskChecklistDone} of {taskChecklistTotal}</span>}
                                       </div>
                                       {taskChecklistTotal > 0 ? (
-                                        <div className="flex flex-col gap-1.5 overflow-visible pr-1">
+                                        <div className="flex flex-col gap-2 overflow-visible pr-1 pb-4">
                                           {taskChecklist.map(item => (
                                             <button
                                               key={item.id}
@@ -3953,18 +3973,18 @@ const App = () => {
                                                 e.stopPropagation();
                                                 toggleTaskChecklistItem(task.id, item.id);
                                               }}
-                                              className={`group/subtask flex items-center gap-2 min-w-0 rounded-lg border px-2 py-1.5 text-left transition-all ${item.completed ? 'bg-emerald-500/[0.08] border-emerald-500/20 text-emerald-200' : 'bg-white/[0.035] border-white/10 text-slate-400 hover:border-indigo-500/30 hover:bg-indigo-500/[0.06]'}`}
+                                              className={`group/subtask flex items-center gap-3 min-w-0 rounded-xl border px-3.5 py-2.5 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${item.completed ? 'bg-emerald-500/[0.12] border-emerald-400/30 text-white' : 'bg-indigo-500/[0.24] border-indigo-300/35 text-white hover:border-indigo-200/70 hover:bg-indigo-500/[0.30]'}`}
                                             >
-                                              <div className={`w-3.5 h-3.5 rounded-full shrink-0 flex items-center justify-center border transition-all ${item.completed ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.35)]' : 'bg-slate-900 border-slate-700 group-hover/subtask:border-indigo-400'}`}>
-                                                {item.completed && <CheckCircle size={10} />}
+                                              <div className={`w-[20px] h-[20px] rounded-full shrink-0 flex items-center justify-center border-2 transition-all ${item.completed ? 'bg-white border-white text-emerald-600' : 'bg-slate-950 border-slate-950'}`}>
+                                                {item.completed && <Check size={13} strokeWidth={4} />}
                                               </div>
-                                              <span className={`text-[10px] font-semibold truncate ${item.completed ? 'line-through decoration-emerald-300/50' : ''}`}>{item.label}</span>
+                                              <span className="text-[13px] font-normal tracking-tight truncate text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">{item.label}</span>
                                             </button>
                                           ))}
                                         </div>
                                       ) : (
-                                        <div className="rounded-xl border border-dashed border-slate-700/70 bg-slate-950/30 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                                          No subtasks scheduled this week
+                                        <div className="rounded-xl border border-dashed border-slate-600/70 bg-slate-950/55 px-3 py-2 text-[11px] font-normal text-slate-400 uppercase tracking-widest">
+                                          No subtasks added
                                         </div>
                                       )}
                                     </div>
@@ -3972,7 +3992,7 @@ const App = () => {
                                 ) : (
                                   <div className="flex items-center w-full h-full px-3">
                                     <div className="flex flex-col min-w-0">
-                                      <span className="text-[10px] font-normal truncate tracking-tight text-slate-400 group-hover/task:text-slate-200 transition-colors duration-300">{task.label}</span>
+                                      <span className="text-[11px] font-normal truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
                                     </div>
                                     {task.checklist && task.checklist.length > 0 && (
                                       <div className="flex items-center gap-1.5 ml-auto pl-2 opacity-30">
@@ -4842,25 +4862,6 @@ const App = () => {
                     />
                   </div>
 
-                  {/* Schedule Control Panel */}
-                  <div className="rounded-3xl border border-indigo-500/20 bg-indigo-500/[0.04] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      <div>
-                        <div className="text-[9px] font-black uppercase tracking-[0.24em] text-indigo-300/80">Task Schedule</div>
-                        <div className="mt-1 text-[11px] font-normal text-slate-400">Move the whole task, or schedule each subtask to a specific week.</div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button type="button" disabled={!isAdmin || draftTask.startWeek <= 0} onClick={() => moveDraftTaskByWeeks(-1)} className="h-10 px-3 rounded-xl border border-white/10 bg-slate-950/60 text-slate-300 hover:text-white hover:border-indigo-400/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"><ChevronLeft size={14} /><span className="text-[9px] font-black uppercase tracking-widest">Prev</span></button>
-                        <div className="h-10 min-w-[92px] px-3 rounded-xl border border-indigo-500/25 bg-indigo-500/10 text-indigo-200 flex items-center justify-center text-[10px] font-black uppercase tracking-widest">Week {draftTask.startWeek + 1}</div>
-                        <button type="button" disabled={!isAdmin || draftTask.startWeek >= TOTAL_WEEKS - 1} onClick={() => moveDraftTaskByWeeks(1)} className="h-10 px-3 rounded-xl border border-white/10 bg-slate-950/60 text-slate-300 hover:text-white hover:border-indigo-400/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"><span className="text-[9px] font-black uppercase tracking-widest">Next</span><ChevronRight size={14} /></button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button type="button" disabled={!isAdmin || draftTask.startWeek >= TOTAL_WEEKS - 1} onClick={() => moveDraftTaskByWeeks(1)} className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3 text-left hover:bg-blue-500/15 hover:border-blue-400/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed"><div className="text-[10px] font-black uppercase tracking-widest text-blue-300">Move task +1 week</div><div className="mt-1 text-[10px] font-normal text-slate-500">All embedded subtasks keep their relative timing.</div></button>
-                      <button type="button" disabled={!isAdmin || draftTask.startWeek >= TOTAL_WEEKS - 1} onClick={() => { const nextChecklist = (draftTask.checklist || []).map(item => ({ ...item, weekOffset: (item.weekOffset || 0) + 1 })); const maxOffset = Math.max(0, ...nextChecklist.map(item => item.weekOffset || 0)); setDraftTask({ ...draftTask, duration: Math.max(draftTask.duration || 1, maxOffset + 1), checklist: nextChecklist }); }} className="rounded-2xl border border-violet-500/25 bg-violet-500/10 px-4 py-3 text-left hover:bg-violet-500/15 hover:border-violet-400/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed"><div className="text-[10px] font-black uppercase tracking-widest text-violet-300">Move all subtasks +1 week</div><div className="mt-1 text-[10px] font-normal text-slate-500">Parent task stays in place; checklist schedule shifts.</div></button>
-                    </div>
-                  </div>
-
                   {/* Checklist Section */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -4879,24 +4880,38 @@ const App = () => {
                     </div>
                     <div className="space-y-3">
                       {(draftTask.checklist || []).map((item, idx) => (
-                        <div key={item.id} className="group/item rounded-2xl border border-slate-800/70 bg-slate-950/35 p-3 transition-all hover:border-indigo-500/30 hover:bg-slate-950/55">
-                          <div className="flex items-center gap-3">
-                            <button type="button" onClick={() => { const newList = [...(draftTask.checklist || [])]; newList[idx] = { ...item, completed: !item.completed }; setDraftTask({ ...draftTask, checklist: newList }); }} className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${item.completed ? 'bg-emerald-400 border-emerald-300 text-slate-950' : 'bg-slate-950 border-slate-700 text-slate-600 hover:border-indigo-400 hover:text-indigo-300'}`}>
-                              {item.completed ? <Check size={15} strokeWidth={4} /> : null}
+                        <div key={item.id} className="flex items-center gap-3 group/item">
+                          <button 
+                            onClick={() => {
+                              const newList = [...(draftTask.checklist || [])];
+                              newList[idx] = { ...item, completed: !item.completed };
+                              setDraftTask({ ...draftTask, checklist: newList });
+                            }}
+                            className={`shrink-0 transition-colors ${item.completed ? 'text-emerald-500' : 'text-slate-600 hover:text-slate-400'}`}
+                          >
+                            {item.completed ? <CheckSquare size={18} /> : <Square size={18} />}
+                          </button>
+                          <input 
+                            className={`flex-1 bg-transparent border-b border-transparent focus:border-indigo-500/30 outline-none text-[12px] font-medium transition-all ${item.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}
+                            placeholder="Checklist item..."
+                            value={item.label}
+                            onChange={e => {
+                              const newList = [...(draftTask.checklist || [])];
+                              newList[idx] = { ...item, label: e.target.value };
+                              setDraftTask({ ...draftTask, checklist: newList });
+                            }}
+                          />
+                          {isAdmin && (
+                            <button 
+                              onClick={() => {
+                                const newList = (draftTask.checklist || []).filter(i => i.id !== item.id);
+                                setDraftTask({ ...draftTask, checklist: newList });
+                              }}
+                              className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"
+                            >
+                              <Trash2 size={14} />
                             </button>
-                            <input className="flex-1 bg-transparent border-b border-transparent focus:border-indigo-500/30 outline-none text-[13px] font-normal transition-all text-slate-100 placeholder:text-slate-600" placeholder="Checklist item..." value={item.label} onChange={e => { const newList = [...(draftTask.checklist || [])]; newList[idx] = { ...item, label: e.target.value }; setDraftTask({ ...draftTask, checklist: newList }); }} />
-                            {isAdmin && (<button onClick={() => { const newList = (draftTask.checklist || []).filter(i => i.id !== item.id); setDraftTask({ ...draftTask, checklist: newList }); }} className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"><Trash2 size={14} /></button>)}
-                          </div>
-                          <div className="mt-3 ml-9 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-slate-500"><Calendar size={12} className="text-indigo-400" />Scheduled Week</div>
-                            <div className="flex items-center gap-2">
-                              <button type="button" disabled={!isAdmin || (draftTask.startWeek + (item.weekOffset || 0)) <= 0} onClick={() => moveDraftChecklistItemByWeeks(item.id, -1)} className="h-8 w-8 rounded-lg border border-white/10 bg-slate-950/70 text-slate-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-all flex items-center justify-center"><ChevronLeft size={13} /></button>
-                              <select disabled={!isAdmin} value={draftTask.startWeek + (item.weekOffset || 0)} onChange={e => setDraftChecklistItemWeek(item.id, Number(e.target.value))} className="h-8 min-w-[116px] rounded-lg border border-indigo-500/25 bg-indigo-500/10 px-2 text-[10px] font-black uppercase tracking-widest text-indigo-200 outline-none disabled:opacity-50">
-                                {Array.from({ length: TOTAL_WEEKS }, (_, weekIndex) => (<option key={weekIndex} value={weekIndex} className="bg-slate-950 text-white">Week {weekIndex + 1}</option>))}
-                              </select>
-                              <button type="button" disabled={!isAdmin || (draftTask.startWeek + (item.weekOffset || 0)) >= TOTAL_WEEKS - 1} onClick={() => moveDraftChecklistItemByWeeks(item.id, 1)} className="h-8 w-8 rounded-lg border border-white/10 bg-slate-950/70 text-slate-400 hover:text-white disabled:opacity-25 disabled:cursor-not-allowed transition-all flex items-center justify-center"><ChevronRight size={13} /></button>
-                            </div>
-                          </div>
+                          )}
                         </div>
                       ))}
                       {(!draftTask.checklist || draftTask.checklist.length === 0) && (
