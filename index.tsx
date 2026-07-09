@@ -466,6 +466,14 @@ const getDateInputValue = (startDateStr: string, task: RoadmapTask) => {
   return date.toISOString().split('T')[0];
 };
 
+const getWeekFromDate = (startDateStr: string, dateStr: string) => {
+  const start = parseLocalDate(startDateStr);
+  const current = parseLocalDate(dateStr);
+  const diffTime = current.getTime() - start.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.floor(diffDays / 7));
+};
+
 const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, currentStatus: TaskStatus): TaskStatus => {
   const items = checklist || [];
   if (items.length === 0 || currentStatus === 'Blocked') return currentStatus;
@@ -473,14 +481,6 @@ const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, curr
   if (done === items.length) return 'Completed';
   if (done > 0) return 'In Progress';
   return 'Planned';
-};
-
-const getWeekFromDate = (startDateStr: string, dateStr: string) => {
-  const start = parseLocalDate(startDateStr);
-  const current = parseLocalDate(dateStr);
-  const diffTime = current.getTime() - start.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(0, Math.floor(diffDays / 7));
 };
 
 const ensureProjectData = (data: any): ProjectData => {
@@ -3013,12 +3013,13 @@ const App = () => {
     };
     handleAction(prev => ({
       ...prev,
-      tasks: prev.tasks.some(task => task.id === normalizedTask.id)   
-        ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item)   
+      tasks: prev.tasks.some(task => task.id === normalizedTask.id) 
+        ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item) 
         : [...prev.tasks, normalizedTask]
     }));
     setDraftTask(null);
   };
+
   const toggleTaskChecklistItem = (taskId: string, itemId: string) => {
     if (!isAdmin) return;
     handleAction(prev => ({
@@ -3795,7 +3796,7 @@ const App = () => {
                           className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
                           style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
                         >
-                           <div className={`sticky left-0 z-40 w-[220px] flex px-3 shrink-0 transition-all ${isWeeklyFocus ? 'items-start pt-10' : 'items-center'} ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
+                           <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
                                 className={`flex-1 flex items-center gap-3 group/member cursor-pointer h-10 px-3 rounded-l-md transition-all duration-500 relative overflow-hidden [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] ${selectedMemberId === member.id ? 'bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/[0.03] hover:bg-white/[0.06]'}`}
                                 onClick={(e) => {
@@ -3876,7 +3877,7 @@ const App = () => {
                                 onMouseEnter={(e) => !isWeeklyFocus && setHoveredTaskInfo({ task, memberName: member.name, config, isMilestone: false, rect: e.currentTarget.getBoundingClientRect() })}
                                 onMouseLeave={() => setHoveredTaskInfo(null)}
                                 onClick={() => isAdmin && setDraftTask(task)} 
-                                className={`absolute ${isWeeklyFocus ? 'top-2 bottom-2 rounded-2xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 via-[#0d1524]/95 to-[#08111f]/95 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : task.status === 'Planned' ? 'opacity-70' : 'opacity-100'}`} 
+                                className={`absolute ${isWeeklyFocus ? 'top-2 bottom-2 rounded-2xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 via-[#0d1524]/95 to-[#08111f]/95 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : isWeeklyFocus ? 'opacity-100' : task.status === 'Planned' ? 'opacity-78' : 'opacity-100'}`} 
                                 style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (task.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : ((task.duration * WEEK_WIDTH) - 16) }}
                               >
                                 {/* Accent Bar */}
@@ -3892,15 +3893,15 @@ const App = () => {
                                       </div>
                                       <div className="flex flex-col min-w-0 flex-1">
                                         <div className="flex items-center gap-2 min-w-0">
-                                          <span className="text-[12px] font-bold truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
+                                          <span className="text-[13px] font-black truncate tracking-tight text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] group-hover/task:text-indigo-100 transition-colors duration-300">{task.label}</span>
                                           <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
                                         </div>
                                         <div className="mt-1 flex items-center gap-2 min-w-0">
-                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">{task.status}</span>
+                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-300/90">{task.status}</span>
                                           <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">•</span>
-                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 truncate">{taskChecklistDone}/{taskChecklistTotal || 0} subtasks</span>
+                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-300/80 truncate">{taskChecklistDone}/{taskChecklistTotal || 0} subtasks</span>
                                         </div>
-                                        <div className="mt-2 h-1.5 rounded-full bg-slate-800/80 overflow-hidden border border-white/5">
+                                        <div className="mt-2 h-2 rounded-full bg-slate-950/80 overflow-hidden border border-white/10 shadow-inner">
                                           <div className={`h-full rounded-full ${task.status === 'Blocked' ? 'bg-rose-500' : task.status === 'Completed' ? 'bg-emerald-500' : task.status === 'In Progress' ? 'bg-blue-500' : 'bg-slate-500'} shadow-[0_0_12px_currentColor] transition-all duration-700`} style={{ width: `${taskProgress}%` }} />
                                         </div>
                                       </div>
@@ -3908,8 +3909,8 @@ const App = () => {
 
                                     <div className="min-w-0 flex flex-col justify-start h-full">
                                       <div className="flex items-center justify-between gap-3 mb-2">
-                                        <span className="text-[8px] font-black uppercase tracking-[0.22em] text-slate-500">Subtasks</span>
-                                        {taskChecklistTotal > 0 && <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{taskChecklistDone} of {taskChecklistTotal}</span>}
+                                        <span className="text-[9px] font-black uppercase tracking-[0.24em] text-slate-300/85">Subtasks</span>
+                                        {taskChecklistTotal > 0 && <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{taskChecklistDone} of {taskChecklistTotal}</span>}
                                       </div>
                                       {taskChecklistTotal > 0 ? (
                                         <div className="flex flex-col gap-1.5 overflow-visible pr-1">
@@ -3922,17 +3923,17 @@ const App = () => {
                                                 e.stopPropagation();
                                                 toggleTaskChecklistItem(task.id, item.id);
                                               }}
-                                              className={`group/subtask flex items-center gap-2 min-w-0 rounded-lg border px-2 py-1.5 text-left transition-all ${item.completed ? 'bg-emerald-500/[0.08] border-emerald-500/20 text-emerald-200' : 'bg-white/[0.035] border-white/10 text-slate-400 hover:border-indigo-500/30 hover:bg-indigo-500/[0.06]'}`}
+                                              className={`group/subtask flex items-center gap-2.5 min-w-0 rounded-xl border px-3 py-2 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${item.completed ? 'bg-emerald-500/[0.16] border-emerald-400/35 text-emerald-50 shadow-[0_0_18px_rgba(16,185,129,0.10)]' : 'bg-slate-950/65 border-indigo-400/25 text-slate-100 hover:border-indigo-300/60 hover:bg-indigo-500/[0.14] hover:text-white'}`}
                                             >
-                                              <div className={`w-3.5 h-3.5 rounded-full shrink-0 flex items-center justify-center border transition-all ${item.completed ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.35)]' : 'bg-slate-900 border-slate-700 group-hover/subtask:border-indigo-400'}`}>
+                                              <div className={`w-4 h-4 rounded-full shrink-0 flex items-center justify-center border transition-all ${item.completed ? 'bg-emerald-400 border-emerald-300 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.45)]' : 'bg-slate-950 border-indigo-300/45 group-hover/subtask:border-indigo-200'}`}>
                                                 {item.completed && <CheckCircle size={10} />}
                                               </div>
-                                              <span className={`text-[10px] font-semibold truncate ${item.completed ? 'line-through decoration-emerald-300/50' : ''}`}>{item.label}</span>
+                                              <span className={`text-[11px] font-black tracking-tight truncate drop-shadow-[0_1px_6px_rgba(0,0,0,0.55)] ${item.completed ? 'line-through decoration-emerald-200/60 text-emerald-50' : 'text-slate-100'}`}>{item.label}</span>
                                             </button>
                                           ))}
                                         </div>
                                       ) : (
-                                        <div className="rounded-xl border border-dashed border-slate-700/70 bg-slate-950/30 px-3 py-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                                        <div className="rounded-xl border border-dashed border-slate-600/70 bg-slate-950/55 px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                           No subtasks added
                                         </div>
                                       )}
@@ -3941,7 +3942,7 @@ const App = () => {
                                 ) : (
                                   <div className="flex items-center w-full h-full px-3">
                                     <div className="flex flex-col min-w-0">
-                                      <span className="text-[10px] font-normal truncate tracking-tight text-slate-400 group-hover/task:text-slate-200 transition-colors duration-300">{task.label}</span>
+                                      <span className="text-[10px] font-bold truncate tracking-tight text-slate-200 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
                                     </div>
                                     {task.checklist && task.checklist.length > 0 && (
                                       <div className="flex items-center gap-1.5 ml-auto pl-2 opacity-30">
