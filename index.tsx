@@ -3633,7 +3633,7 @@ const App = () => {
                           <div className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] px-4 py-3 shadow-xl">
                             <div className="text-[8px] font-black uppercase tracking-[0.26em] text-indigo-400/70">Focus Week</div>
                             <div className="mt-1 text-sm font-black text-white tracking-tight">Week {currentStartWeek}</div>
-                            <div className="mt-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
+                            <div className="mt-0.5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
                           </div>
                         ) : (
                           <div className="w-full bg-[#0a0f1d] border border-slate-800 p-4 rounded-2xl shadow-xl">
@@ -3710,79 +3710,62 @@ const App = () => {
                           {isAdmin && <button onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} className="opacity-0 group-hover/ms-cell:opacity-100 p-2 bg-indigo-600 rounded-full text-white transition-all z-20 scale-75 hover:scale-100"><Plus size={16}/></button>}
                         </div>
                      ))}
-                     {(() => {
-                        const visibleMilestones = project.tasks.filter(t => t.isMilestone && (!isWeeklyFocus || t.startWeek === focusedWeekIndex));
-                        const getMilestoneDateInfo = (task: RoadmapTask) => {
-                          const date = task.date ? parseLocalDate(task.date) : parseLocalDate(project.startDate);
-                          if (!task.date) date.setDate(date.getDate() + (task.startWeek * 7));
+                     {project.tasks.filter(t => t.isMilestone && (!isWeeklyFocus || t.startWeek === focusedWeekIndex)).map(m => {
+                        const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
+                        if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
+                        const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
+                        
+                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' }
+                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' }
+                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.4)]' }
+                          : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.2)]' };
 
-                          const weekStart = parseLocalDate(project.startDate);
-                          weekStart.setDate(weekStart.getDate() + (task.startWeek * 7));
-
-                          const diffDays = Math.floor((date.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
-                          return {
-                            date,
-                            dayOffset: Math.max(0, Math.min(6, diffDays))
-                          };
-                        };
-
-                        return visibleMilestones.map(m => {
-                          const { date: mDate, dayOffset } = getMilestoneDateInfo(m);
-                          const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
-                          const sameSlotMilestones = visibleMilestones.filter(candidate => {
-                            const candidateInfo = getMilestoneDateInfo(candidate);
-                            return candidate.startWeek === m.startWeek && candidateInfo.dayOffset === dayOffset;
-                          });
-                          const laneIndex = Math.max(0, sameSlotMilestones.findIndex(candidate => candidate.id === m.id));
-                          const laneCount = sameSlotMilestones.length;
-                          const laneOffset = (laneIndex - ((laneCount - 1) / 2)) * (isWeeklyFocus ? 26 : 22);
-                          const dayPosition = isWeeklyFocus
-                            ? ((dayOffset + 0.5) * (roadmapWeekWidth / 7))
-                            : (m.startWeek * WEEK_WIDTH) + ((dayOffset + 0.5) * (WEEK_WIDTH / 7));
-                          const milestoneLeft = MEMBER_LABEL_WIDTH + dayPosition;
-
-                          const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_12px_rgba(16,185,129,0.35)]' }
-                            : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_12px_rgba(59,130,246,0.35)]' }
-                            : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_12px_rgba(244,63,94,0.35)]' }
-                            : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_12px_rgba(100,116,139,0.2)]' };
-
-                          return (
-                            <div
-                              key={m.id}
-                              draggable={isAdmin}
-                              onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }}
-                              onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
-                              onMouseLeave={() => setHoveredTaskInfo(null)}
-                              className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center z-30 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`}
-                              style={{ left: milestoneLeft, top: `calc(50% + ${laneOffset}px)` }}
-                              onClick={() => isAdmin && setDraftTask(m)}
-                            >
-                              <div className={`relative overflow-hidden ${isWeeklyFocus ? 'w-[170px]' : 'w-[118px]'} h-[30px] rounded-xl border border-white/10 bg-[#0b1120]/95 backdrop-blur-xl shadow-[0_6px_18px_rgba(0,0,0,0.45)] group-hover/m:border-white/25 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_12px_28px_rgba(0,0,0,0.58)] transition-all duration-300 flex items-center gap-2 px-2`}>
-                                <div className={`absolute -left-8 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full blur-2xl opacity-[0.10] ${mConfig.accent}`} />
-                                <div className={`h-5 w-5 rounded-lg border border-white/10 flex items-center justify-center shrink-0 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
-                                  <Flag size={10} className="text-white fill-white/20" />
+                        return (
+                          <div 
+                            key={m.id} 
+                            draggable={isAdmin} 
+                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }} 
+                            onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
+                            onMouseLeave={() => setHoveredTaskInfo(null)}
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-20 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
+                            style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? (roadmapWeekWidth / 2) : (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2)) }} 
+                            onClick={() => isAdmin && setDraftTask(m)}
+                          >
+                             <div className={`bg-gradient-to-b from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl ${isWeeklyFocus ? 'px-2 py-1 w-[170px] h-[30px]' : 'px-2 py-1 w-[118px] h-[30px]'} flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.5)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_20px_45px_rgba(0,0,0,0.65)] transition-all duration-500 relative overflow-hidden`}>
+                                <div className={`w-5 h-5 rounded-lg border border-white/10 flex items-center justify-center shrink-0 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
+                                   <Flag size={10} className="text-white fill-white/20" />
                                 </div>
-                                <div className="min-w-0 flex-1 relative z-10">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className={`${isWeeklyFocus ? 'text-[10px]' : 'text-[8px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors`}>
-                                      {m.label}
-                                    </span>
-                                    {laneCount > 1 && (
-                                      <span className="shrink-0 rounded-full bg-indigo-500/15 border border-indigo-500/25 px-1 py-0.5 text-[6px] font-black text-indigo-300 tabular-nums leading-none">
-                                        {laneIndex + 1}/{laneCount}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="mt-0.5 flex items-center gap-1.5">
-                                    <span className={`h-1 w-1 rounded-full ${mConfig.accent}`} />
-                                    <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest truncate">{mDateStr}</span>
-                                  </div>
+                                {/* Subtle internal glow */}
+                                <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
+                                
+                                <div className="w-full h-5 flex items-center justify-center relative z-10">
+                                   <span className="text-[9px] font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300">{m.label}</span>
                                 </div>
-                              </div>
-                            </div>
-                          );
-                        });
-                     })()}
+                                <div className="w-full h-4 flex items-center justify-center mt-1 relative z-10">
+                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
+                                </div>
+                                
+                                <div className="hidden">
+                                   {m.checklist && m.checklist.length > 0 ? (
+                                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-2.5 py-1 border border-white/5">
+                                         <div className="flex -space-x-1">
+                                            {m.checklist.slice(0, 4).map((item, i) => (
+                                               <div key={item.id} className={`w-1.5 h-1.5 rounded-full border border-[#0a0f1d] ${item.completed ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} style={{ zIndex: 4-i }} />
+                                            ))}
+                                         </div>
+                                         <span className="text-[9px] font-black tracking-tighter text-slate-400">
+                                            {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
+                                         </span>
+                                      </div>
+                                   ) : (
+                                      <div className={`w-12 h-1 rounded-full opacity-20 ${mConfig.accent}`} />
+                                   )}
+                                </div>
+                             </div>
+                          </div>
+                        );
+                     })}
+                  </div>
 
                   {/* Team Members Grid */}
                   <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
