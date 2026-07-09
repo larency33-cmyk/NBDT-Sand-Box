@@ -3695,12 +3695,12 @@ const App = () => {
                         {isAdmin ? (
                           <button 
                             onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                              <Flag size={14} /> Milestones
                           </button>
                         ) : (
-                          <div className="w-full py-2.5 bg-indigo-600/90 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                              <Flag size={14} /> Milestones
                           </div>
                         )}
@@ -3769,10 +3769,15 @@ const App = () => {
 
                   {/* Team Members Grid */}
                   <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
-                     {project.members.map(member => (
+                     {project.members.map(member => {
+                        const memberFocusTasks = project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex)));
+                        const maxSubtaskCount = isWeeklyFocus ? Math.max(0, ...memberFocusTasks.map(t => (t.checklist || []).length)) : 0;
+                        const dynamicWeeklyRowHeight = Math.max(86, 78 + (maxSubtaskCount * 38));
+                        return (
                         <div 
                           key={member.id} 
-                          className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? 'h-[86px]' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
+                          className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
+                          style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
                         >
                            <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
@@ -3862,9 +3867,9 @@ const App = () => {
                                 <div className={`absolute left-0 top-0 bottom-0 ${isWeeklyFocus ? 'w-1.5' : 'w-1'} ${config.dot}`} />
 
                                 {isWeeklyFocus ? (
-                                  <div className="grid grid-cols-[minmax(280px,38%)_1fr] h-full pl-4 pr-3 py-3 gap-4 relative">
-                                    <div className="flex items-center gap-3 min-w-0 border-r border-white/10 pr-4">
-                                      <div className="relative self-center my-auto w-12 h-12 shrink-0 rounded-2xl p-[3px] shadow-[0_0_22px_rgba(59,130,246,0.16)]" style={{ background: progressRing }}>
+                                  <div className="grid grid-cols-[minmax(280px,38%)_1fr] h-full pl-4 pr-3 py-3 gap-4 relative items-start">
+                                    <div className="flex items-start gap-3 min-w-0 border-r border-white/10 pr-4 pt-6">
+                                      <div className="relative mt-0.5 w-12 h-12 shrink-0 rounded-2xl p-[3px] shadow-[0_0_22px_rgba(59,130,246,0.16)]" style={{ background: progressRing }}>
                                         <div className="w-full h-full rounded-[14px] bg-[#06101f] border border-white/10 flex items-center justify-center">
                                           <span className="text-[10px] font-black text-slate-100 tabular-nums">{taskProgress}%</span>
                                         </div>
@@ -3885,13 +3890,13 @@ const App = () => {
                                       </div>
                                     </div>
 
-                                    <div className="min-w-0 flex flex-col justify-center">
+                                    <div className="min-w-0 flex flex-col justify-start h-full">
                                       <div className="flex items-center justify-between gap-3 mb-2">
                                         <span className="text-[8px] font-black uppercase tracking-[0.22em] text-slate-500">Subtasks</span>
                                         {taskChecklistTotal > 0 && <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{taskChecklistDone} of {taskChecklistTotal}</span>}
                                       </div>
                                       {taskChecklistTotal > 0 ? (
-                                        <div className="flex flex-col gap-1.5 max-h-[52px] overflow-y-auto pr-1 custom-scrollbar">
+                                        <div className="flex flex-col gap-1.5 overflow-visible pr-1">
                                           {taskChecklist.map(item => (
                                             <button
                                               key={item.id}
@@ -3935,7 +3940,8 @@ const App = () => {
                             );
                           })}
                        </div>
-                     ))}
+                        );
+                     })}
                       {isAdmin && (
                         <button onClick={() => { const nextNum = project.members.filter(m => m.id.startsWith('nbdt')).length + 1; const newMember: NDBTMember = { id: `nbdt-${Date.now()}`, name: `NBDT ${String(nextNum).padStart(2, '0')}` }; handleAction(prev => ({ ...prev, members: [...prev.members, newMember] })); }} className="w-[220px] sticky left-0 py-3 border-b border-slate-800/20 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/5 text-[11px] font-medium tracking-tight flex items-center justify-center gap-2 transition-all">
                            <UserPlus size={12} /> Add Team Member
