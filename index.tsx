@@ -3695,12 +3695,12 @@ const App = () => {
                         {isAdmin ? (
                           <button 
                             onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                              <Flag size={14} /> Milestones
                           </button>
                         ) : (
-                          <div className="w-full py-2.5 bg-indigo-600/90 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                              <Flag size={14} /> Milestones
                           </div>
                         )}
@@ -3714,48 +3714,58 @@ const App = () => {
                         const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
                         if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
                         const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
-                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'from-emerald-500/[0.16] via-[#0d1b24]/95 to-[#08111f]/95', border: 'border-emerald-500/35', text: 'text-emerald-300', glow: 'shadow-[0_0_18px_rgba(16,185,129,0.28)]' }
-                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'from-blue-500/[0.16] via-[#0d1626]/95 to-[#08111f]/95', border: 'border-blue-500/35', text: 'text-blue-300', glow: 'shadow-[0_0_18px_rgba(59,130,246,0.28)]' }
-                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'from-rose-500/[0.16] via-[#20111d]/95 to-[#08111f]/95', border: 'border-rose-500/35', text: 'text-rose-300', glow: 'shadow-[0_0_18px_rgba(244,63,94,0.28)]' }
-                          : { accent: 'bg-violet-500', bg: 'from-violet-500/[0.16] via-[#111827]/95 to-[#08111f]/95', border: 'border-violet-500/35', text: 'text-violet-300', glow: 'shadow-[0_0_18px_rgba(139,92,246,0.25)]' };
-                        const milestoneLeft = MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (m.startWeek * WEEK_WIDTH) + 8);
-                        const milestoneWidth = isWeeklyFocus ? (roadmapWeekWidth - 20) : (WEEK_WIDTH - 16);
+                        
+                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' }
+                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' }
+                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.4)]' }
+                          : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.2)]' };
+
                         return (
-                          <div
-                            key={m.id}
-                            draggable={isAdmin}
-                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }}
+                          <div 
+                            key={m.id} 
+                            draggable={isAdmin} 
+                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }} 
                             onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
                             onMouseLeave={() => setHoveredTaskInfo(null)}
+                            className={`absolute top-2 bottom-2 z-30 group/m transition-all duration-500 hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
+                            style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (m.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : (WEEK_WIDTH - 16) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
-                            className={`absolute top-2 bottom-2 z-30 group/m transition-all duration-500 hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] ${isAdmin ? 'cursor-move' : 'cursor-default'} ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'}`}
-                            style={{ left: milestoneLeft, width: milestoneWidth }}
                           >
-                            <div className={`relative flex h-full w-full items-center overflow-hidden ${isWeeklyFocus ? 'rounded-2xl' : 'rounded-md'} border ${mConfig.border} bg-gradient-to-r ${mConfig.bg} shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl`}>
-                              <div className={`absolute left-0 top-0 bottom-0 ${isWeeklyFocus ? 'w-1.5' : 'w-1'} ${mConfig.accent}`} />
-                              <div className={`absolute -left-12 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full blur-3xl opacity-20 ${mConfig.accent}`} />
-                              <div className="relative z-10 flex h-full w-full items-center gap-3 px-4">
-                                <div className={`flex ${isWeeklyFocus ? 'h-11 w-11 rounded-2xl' : 'h-7 w-7 rounded-xl'} shrink-0 items-center justify-center border border-white/15 ${mConfig.accent} ${mConfig.glow}`}>
-                                  <Flag size={isWeeklyFocus ? 17 : 12} className="text-white fill-white/20" />
+                             <div className={`relative flex h-full w-full items-center gap-3 overflow-hidden border ${mConfig.border} ${isWeeklyFocus ? 'rounded-2xl px-4' : 'rounded-md px-3'} bg-gradient-to-r from-violet-500/[0.16] via-[#0d1524]/95 to-[#08111f]/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl group-hover/m:border-white/25 transition-all duration-500`}>
+                                <div className={`flex ${isWeeklyFocus ? 'h-11 w-11 rounded-2xl' : 'h-7 w-7 rounded-xl'} shrink-0 items-center justify-center border border-white/15 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
+                                   <Flag size={isWeeklyFocus ? 17 : 12} className="text-white fill-white/20" />
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors`}>
-                                      {m.label}
-                                    </span>
-                                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${mConfig.accent}`} />
-                                  </div>
-                                  <div className="mt-1 flex items-center gap-2 min-w-0">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Milestone</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">•</span>
-                                    <span className={`text-[8px] font-black uppercase tracking-widest ${mConfig.text}`}>{mDateStr}</span>
-                                  </div>
+                                {/* Subtle internal glow */}
+                                <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
+                                
+                                <div className="min-w-0 flex-1 relative z-10">
+                                   <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300`}>{m.label}</span>
                                 </div>
-                              </div>
-                            </div>
+                                <div className="hidden">
+                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
+                                </div>
+                                
+                                <div className="hidden">
+                                   {m.checklist && m.checklist.length > 0 ? (
+                                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-2.5 py-1 border border-white/5">
+                                         <div className="flex -space-x-1">
+                                            {m.checklist.slice(0, 4).map((item, i) => (
+                                               <div key={item.id} className={`w-1.5 h-1.5 rounded-full border border-[#0a0f1d] ${item.completed ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} style={{ zIndex: 4-i }} />
+                                            ))}
+                                         </div>
+                                         <span className="text-[9px] font-black tracking-tighter text-slate-400">
+                                            {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
+                                         </span>
+                                      </div>
+                                   ) : (
+                                      <div className={`w-12 h-1 rounded-full opacity-20 ${mConfig.accent}`} />
+                                   )}
+                                </div>
+                             </div>
                           </div>
                         );
                      })}
+                  </div>
 
                   {/* Team Members Grid */}
                   <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
