@@ -3633,7 +3633,7 @@ const App = () => {
                           <div className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] px-4 py-3 shadow-xl">
                             <div className="text-[8px] font-black uppercase tracking-[0.26em] text-indigo-400/70">Focus Week</div>
                             <div className="mt-1 text-sm font-black text-white tracking-tight">Week {currentStartWeek}</div>
-                            <div className="mt-0.5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
+                            <div className="mt-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
                           </div>
                         ) : (
                           <div className="w-full bg-[#0a0f1d] border border-slate-800 p-4 rounded-2xl shadow-xl">
@@ -3690,17 +3690,17 @@ const App = () => {
                   </div>
 
                    {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative overflow-visible bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-14' : 'h-14'}`}>
+                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative overflow-visible bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-[86px]' : 'h-[52px]'}`}>
                      <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
                         {isAdmin ? (
                           <button 
                             onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                              <Flag size={14} /> Milestones
                           </button>
                         ) : (
-                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                          <div className="w-full py-2.5 bg-indigo-600/90 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                              <Flag size={14} /> Milestones
                           </div>
                         )}
@@ -3714,58 +3714,48 @@ const App = () => {
                         const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
                         if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
                         const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
-                        
-                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' }
-                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' }
-                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.4)]' }
-                          : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.2)]' };
-
+                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'from-emerald-500/[0.16] via-[#0d1b24]/95 to-[#08111f]/95', border: 'border-emerald-500/35', text: 'text-emerald-300', glow: 'shadow-[0_0_18px_rgba(16,185,129,0.28)]' }
+                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'from-blue-500/[0.16] via-[#0d1626]/95 to-[#08111f]/95', border: 'border-blue-500/35', text: 'text-blue-300', glow: 'shadow-[0_0_18px_rgba(59,130,246,0.28)]' }
+                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'from-rose-500/[0.16] via-[#20111d]/95 to-[#08111f]/95', border: 'border-rose-500/35', text: 'text-rose-300', glow: 'shadow-[0_0_18px_rgba(244,63,94,0.28)]' }
+                          : { accent: 'bg-violet-500', bg: 'from-violet-500/[0.16] via-[#111827]/95 to-[#08111f]/95', border: 'border-violet-500/35', text: 'text-violet-300', glow: 'shadow-[0_0_18px_rgba(139,92,246,0.25)]' };
+                        const milestoneLeft = MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (m.startWeek * WEEK_WIDTH) + 8);
+                        const milestoneWidth = isWeeklyFocus ? (roadmapWeekWidth - 20) : (WEEK_WIDTH - 16);
                         return (
-                          <div 
-                            key={m.id} 
-                            draggable={isAdmin} 
-                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }} 
+                          <div
+                            key={m.id}
+                            draggable={isAdmin}
+                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }}
                             onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
                             onMouseLeave={() => setHoveredTaskInfo(null)}
-                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center z-20 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
-                            style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? (roadmapWeekWidth / 2) : (m.startWeek * WEEK_WIDTH) + (WEEK_WIDTH / 2)) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
+                            className={`absolute top-2 bottom-2 z-30 group/m transition-all duration-500 hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] ${isAdmin ? 'cursor-move' : 'cursor-default'} ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'}`}
+                            style={{ left: milestoneLeft, width: milestoneWidth }}
                           >
-                             <div className={`bg-gradient-to-b from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-2xl ${isWeeklyFocus ? 'px-2 py-1 w-[170px] h-[30px]' : 'px-2 py-1 w-[118px] h-[30px]'} flex items-center gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.5)] group-hover/m:border-white/20 group-hover/m:from-[#1e293b]/95 group-hover/m:to-[#0f172a]/95 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_20px_45px_rgba(0,0,0,0.65)] transition-all duration-500 relative overflow-hidden`}>
-                                <div className={`w-5 h-5 rounded-lg border border-white/10 flex items-center justify-center shrink-0 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
-                                   <Flag size={10} className="text-white fill-white/20" />
+                            <div className={`relative flex h-full w-full items-center overflow-hidden ${isWeeklyFocus ? 'rounded-2xl' : 'rounded-md'} border ${mConfig.border} bg-gradient-to-r ${mConfig.bg} shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl`}>
+                              <div className={`absolute left-0 top-0 bottom-0 ${isWeeklyFocus ? 'w-1.5' : 'w-1'} ${mConfig.accent}`} />
+                              <div className={`absolute -left-12 top-1/2 h-28 w-28 -translate-y-1/2 rounded-full blur-3xl opacity-20 ${mConfig.accent}`} />
+                              <div className="relative z-10 flex h-full w-full items-center gap-3 px-4">
+                                <div className={`flex ${isWeeklyFocus ? 'h-11 w-11 rounded-2xl' : 'h-7 w-7 rounded-xl'} shrink-0 items-center justify-center border border-white/15 ${mConfig.accent} ${mConfig.glow}`}>
+                                  <Flag size={isWeeklyFocus ? 17 : 12} className="text-white fill-white/20" />
                                 </div>
-                                {/* Subtle internal glow */}
-                                <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
-                                
-                                <div className="w-full h-5 flex items-center justify-center relative z-10">
-                                   <span className="text-[9px] font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300">{m.label}</span>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors`}>
+                                      {m.label}
+                                    </span>
+                                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${mConfig.accent}`} />
+                                  </div>
+                                  <div className="mt-1 flex items-center gap-2 min-w-0">
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Milestone</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">•</span>
+                                    <span className={`text-[8px] font-black uppercase tracking-widest ${mConfig.text}`}>{mDateStr}</span>
+                                  </div>
                                 </div>
-                                <div className="w-full h-4 flex items-center justify-center mt-1 relative z-10">
-                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
-                                </div>
-                                
-                                <div className="hidden">
-                                   {m.checklist && m.checklist.length > 0 ? (
-                                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-2.5 py-1 border border-white/5">
-                                         <div className="flex -space-x-1">
-                                            {m.checklist.slice(0, 4).map((item, i) => (
-                                               <div key={item.id} className={`w-1.5 h-1.5 rounded-full border border-[#0a0f1d] ${item.completed ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} style={{ zIndex: 4-i }} />
-                                            ))}
-                                         </div>
-                                         <span className="text-[9px] font-black tracking-tighter text-slate-400">
-                                            {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
-                                         </span>
-                                      </div>
-                                   ) : (
-                                      <div className={`w-12 h-1 rounded-full opacity-20 ${mConfig.accent}`} />
-                                   )}
-                                </div>
-                             </div>
+                              </div>
+                            </div>
                           </div>
                         );
                      })}
-                  </div>
 
                   {/* Team Members Grid */}
                   <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
