@@ -466,6 +466,15 @@ const getDateInputValue = (startDateStr: string, task: RoadmapTask) => {
   return date.toISOString().split('T')[0];
 };
 
+const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, currentStatus: TaskStatus): TaskStatus => {
+  const items = checklist || [];
+  if (items.length === 0 || currentStatus === 'Blocked') return currentStatus;
+  const done = items.filter(item => item.completed).length;
+  if (done === items.length) return 'Completed';
+  if (done > 0) return 'In Progress';
+  return 'Planned';
+};
+
 const getWeekFromDate = (startDateStr: string, dateStr: string) => {
   const start = parseLocalDate(startDateStr);
   const current = parseLocalDate(dateStr);
@@ -2998,15 +3007,18 @@ const App = () => {
   };
 
   const saveTask = (t: RoadmapTask) => {
+    const normalizedTask = {
+      ...t,
+      status: getTaskStatusFromChecklist(t.checklist, t.status)
+    };
     handleAction(prev => ({
       ...prev,
-      tasks: prev.tasks.some(task => task.id === t.id) 
-        ? prev.tasks.map(item => item.id === t.id ? t : item) 
-        : [...prev.tasks, t]
+      tasks: prev.tasks.some(task => task.id === normalizedTask.id)   
+        ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item)   
+        : [...prev.tasks, normalizedTask]
     }));
     setDraftTask(null);
   };
-
   const toggleTaskChecklistItem = (taskId: string, itemId: string) => {
     if (!isAdmin) return;
     handleAction(prev => ({
@@ -3016,7 +3028,11 @@ const App = () => {
         const nextChecklist = (task.checklist || []).map(item =>
           item.id === itemId ? { ...item, completed: !item.completed } : item
         );
-        return { ...task, checklist: nextChecklist };
+        return {
+          ...task,
+          checklist: nextChecklist,
+          status: getTaskStatusFromChecklist(nextChecklist, task.status)
+        };
       })
     }));
   };
@@ -3779,7 +3795,7 @@ const App = () => {
                           className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
                           style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
                         >
-                           <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
+                           <div className={`sticky left-0 z-40 w-[220px] flex px-3 shrink-0 transition-all ${isWeeklyFocus ? 'items-start pt-10' : 'items-center'} ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
                                 className={`flex-1 flex items-center gap-3 group/member cursor-pointer h-10 px-3 rounded-l-md transition-all duration-500 relative overflow-hidden [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] ${selectedMemberId === member.id ? 'bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/[0.03] hover:bg-white/[0.06]'}`}
                                 onClick={(e) => {
