@@ -476,7 +476,8 @@ const getWeekFromDate = (startDateStr: string, dateStr: string) => {
 
 const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, currentStatus: TaskStatus): TaskStatus => {
   const items = checklist || [];
-  if (items.length === 0 || currentStatus === 'Blocked') return currentStatus;
+  if (currentStatus === 'Blocked') return currentStatus;
+  if (items.length === 0) return 'Planned';
   const done = items.filter(item => item.completed).length;
   if (done === items.length) return 'Completed';
   if (done > 0) return 'In Progress';
@@ -3088,6 +3089,68 @@ const App = () => {
     }));
   };
 
+  const moveDraftChecklistItemToNextWeek = (itemId: string) => {
+    if (!isAdmin || !draftTask) return;
+    const targetWeek = Math.min(TOTAL_WEEKS - 1, draftTask.startWeek + 1);
+    if (targetWeek === draftTask.startWeek) return;
+
+    const itemToMove = (draftTask.checklist || []).find(item => item.id === itemId);
+    if (!itemToMove) return;
+
+    const sourceChecklist = (draftTask.checklist || []).filter(item => item.id !== itemId);
+    const updatedSourceTask: RoadmapTask = {
+      ...draftTask,
+      checklist: sourceChecklist,
+      status: getTaskStatusFromChecklist(sourceChecklist, draftTask.status)
+    };
+
+    const movedChecklistItem: ChecklistItem = {
+      ...itemToMove,
+      id: `${itemToMove.id}-${Date.now()}`
+    };
+
+    handleAction(prev => {
+      let targetTaskFound = false;
+      const nextTasks = prev.tasks.map(task => {
+        if (task.id === draftTask.id) {
+          return updatedSourceTask;
+        }
+
+        if (!task.isMilestone && task.id !== draftTask.id && task.memberId === draftTask.memberId && task.startWeek === targetWeek) {
+          targetTaskFound = true;
+          const nextChecklist = [...(task.checklist || []), movedChecklistItem];
+          return {
+            ...task,
+            duration: 1,
+            checklist: nextChecklist,
+            status: getTaskStatusFromChecklist(nextChecklist, task.status)
+          };
+        }
+
+        return task;
+      });
+
+      if (!targetTaskFound) {
+        const newTaskChecklist = [movedChecklistItem];
+        nextTasks.push({
+          id: `t-${Date.now()}-${itemId}`,
+          label: 'New task - change me',
+          category: draftTask.category,
+          startWeek: targetWeek,
+          duration: 1,
+          status: getTaskStatusFromChecklist(newTaskChecklist, 'Planned'),
+          description: '',
+          memberId: draftTask.memberId,
+          checklist: newTaskChecklist
+        });
+      }
+
+      return { ...prev, tasks: nextTasks };
+    });
+
+    setDraftTask(updatedSourceTask);
+  };
+
   const toggleCheckSheetItem = (systemId: string, section: keyof CheckSheetData, itemId: string) => {
     if (!isAdmin) return;
     
@@ -4880,37 +4943,67 @@ const App = () => {
                     </div>
                     <div className="space-y-3">
                       {(draftTask.checklist || []).map((item, idx) => (
-                        <div key={item.id} className="flex items-center gap-3 group/item">
-                          <button 
-                            onClick={() => {
-                              const newList = [...(draftTask.checklist || [])];
-                              newList[idx] = { ...item, completed: !item.completed };
-                              setDraftTask({ ...draftTask, checklist: newList });
-                            }}
-                            className={`shrink-0 transition-colors ${item.completed ? 'text-emerald-500' : 'text-slate-600 hover:text-slate-400'}`}
-                          >
-                            {item.completed ? <CheckSquare size={18} /> : <Square size={18} />}
-                          </button>
-                          <input 
-                            className={`flex-1 bg-transparent border-b border-transparent focus:border-indigo-500/30 outline-none text-[12px] font-medium transition-all ${item.completed ? 'text-slate-500 line-through' : 'text-slate-200'}`}
-                            placeholder="Checklist item..."
-                            value={item.label}
-                            onChange={e => {
-                              const newList = [...(draftTask.checklist || [])];
-                              newList[idx] = { ...item, label: e.target.value };
-                              setDraftTask({ ...draftTask, checklist: newList });
-                            }}
-                          />
-                          {isAdmin && (
-                            <button 
+                        <div key={item.id} className="group/item rounded-2xl border border-slate-800/70 bg-slate-950/35 p-3 transition-all hover:border-indigo-500/30 hover:bg-slate-950/55">
+                          <div className="flex items-center gap-3">
+                            <button
+                              type="button"
                               onClick={() => {
-                                const newList = (draftTask.checklist || []).filter(i => i.id !== item.id);
+                                const newList = [...(draftTask.checklist || [])];
+                                newList[idx] = { ...item, completed: !item.completed };
+                                setDraftTask({
+                                  ...draftTask,
+                                  checklist: newList,
+                                  status: getTaskStatusFromChecklist(newList, draftTask.status)
+                                });
+                              }}
+                              className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${item.completed ? 'bg-emerald-400 border-emerald-300 text-slate-950' : 'bg-slate-950 border-slate-700 text-slate-600 hover:border-indigo-400 hover:text-indigo-300'}`}
+                              title={item.completed ? 'Mark as planned' : 'Mark as completed'}
+                            >
+                              {item.completed ? <Check size={15} strokeWidth={4} /> : null}
+                            </button>
+                            <input
+                              className="flex-1 bg-transparent border-b border-transparent focus:border-indigo-500/30 outline-none text-[13px] font-normal transition-all text-slate-100 placeholder:text-slate-600"
+                              placeholder="Checklist item..."
+                              value={item.label}
+                              onChange={e => {
+                                const newList = [...(draftTask.checklist || [])];
+                                newList[idx] = { ...item, label: e.target.value };
                                 setDraftTask({ ...draftTask, checklist: newList });
                               }}
-                              className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            />
+                            {isAdmin && !draftTask.isMilestone && (
+                              <button
+                                type="button"
+                                disabled={draftTask.startWeek >= TOTAL_WEEKS - 1}
+                                onClick={() => moveDraftChecklistItemToNextWeek(item.id)}
+                                className="shrink-0 rounded-xl border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-blue-300 hover:bg-blue-500/15 hover:border-blue-400/50 hover:text-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                                title="Move this subtask to next week. If no task exists there, a one-week task will be created."
+                              >
+                                Next Week
+                                <ArrowRight size={12} />
+                              </button>
+                            )}
+                            {isAdmin && (
+                              <button
+                                onClick={() => {
+                                  const newList = (draftTask.checklist || []).filter(i => i.id !== item.id);
+                                  setDraftTask({
+                                    ...draftTask,
+                                    checklist: newList,
+                                    status: getTaskStatusFromChecklist(newList, draftTask.status)
+                                  });
+                                }}
+                                className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                          {isAdmin && !draftTask.isMilestone && (
+                            <div className="mt-2 ml-9 flex items-center gap-2 text-[9px] font-normal text-slate-500">
+                              <ArrowRight size={11} className="text-blue-400" />
+                              Moves only this subtask to Week {Math.min(TOTAL_WEEKS, draftTask.startWeek + 2)}. New task is one week only.
+                            </div>
                           )}
                         </div>
                       ))}
@@ -5324,7 +5417,7 @@ const App = () => {
                             <div className={`w-3 h-3 rounded-sm border flex items-center justify-center shrink-0 ${item.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-700'}`}>
                               {item.completed && <CheckCircle2 size={8} />}
                             </div>
-                            <span className={`text-[9px] leading-tight ${item.completed ? 'text-slate-500 line-through' : 'text-slate-300'}`}>{item.label}</span>
+                            <span className={`text-[9px] leading-tight ${item.completed ? 'text-emerald-300' : 'text-slate-300'}`}>{item.label}</span>
                           </div>
                         ))}
                       </div>
