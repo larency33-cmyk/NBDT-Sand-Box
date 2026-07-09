@@ -3839,14 +3839,14 @@ const App = () => {
                      {project.members.map(member => {
                         const memberFocusTasks = project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex)));
                         const maxSubtaskCount = isWeeklyFocus ? Math.max(0, ...memberFocusTasks.map(t => (t.checklist || []).length)) : 0;
-                        const dynamicWeeklyRowHeight = Math.max(86, 78 + (maxSubtaskCount * 38));
+                        const dynamicWeeklyRowHeight = Math.max(96, 92 + (maxSubtaskCount * 42));
                         return (
                         <div 
                           key={member.id} 
                           className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
                           style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
                         >
-                           <div className={`sticky left-0 z-40 w-[220px] flex items-center px-3 shrink-0 transition-all ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
+                           <div className={`sticky left-0 z-40 w-[220px] flex px-3 shrink-0 transition-all ${isWeeklyFocus ? 'items-start pt-10' : 'items-center'} ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
                               <div 
                                 className={`flex-1 flex items-center gap-3 group/member cursor-pointer h-10 px-3 rounded-l-md transition-all duration-500 relative overflow-hidden [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] ${selectedMemberId === member.id ? 'bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/[0.03] hover:bg-white/[0.06]'}`}
                                 onClick={(e) => {
@@ -3963,7 +3963,7 @@ const App = () => {
                                         {taskChecklistTotal > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{taskChecklistDone} of {taskChecklistTotal}</span>}
                                       </div>
                                       {taskChecklistTotal > 0 ? (
-                                        <div className="flex flex-col gap-1.5 overflow-visible pr-1">
+                                        <div className="flex flex-col gap-2 overflow-visible pr-1 pb-4">
                                           {taskChecklist.map(item => (
                                             <button
                                               key={item.id}
@@ -3973,17 +3973,17 @@ const App = () => {
                                                 e.stopPropagation();
                                                 toggleTaskChecklistItem(task.id, item.id);
                                               }}
-                                              className={`group/subtask flex items-center gap-3 min-w-0 rounded-xl border px-3.5 py-2.5 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${item.completed ? 'bg-emerald-500/[0.16] border-emerald-400/35 text-emerald-50 shadow-[0_0_18px_rgba(16,185,129,0.10)]' : 'bg-slate-950/70 border-indigo-300/35 text-white hover:border-indigo-200/70 hover:bg-indigo-500/[0.18] hover:text-white'}`}
+                                              className={`group/subtask flex items-center gap-3 min-w-0 rounded-xl border px-3.5 py-2.5 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${item.completed ? 'bg-emerald-500/[0.12] border-emerald-400/30 text-white' : 'bg-indigo-500/[0.24] border-indigo-300/35 text-white hover:border-indigo-200/70 hover:bg-indigo-500/[0.30]'}`}
                                             >
-                                              <div className={`w-[18px] h-[18px] rounded-full shrink-0 flex items-center justify-center border transition-all ${item.completed ? 'bg-emerald-400 border-emerald-300 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.45)]' : 'bg-slate-950 border-indigo-200/60 group-hover/subtask:border-white'}`}>
-                                                {item.completed && <CheckCircle size={10} />}
+                                              <div className={`w-[20px] h-[20px] rounded-full shrink-0 flex items-center justify-center border-2 transition-all ${item.completed ? 'bg-white border-white text-emerald-600' : 'bg-slate-950 border-slate-950'}`}>
+                                                {item.completed && <Check size={13} strokeWidth={4} />}
                                               </div>
-                                              <span className={`text-[12px] font-black tracking-tight truncate drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)] ${item.completed ? 'line-through decoration-emerald-200/60 text-emerald-50' : 'text-white'}`}>{item.label}</span>
+                                              <span className="text-[13px] font-normal tracking-tight truncate text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">{item.label}</span>
                                             </button>
                                           ))}
                                         </div>
                                       ) : (
-                                        <div className="rounded-xl border border-dashed border-slate-600/70 bg-slate-950/55 px-3 py-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="rounded-xl border border-dashed border-slate-600/70 bg-slate-950/55 px-3 py-2 text-[11px] font-normal text-slate-400 uppercase tracking-widest">
                                           No subtasks added
                                         </div>
                                       )}
@@ -3992,7 +3992,7 @@ const App = () => {
                                 ) : (
                                   <div className="flex items-center w-full h-full px-3">
                                     <div className="flex flex-col min-w-0">
-                                      <span className="text-[11px] font-bold truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
+                                      <span className="text-[11px] font-normal truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
                                     </div>
                                     {task.checklist && task.checklist.length > 0 && (
                                       <div className="flex items-center gap-1.5 ml-auto pl-2 opacity-30">
