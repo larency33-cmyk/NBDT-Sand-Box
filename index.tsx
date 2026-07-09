@@ -3690,17 +3690,17 @@ const App = () => {
                   </div>
 
                    {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative overflow-visible bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-16' : 'h-16'}`}>
+                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative overflow-visible bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-14' : 'h-14'}`}>
                      <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
                         {isAdmin ? (
                           <button 
                             onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                              <Flag size={14} /> Milestones
                           </button>
                         ) : (
-                          <div className="w-full py-2.5 bg-indigo-600/90 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                              <Flag size={14} /> Milestones
                           </div>
                         )}
@@ -3715,10 +3715,15 @@ const App = () => {
                         const getMilestoneDateInfo = (task: RoadmapTask) => {
                           const date = task.date ? parseLocalDate(task.date) : parseLocalDate(project.startDate);
                           if (!task.date) date.setDate(date.getDate() + (task.startWeek * 7));
+
                           const weekStart = parseLocalDate(project.startDate);
                           weekStart.setDate(weekStart.getDate() + (task.startWeek * 7));
+
                           const diffDays = Math.floor((date.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
-                          return { date, dayOffset: Math.max(0, Math.min(6, diffDays)) };
+                          return {
+                            date,
+                            dayOffset: Math.max(0, Math.min(6, diffDays))
+                          };
                         };
 
                         return visibleMilestones.map(m => {
@@ -3729,12 +3734,17 @@ const App = () => {
                             return candidate.startWeek === m.startWeek && candidateInfo.dayOffset === dayOffset;
                           });
                           const laneIndex = Math.max(0, sameSlotMilestones.findIndex(candidate => candidate.id === m.id));
-                          const laneOffset = (laneIndex - ((sameSlotMilestones.length - 1) / 2)) * 30;
-                          const milestoneLeft = MEMBER_LABEL_WIDTH + (isWeeklyFocus ? ((dayOffset + 0.5) * (roadmapWeekWidth / 7)) : (m.startWeek * WEEK_WIDTH) + ((dayOffset + 0.5) * (WEEK_WIDTH / 7)));
-                          const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_14px_rgba(16,185,129,0.35)]' }
-                            : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_14px_rgba(59,130,246,0.35)]' }
-                            : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_14px_rgba(244,63,94,0.35)]' }
-                            : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_14px_rgba(100,116,139,0.2)]' };
+                          const laneCount = sameSlotMilestones.length;
+                          const laneOffset = (laneIndex - ((laneCount - 1) / 2)) * (isWeeklyFocus ? 26 : 22);
+                          const dayPosition = isWeeklyFocus
+                            ? ((dayOffset + 0.5) * (roadmapWeekWidth / 7))
+                            : (m.startWeek * WEEK_WIDTH) + ((dayOffset + 0.5) * (WEEK_WIDTH / 7));
+                          const milestoneLeft = MEMBER_LABEL_WIDTH + dayPosition;
+
+                          const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_12px_rgba(16,185,129,0.35)]' }
+                            : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_12px_rgba(59,130,246,0.35)]' }
+                            : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_12px_rgba(244,63,94,0.35)]' }
+                            : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_12px_rgba(100,116,139,0.2)]' };
 
                           return (
                             <div
@@ -3743,25 +3753,29 @@ const App = () => {
                               onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }}
                               onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
                               onMouseLeave={() => setHoveredTaskInfo(null)}
-                              className={`absolute -translate-y-1/2 -translate-x-1/2 flex items-center z-30 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`}
+                              className={`absolute -translate-x-1/2 -translate-y-1/2 flex items-center z-30 transition-all group/m hover:z-[500] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`}
                               style={{ left: milestoneLeft, top: `calc(50% + ${laneOffset}px)` }}
                               onClick={() => isAdmin && setDraftTask(m)}
                             >
-                              <div className={`relative overflow-hidden ${isWeeklyFocus ? 'w-[188px]' : 'w-[142px]'} h-[32px] rounded-xl border border-white/10 bg-gradient-to-r from-[#0f172a]/95 to-[#020617]/95 backdrop-blur-xl shadow-[0_8px_26px_rgba(0,0,0,0.48)] group-hover/m:border-white/25 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_16px_34px_rgba(0,0,0,0.62)] transition-all duration-300 flex items-center gap-2 px-2.5`}>
-                                <div className={`absolute -left-8 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full blur-2xl opacity-[0.12] ${mConfig.accent}`} />
-                                <div className={`h-6 w-6 rounded-lg border border-white/10 flex items-center justify-center shrink-0 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
-                                  <Flag size={12} className="text-white fill-white/20" />
+                              <div className={`relative overflow-hidden ${isWeeklyFocus ? 'w-[170px]' : 'w-[118px]'} h-[30px] rounded-xl border border-white/10 bg-[#0b1120]/95 backdrop-blur-xl shadow-[0_6px_18px_rgba(0,0,0,0.45)] group-hover/m:border-white/25 group-hover/m:-translate-y-0.5 group-hover/m:shadow-[0_12px_28px_rgba(0,0,0,0.58)] transition-all duration-300 flex items-center gap-2 px-2`}>
+                                <div className={`absolute -left-8 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full blur-2xl opacity-[0.10] ${mConfig.accent}`} />
+                                <div className={`h-5 w-5 rounded-lg border border-white/10 flex items-center justify-center shrink-0 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
+                                  <Flag size={10} className="text-white fill-white/20" />
                                 </div>
                                 <div className="min-w-0 flex-1 relative z-10">
                                   <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className={`${isWeeklyFocus ? 'text-[10px]' : 'text-[9px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors`}>{m.label}</span>
-                                    {sameSlotMilestones.length > 1 && (
-                                      <span className="shrink-0 rounded-full bg-indigo-500/15 border border-indigo-500/25 px-1.5 py-0.5 text-[7px] font-black text-indigo-300 tabular-nums">{laneIndex + 1}/{sameSlotMilestones.length}</span>
+                                    <span className={`${isWeeklyFocus ? 'text-[10px]' : 'text-[8px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors`}>
+                                      {m.label}
+                                    </span>
+                                    {laneCount > 1 && (
+                                      <span className="shrink-0 rounded-full bg-indigo-500/15 border border-indigo-500/25 px-1 py-0.5 text-[6px] font-black text-indigo-300 tabular-nums leading-none">
+                                        {laneIndex + 1}/{laneCount}
+                                      </span>
                                     )}
                                   </div>
                                   <div className="mt-0.5 flex items-center gap-1.5">
-                                    <span className={`h-1.5 w-1.5 rounded-full ${mConfig.accent}`} />
-                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest truncate">{mDateStr}</span>
+                                    <span className={`h-1 w-1 rounded-full ${mConfig.accent}`} />
+                                    <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest truncate">{mDateStr}</span>
                                   </div>
                                 </div>
                               </div>
