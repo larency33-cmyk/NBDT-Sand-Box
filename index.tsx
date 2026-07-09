@@ -3695,12 +3695,12 @@ const App = () => {
                         {isAdmin ? (
                           <button 
                             onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            className="w-full py-2.5 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                           >
                              <Flag size={14} /> Milestones
                           </button>
                         ) : (
-                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                          <div className="w-full py-2.5 bg-indigo-600/90 text-white rounded-lg text-[11px] font-medium tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
                              <Flag size={14} /> Milestones
                           </div>
                         )}
@@ -3731,15 +3731,15 @@ const App = () => {
                             style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (m.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : (WEEK_WIDTH - 16) }} 
                             onClick={() => isAdmin && setDraftTask(m)}
                           >
-                             <div className={`relative flex h-full w-full items-center gap-3 overflow-hidden border ${mConfig.border} ${isWeeklyFocus ? 'rounded-2xl px-4' : 'rounded-md px-3'} bg-gradient-to-r from-violet-500/[0.16] via-[#0d1524]/95 to-[#08111f]/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl group-hover/m:border-white/25 transition-all duration-500`}>
-                                <div className={`flex ${isWeeklyFocus ? 'h-11 w-11 rounded-2xl' : 'h-7 w-7 rounded-xl'} shrink-0 items-center justify-center border border-white/15 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
-                                   <Flag size={isWeeklyFocus ? 17 : 12} className="text-white fill-white/20" />
+                             <div className={`relative flex h-full w-full items-center gap-2.5 overflow-hidden border ${mConfig.border} ${isWeeklyFocus ? 'rounded-2xl px-4' : 'rounded-md px-3'} bg-gradient-to-r from-violet-500/[0.14] via-[#0d1524]/95 to-[#08111f]/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl group-hover/m:border-white/25 transition-all duration-500`}>
+                                <div className={`flex ${isWeeklyFocus ? 'h-8 w-8 rounded-xl' : 'h-5 w-5 rounded-lg'} shrink-0 items-center justify-center border border-white/15 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
+                                   <Flag size={isWeeklyFocus ? 12 : 8} className="text-white fill-white/20" />
                                 </div>
                                 {/* Subtle internal glow */}
                                 <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
                                 
-                                <div className="min-w-0 flex-1 relative z-10">
-                                   <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300`}>{m.label}</span>
+                                <div className="min-w-0 flex-1 h-full flex items-center relative z-10">
+                                   <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300 leading-none`}>{m.label}</span>
                                 </div>
                                 <div className="hidden">
                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
