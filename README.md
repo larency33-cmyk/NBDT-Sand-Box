@@ -1,3 +1,7 @@
+# NBDT v0.7 — Weekly Tracker UX Refinement
+
+Список изменений и ограничений: `NBDT_v0_7_weekly_tracker_report_RU.md`.
+
 # NBDT v0.6 — Visual Reference Refinement
 
 Changes and honest test scope: see `NBDT_v0_6_refinement_report_RU.md`.
