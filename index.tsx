@@ -2,6 +2,7 @@ import {ProfileGuide as SystemGuide,TaskEditor,DataTools,StoreStatus} from './sr
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
+import {quickCreateAssignment,quickSetTaskStatus} from './src/tracker-actions.mjs';
 import './redesign.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
@@ -3412,7 +3413,13 @@ const App = () => {
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((mondayOf(value).getTime()-mondayOf(projectRef.current.startDate).getTime())/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);url.searchParams.set('week',isoWeek(projectWeekDate(project.startDate,w)));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onQuickTaskSave={async(taskId:string,changes:any)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to change a task.');
+          await handleAction(prev=>quickSetTaskStatus(prev,taskId,changes));
+        }} onQuickTaskCreate={async(data:any)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to add a task.');
+          await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
+        }} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);url.searchParams.set('week',String(w+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
             <header className="nb-registry-heading">

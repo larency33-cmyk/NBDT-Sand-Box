@@ -1,3 +1,4 @@
+import {weekIndexFromDate,projectWeekParam} from './schedule.mjs';
 /** Shareable client-side locations. No user-supplied route text is used as HTML. */
 const safeDecode = value => { try { return decodeURIComponent(value); } catch { return ''; } };
 const SECTIONS = {overview:'overview',roadmap:'tracker',systems:'systems',issues:'issues','config-report':'reports/configuration',sync:'sync'};
@@ -36,18 +37,23 @@ export function guidePath(projectId, systemId, {profileId,deviceId,stage} = {}) 
 }
 /** Index relative to a Monday-anchored project. Supports all real ISO years. */
 export function weekIndexFromIso(start,week) {
+  const projectIndex=projectWeekParam(start,week);
+  if(projectIndex!==null)return projectIndex;
   const match=/^(\d{4})-W(\d{2})$/.exec(week||'');
-  if (!match) return null;
-  const year=Number(match[1]), n=Number(match[2]);
-  if (n<1||n>53) return null;
+  if(!match)return null;
+  const year=Number(match[1]),n=Number(match[2]);
+  if(n<1||n>53)return null;
   const jan4=new Date(Date.UTC(year,0,4,12));
   jan4.setUTCDate(jan4.getUTCDate()-((jan4.getUTCDay()+6)%7)+(n-1)*7);
-  const anchor=new Date(start+'T12:00:00Z');
-  if (!Number.isFinite(anchor.getTime()))return null;
-  const anchorWeekday=(anchor.getUTCDay()+6)%7;
-  anchor.setUTCDate(anchor.getUTCDate()-anchorWeekday);
-  const result=Math.round((jan4-anchor)/604800000);
   const thursday=new Date(jan4);thursday.setUTCDate(thursday.getUTCDate()+3);
-  const checkYear=thursday.getUTCFullYear();
-  return checkYear===year&&result>=0&&result<=520?result:null;
+  if(thursday.getUTCFullYear()!==year)return null;
+  const monday=jan4.toISOString().slice(0,10);
+  let weekIndex=weekIndexFromDate(start,monday);
+  // For old bookmarked links, a calendar week beginning just before the project
+  // start still intersects project Week 1.
+  const sunday=new Date(jan4);sunday.setUTCDate(sunday.getUTCDate()+6);
+  if(weekIndex===-1&&sunday.toISOString().slice(0,10)>=start)weekIndex=0;
+  // Legacy ISO deep links point at the Monday of their ISO week. Map that Monday
+  // to the project week containing it, without reintroducing calendar-week labels.
+  return weekIndex!==null&&weekIndex>=0&&weekIndex<520?weekIndex:null;
 }

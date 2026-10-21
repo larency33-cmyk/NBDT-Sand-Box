@@ -29,9 +29,10 @@ test('weekly matrix annotates empty rows and offers appropriately labelled cells
  assert.ok(w.includes('aria-label={`${m.name}: ${list.length} assignments'));
  assert.ok(css.includes('tr.nb-no-assignments .nb-week-cell'));
 });
-test('weekly panel auto-selects existing assignments and does not fake assignment data',()=>{
- assert.ok(w.includes('const first=project.members.find'));
- assert.ok(w.includes('setSelected(first?{id:first.id,week}:null)'));
+test('weekly panel opens only from a selected person/week cell',()=>{
+ assert.ok(w.includes('setSelected({id:m.id,week:w})'));
+ assert.ok(w.includes('nb-quick-panel'));
+ assert.ok(w.includes('onQuickTaskSave'));
 });
 test('system cards distinguish legacy steps from genuine device completion',()=>{
  assert.ok(app.includes('nb-card-legacy-tag'));

@@ -48,11 +48,35 @@ export function SystemEditor({sys,project,isAdmin,onSave,onClose,onDelete}:any){
  return <section className="nb-editor-page"><div className="nb-breadcrumb">Systems / {sys.name} / Edit profile</div><header className="nb-page-header"><div><h1>{isAdmin?'Edit system / profile':'System details'}</h1><p>Changes remain a draft until Save changes.</p></div><B onClick={cancel}>Back to systems</B></header><form className="nb-profile-form" onSubmit={async e=>{e.preventDefault();if(!draft.name.trim()){setError('System name is required');return;}if(draft.documentationUrl&&!safeUrl(draft.documentationUrl)){setError('Documentation must be an HTTPS URL without credentials');return;}if(draft.os!==sys.os&&(sys.deviceRuns||[]).length){setError('Platform changes require a new profile. Existing runs must not be reassigned.');return;}setBusy(true);try{await onSave(draft);}catch(e:any){setError(e.message);}finally{setBusy(false);}}}><div className="nb-form-grid"><fieldset><legend>System identity</legend>{field('name','System name')}<label>Deployment owner<select disabled={!isAdmin} value={draft.assigneeId||''} onChange={e=>setDraft({...draft,assigneeId:e.target.value})}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>{field('description','Short description')}</fieldset><fieldset><legend>Endpoint profile</legend>{field('deviceType','Hardware / model')}{field('deviceCategory','Device category',['PC','Laptop','Tablet','Phone','Kiosk'])}{field('os','Platform family',['Windows','Linux','iOS','iPadOS','Android','macOS','Other'])}{field('osVersion','Approved OS version')}</fieldset><fieldset><legend>Network</legend>{field('network','Connection',['Wired','WiFi','Offline'])}{field('vlan','VLAN')}{field('ipScope','IP scope')}{field('ipReservation','Reservation policy')}{field('valueState','Technical value state',['to_confirm','confirmed','example','N/A'])}</fieldset><fieldset><legend>Identity & management</legend>{field('serviceAccount','Service account name / reference (no passwords)')}{field('userAccount','User account reference')}{field('logonType','Authentication type')}{field('domainOU','Domain / OU (if applicable)')}{field('airWatchTags','MDM / AirWatch tags')}{field('namingConvention','Naming convention')}</fieldset><fieldset><legend>Documentation & applications</legend>{field('documentationUrl','Documentation URL (HTTPS)')}<label>Required applications<textarea readOnly={!isAdmin} value={draft.appList||''} onChange={e=>setDraft({...draft,appList:e.target.value})}/></label><label>Engineering notes<textarea readOnly={!isAdmin} value={draft.documentation||''} onChange={e=>setDraft({...draft,documentation:e.target.value})}/></label></fieldset><fieldset><legend>Lessons Learned</legend><label>Notes<textarea readOnly={!isAdmin} value={draft.lessonsLearned||''} onChange={e=>setDraft({...draft,lessonsLearned:e.target.value})}/></label><p className="nb-muted">Profile changes do not silently publish a new guide version.</p></fieldset></div><p role="alert">{error}</p><div className="nb-toolbar">{isAdmin&&<button disabled={busy} type="submit" className="nb-button nb-primary">{busy?'Saving…':'Save changes'}</button>}<B onClick={cancel}>{isAdmin?'Cancel':'Close'}</B>{isAdmin&&onDelete&&<B onClick={()=>{if(confirm('Delete this system and its device runs? Export a backup first.'))onDelete();}}>Delete system</B>}<span>{dirty?'Unsaved changes':'No unsaved changes'}</span></div></form></section>;
 }
 
-export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,week,setWeek}:any){
- const [view,setView]=useState(()=>({overview:'Overview',week:'Week',list:'List'} as any)[new URLSearchParams(location.search).get('view')||'overview']||'Overview'),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[collapsed,setCollapsed]=useState<string[]>([]),[detail,setDetail]=useState<any>(null);
+/** Fast status controls save the shared Task ID, not one local assignment copy. */
+function QuickAssignmentRow({task,role,ownerName,personId,isAdmin,onQuickTaskSave,onEdit}:any){
+ const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
+ const save=async(status:string,reason='')=>{
+  if(!isAdmin||saving)return;
+  setSaving(true);setError('');
+  try{await onQuickTaskSave(task.id,{status,...(status==='Blocked'?{blockReason:reason}:{} )});setShowBlocker(false);}
+  catch(e:any){setError(e?.message||'Save failed. No changes were applied.');}
+  finally{setSaving(false);}
+ };
+ const actualStatus=task.status||'Planned';
+ return <article className={'nb-quick-task-card '+(actualStatus==='Blocked'?'nb-quick-task-blocked':'')}>
+  <div className="nb-quick-task-header"><strong>{task.label}</strong><span className="nb-quick-role">{role}</span></div>
+  <div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status <select aria-label={'Status for '+task.label} value={showBlocker?'Blocked':actualStatus} disabled={!isAdmin||saving} onChange={e=>{const status=e.target.value;if(status==='Blocked'&&!(task.blockReason||'').trim()){setShowBlocker(true);return;}void save(status,task.blockReason||'');}}>
+   <option value="Planned">Planned</option><option value="In Progress">Active</option><option value="Completed">Done</option><option value="Blocked">Blocked</option>
+  </select></label><span className="nb-quick-task-meta">{role==='Helper'?'Owner: '+ownerName:'Owner'}</span>{isAdmin&&<button type="button" className="nb-quick-advanced" onClick={onEdit}>More</button>}</div>
+  {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
+  {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
+  {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
+  {error&&<p role="alert" className="nb-quick-error">{error}</p>}
+ </article>;
+}
+
+export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,week,setWeek}:any){
+ const [view,setView]=useState(()=>({overview:'Overview',list:'List'} as any)[new URLSearchParams(location.search).get('view')||'overview']||'Overview'),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[collapsed,setCollapsed]=useState<string[]>([]),[detail,setDetail]=useState<any>(null);
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
+ const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState('');
  useEffect(()=>{const tick=()=>setTodayDate(todayInTimezone(project.timezone||'Europe/Paris'));tick();const timer=window.setInterval(tick,60000);return()=>clearInterval(timer);},[project.timezone]);
  const actualCurrentWeek=currentWeekIndex(project.startDate,project.timezone||'Europe/Paris',new Date(todayDate+'T12:00:00Z'));
  const currentWeek=actualCurrentWeek===null?-1:actualCurrentWeek;
@@ -63,13 +87,13 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,week
  const matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
  const at=(id:string,w:number)=>tasks.filter((t:any)=>assignments(t).includes(id)&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));
  const people=project.members.filter((m:any)=>!person||m.id===person);
- const weeks=Array.from({length:4},(_,i)=>week+i);
+ const weeks=Array.from({length:4},(_,i)=>week+i).filter(w=>w<520);
  const selectedPerson=project.members.find((m:any)=>m.id===selected?.id);
  const chosen=selected?at(selected.id,selected.week):[];
  const open=(t:any)=>setDetail(t);
  const role=(t:any,id:string)=>t.memberId===id?'Owner':'Helper';
- const selectedIsoWeek=isoWeek(projectWeekDate(project.startDate,week));
- const weekIso=(w:number)=>isoWeek(projectWeekDate(project.startDate,w));
+ const selectedIsoWeek=`Week ${week+1}`;
+ const weekIso=(w:number)=>`Week ${w+1}`;
  const weekDate=(w:number)=>projectWeekDate(project.startDate,w);
  const milestonesAt=(w:number)=>milestones.filter((m:any)=>m.startWeek===w);
  const closestScheduledWeek=tasks.length?tasks.map((t:any)=>t.startWeek).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
@@ -81,24 +105,25 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,week
  const totalMilestones=weeks.reduce((n:number,w:number)=>n+milestonesAt(w).length,0);
  const createMilestone=(w:number)=>onEdit({id:uid(),label:'New milestone',startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
 
- useEffect(()=>{if(view!=='Week'){setSelected(null);setDetail(null);return;}const first=project.members.find((m:any)=>project.tasks.some((t:any)=>!t.isMilestone&&assignments(t).includes(m.id)&&t.startWeek<=week&&t.startWeek+t.duration>week));setSelected(first?{id:first.id,week}:null);setDetail(null);},[view,week,project.members,project.tasks]);
+ useEffect(()=>{setSelected(null);setDetail(null);},[week,view,project.id]);
+ useEffect(()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');},[selected?.id,selected?.week]);
 
  return <section className="nb-tracker" data-view={view.toLowerCase()}>
   <header className="nb-page-header">
    <div>
     <div className="nb-tracker-breadcrumb">NBDT · {project.name} · Weekly Tracker</div>
     <h1>Weekly Tracker</h1>
-    <p>{view==='Overview'?`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`:weekRange(project.startDate,week)} · {project.name}</p>
+    <p>{`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`} · {project.name}</p>
    </div>
    <div className="nb-actions">
-    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',selectedIsoWeek);url.searchParams.set('view',view.toLowerCase());await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
+    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.set('view',view.toLowerCase());await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
     <B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>
     {isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}
    </div>
   </header>
 
   <div className="nb-toolbar">
-   <div className="nb-segments">{['Overview','Week','List'].map(v=><B key={v} onClick={()=>{setView(v);const url=new URL(location.href);url.searchParams.set('view',v.toLowerCase());window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} aria-pressed={view===v}>{v}</B>)}</div>
+   <div className="nb-segments">{['Overview','List'].map(v=><B key={v} onClick={()=>{setView(v);const url=new URL(location.href);url.searchParams.set('view',v.toLowerCase());window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} aria-pressed={view===v}>{v}</B>)}</div>
    <label className="nb-project-start"><CalendarDays size={17} aria-hidden="true"/><span>Project start</span>{isAdmin?<input type="date" aria-label="Project start date" disabled={dateSaving} value={project.startDate} onChange={e=>{void updateStart(e.target.value);}}/>:<strong>{project.startDate}</strong>}</label>
    <select aria-label="Person filter" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
    <select aria-label="Status filter" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Blocked','Completed'].map(v=><option key={v}>{v}</option>)}</select>
@@ -111,11 +136,11 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,week
     <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.length} people</span>
     <span className="nb-summary-pill"><ClipboardCheck size={17} aria-hidden="true"/>{currentWeekTaskCount} unique tasks in {selectedIsoWeek}</span>
     <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked</span>
-    {view==='Overview'&&totalMilestones>0&&<span className="nb-summary-pill"><Flag size={17} aria-hidden="true"/>{totalMilestones} milestones</span>}
+    {totalMilestones>0&&<span className="nb-summary-pill"><Flag size={17} aria-hidden="true"/>{totalMilestones} milestones</span>}
     {currentWeek===week&&<span className="nb-current-indicator">Current week</span>}
    </div>
    <div className="nb-summary-actions">
-    {view==='Overview'&&!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(closestScheduledWeek)}>View scheduled assignments →</B>}
+    {!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(closestScheduledWeek)}>View scheduled assignments →</B>}
     <button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button>
    </div>
   </div>
@@ -185,24 +210,41 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,week
      </table>
     </>:<div className="nb-task-list">
       <div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>
-      {people.map((m:any)=>{const list=view==='Week'?at(m.id,week):tasks.filter((t:any)=>assignments(t).includes(m.id)&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{setSelected({id:m.id,week});open(t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
+      {people.map((m:any)=>{const list=tasks.filter((t:any)=>assignments(t).includes(m.id)&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{setSelected({id:m.id,week});open(t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
      </div>}
    </div>
 
-   {selected&&<aside className="nb-assignment-panel" aria-label="Person assignments">
-    <div className="nb-section-heading"><h2>{selectedPerson?.name} · {weekIso(selected.week).split('-W')[1]&&'Week '+weekIso(selected.week).split('-W')[1]}</h2><B aria-label="Close person panel" onClick={()=>{setSelected(null);setDetail(null);}}>✕</B></div>
-    <p>Project week {selected.week+1} · {weekRange(project.startDate,selected.week)}</p>
-    <p className="nb-person-metrics"><span>{chosen.filter((t:any)=>t.status==='In Progress').length} active</span> · <span>{chosen.filter((t:any)=>t.status==='Planned').length} planned</span> · <span>{chosen.filter((t:any)=>t.status==='Completed').length} done</span> · <span>{chosen.filter((t:any)=>t.status==='Blocked').length} blocked</span></p>
-    {!!milestonesAt(selected.week).length&&!detail&&<div className="nb-panel nb-tracker-milestone-panel"><strong>Milestones this week</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className={'nb-milestone-chip '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
-    {detail?<><B onClick={()=>setDetail(null)}>Back to assignments</B><h3>{detail.label}</h3><Badge value={detail.status}/><p>{role(detail,selected.id)} · Due {dueDate(project.startDate,detail)}</p><p>{detail.description||'No description recorded'}</p><h3>Checklist</h3>{(detail.checklist||[]).map((i:any)=><p key={i.id}>{i.completed?'✓':'○'} {i.label}</p>)}{isAdmin&&<B primary onClick={()=>onEdit(detail)}>Edit task</B>}</>:chosen.map((t:any)=><button className="nb-assignment" key={t.id} onClick={()=>open(t)}><div><strong>{t.label}</strong><Badge value={t.status}/></div><small>{role(t,selected.id)} · Due {dueDate(project.startDate,t)}</small>{t.status==='Blocked'&&t.description&&<p className="nb-blocker-reason">{t.description}</p>}</button>)}
-    {isAdmin&&!detail&&<div className="nb-person-actions"><details className="nb-assignment-tools"><summary>+ Add assignment</summary><p>Select an existing task in this week to add {selectedPerson?.name} as Helper. Review and Save the edit.</p><select aria-label="Choose existing task to help" defaultValue="" onChange={e=>{const task=project.tasks.find((t:any)=>t.id===e.target.value);if(task)onEdit({...task,helperIds:[...(task.helperIds||[]),selected.id]});e.target.value='';}}><option value="">Choose a task…</option>{project.tasks.filter((t:any)=>!t.isMilestone&&t.memberId!==selected.id&&!(t.helperIds||[]).includes(selected.id)&&t.startWeek<=selected.week&&t.startWeek+t.duration>selected.week).map((t:any)=><option key={t.id} value={t.id}>{t.label}</option>)}</select></details><B onClick={()=>onEdit({id:uid(),label:'New task',memberId:selected.id,startWeek:selected.week,duration:1,status:'Planned',description:''})}>Create new task</B>{isAdmin&&<B onClick={()=>createMilestone(selected.week)}>Add milestone</B>}</div>}
+   {selected&&<aside className="nb-assignment-panel nb-quick-panel" aria-label="Person assignments">
+    <header className="nb-quick-panel-heading">
+      <div className="nb-quick-person"><span className="nb-avatar">{selectedPerson?.name?.charAt(0)}</span><div><h2>{selectedPerson?.name}</h2><p>{weekIso(selected.week)} · {weekRange(project.startDate,selected.week)}</p></div></div>
+      <B aria-label="Close person panel" onClick={()=>{setSelected(null);setDetail(null);setAddingAssignment(false);setQuickError('');}}>✕</B>
+    </header>
+    <div className="nb-quick-metrics">
+     <span className="nb-metric-active">{chosen.filter((t:any)=>t.status==='In Progress').length} Active</span>
+     <span>{chosen.filter((t:any)=>t.status==='Planned').length} Planned</span>
+     <span className="nb-metric-done">{chosen.filter((t:any)=>t.status==='Completed').length} Done</span>
+     <span className="nb-metric-blocked">{chosen.filter((t:any)=>t.status==='Blocked').length} Blocked</span>
+    </div>
+    {!!milestonesAt(selected.week).length&&<div className="nb-quick-milestones"><strong>Milestones</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>isAdmin?onEdit(ms):void 0}><Flag size={14}/><span>{ms.label}</span></button>)}</div>}
+    <div className="nb-quick-list" aria-label="Assignments for selected week">
+     {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
+     {chosen.map((t:any)=><QuickAssignmentRow key={t.id} task={t} ownerName={project.members.find((m:any)=>m.id===t.memberId)?.name||'Unassigned'} personId={selected.id} role={role(t,selected.id)} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>onEdit(project.tasks.find((item:any)=>item.id===t.id)||t)} />)}
+    </div>
+    {isAdmin?<div className="nb-quick-add-area">
+     {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}>+ Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
+      <label htmlFor="nb-quick-new-task">New assignment for {selectedPerson?.name}</label>
+      <input id="nb-quick-new-task" required maxLength={160} autoFocus placeholder="Type task name and press Enter…" value={newAssignment} disabled={quickAdding} onChange={e=>setNewAssignment(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){setAddingAssignment(false);setQuickError('');}}}/>
+      <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!newAssignment.trim()}>{quickAdding?'Saving…':'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
+     </form>}
+     {quickError&&<p className="nb-quick-error" role="alert">{quickError}</p>}
+    </div>:<p className="nb-quick-view-note">Enable Edit mode to change statuses or add assignments.</p>}
    </aside>}
   </div>
 
   <footer className="nb-week-footer">
-   <span>ISO weeks</span>
+   <span>Project weeks</span>
    <B disabled={week<=0} onClick={()=>setWeek(Math.max(0,week-1))} aria-label="Previous week" className="nb-weeks-prev">‹</B>
-   <div className="nb-week-footer-scroll" aria-label="Week navigation">{Array.from({length:11},(_,i)=>Math.max(0,Math.min(509,week-3))+i).filter(i=>i<520).map(i=><B key={i} aria-pressed={week===i} aria-current={currentWeek===i?'date':undefined} className={'nb-week-footer-item '+(i>=week&&i<week+(view==='Overview'?4:1)?'nb-in-visible-range ':'')+(currentWeek===i?'nb-is-today':'')} onClick={()=>setWeek(i)}>{weekIso(i).replace('-W',' W')}</B>)}</div>
+   <div className="nb-week-footer-scroll" aria-label="Week navigation">{Array.from({length:11},(_,i)=>Math.max(0,Math.min(509,week-3))+i).filter(i=>i<520).map(i=><B key={i} aria-pressed={week===i} aria-current={currentWeek===i?'date':undefined} className={'nb-week-footer-item '+(i>=week&&i<week+4?'nb-in-visible-range ':'')+(currentWeek===i?'nb-is-today':'')} onClick={()=>setWeek(i)}>{weekIso(i)}</B>)}</div>
    <B disabled={week>=519} onClick={()=>setWeek(Math.min(519,week+1))} aria-label="Next week" className="nb-weeks-next">›</B>
    <B disabled={currentWeek<0||currentWeek>=520||currentWeek===week} onClick={()=>setWeek(currentWeek)} className="nb-go-today">Today</B>
   </footer>

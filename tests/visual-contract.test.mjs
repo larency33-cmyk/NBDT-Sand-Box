@@ -21,7 +21,7 @@ test('visual guide uses accessible labeled icons and three stages',()=>{
  assert.ok(ui.includes('fieldIcons[k]||Monitor'));assert.ok(ui.includes('Configuration checklists'));assert.ok(css.includes('.nb-stage-tabs button.selected'));
 });
 test('week tracker has owner/helper drilldown and smartphone by-person cards',()=>{
- for(const token of ['nb-week-grid','nb-mobile-week-cards','nb-person-metrics','nb-assignment-tools','Helper','Show matrix'])assert.ok(ui.includes(token),token);
+ for(const token of ['nb-week-grid','nb-mobile-week-cards','nb-quick-metrics','nb-quick-add-form','Helper','Show matrix'])assert.ok(ui.includes(token),token);
 });
 test('report derives readiness from per-device runs, not legacy report aggregates',()=>{
  assert.ok(ui.includes('counts(s)'));assert.ok(ui.includes('Legacy report · preserved separately'));assert.ok(ui.includes('Device readiness from accepted, version-pinned checklists'));

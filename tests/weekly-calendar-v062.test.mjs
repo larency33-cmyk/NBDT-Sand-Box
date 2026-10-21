@@ -15,30 +15,30 @@ test('project start is validated strictly including leap dates',()=>{
  assert.equal(validDate('2026-02-29'),false);
  assert.equal(validDate('2026-1-30'),false);
 });
-test('Friday Jan 30 is in ISO Monday week W05, not a fabricated Friday-to-Thursday ISO week',()=>{
- assert.equal(projectWeekDate('2026-01-30',0),'2026-01-26');
- assert.equal(projectWeekDate('2026-01-30',1),'2026-02-02');
- assert.deepEqual(projectDateRange('2026-01-30',0),{from:'2026-01-26',to:'2026-02-01'});
- assert.equal(weekIndexFromIso('2026-01-30','2026-W05'),0);
- assert.equal(weekIndexFromIso('2026-01-30','2026-W06'),1);
- assert.match(weekRange('2026-01-30',0),/26 Jan - 1 Feb 2026/);
+test('Friday Jan 30 is the first day of project Week 1, which runs Friday to Thursday',()=>{
+ assert.equal(projectWeekDate('2026-01-30',0),'2026-01-30');
+ assert.equal(projectWeekDate('2026-01-30',1),'2026-02-06');
+ assert.deepEqual(projectDateRange('2026-01-30',0),{from:'2026-01-30',to:'2026-02-05'});
+ assert.equal(weekIndexFromIso('2026-01-30','1'),0);
+ assert.equal(weekIndexFromIso('2026-01-30','2'),1);
+ assert.match(weekRange('2026-01-30',0),/30 Jan - 5 Feb 2026/);
 });
 test('current week is calculated from project timezone not machine locale',()=>{
  const date=new Date('2026-10-21T20:45:00Z');
  assert.equal(todayInTimezone('Europe/Paris',date),'2026-10-21');
- assert.equal(currentWeekIndex('2026-01-30','Europe/Paris',date),38);
- assert.equal(weekIndexFromDate('2026-01-30','2026-10-21'),38);
+ assert.equal(currentWeekIndex('2026-01-30','Europe/Paris',date),37);
+ assert.equal(weekIndexFromDate('2026-01-30','2026-10-21'),37);
 });
-test('year transition preserves genuine ISO weeks and date arithmetic',()=>{
- assert.equal(projectWeekDate('2026-12-31',0),'2026-12-28');
- assert.equal(projectWeekDate('2026-12-31',1),'2027-01-04');
- assert.equal(weekIndexFromIso('2026-12-31','2026-W53'),0);
- assert.equal(weekIndexFromIso('2026-12-31','2027-W01'),1);
+test('project weeks span year boundaries without resetting numbering',()=>{
+ assert.equal(projectWeekDate('2026-12-31',0),'2026-12-31');
+ assert.equal(projectWeekDate('2026-12-31',1),'2027-01-07');
+ assert.equal(weekIndexFromIso('2026-12-31','1'),0);
+ assert.equal(weekIndexFromIso('2026-12-31','2'),1);
  assert.equal(shiftISODate('2026-12-31',7),'2027-01-07');
 });
 test('explicit due dates remain preserved when project start moves; generated deadlines follow anchor',()=>{
  const task={startWeek:0,duration:1};
- assert.equal(dueDate('2026-01-30',task),'2026-02-01');
+ assert.equal(dueDate('2026-01-30',task),'2026-02-05');
  assert.equal(dueDate('2026-02-06',{...task,dueDate:'2026-05-01'}),'2026-05-01');
 });
 test('weekly tracker has no upper week calendar or Master Timeline',()=>{
@@ -58,7 +58,7 @@ test('footer weeks have real left/right arrows and shortcut to current week',()=
  assert.ok(ui.includes('setWeek(currentWeek)'));
  assert.ok(ui.includes('nb-is-today'));
 });
-test('optional milestones precede ISO week heading and have a quick editor',()=>{
+test('optional milestones precede project week heading and have a quick editor',()=>{
  const start=ui.indexOf('<thead>',ui.indexOf('export function Tracker('));
  const snippet=ui.slice(start,ui.indexOf('</thead>',start));
  assert.ok(snippet.indexOf('nb-week-milestones') < snippet.indexOf('nb-week-head-title'));

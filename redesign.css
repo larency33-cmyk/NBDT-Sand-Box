@@ -941,3 +941,62 @@ button,select,input,textarea {font-family:inherit}
 .nbdt-redesign.nb-app-root>aside .nbdt-brand-wordmark+div span{font-size:13px!important;line-height:1.25!important;letter-spacing:0!important;font-weight:500!important;color:#b7d0ec!important}
 .nbdt-redesign.nb-app-root>aside nav button{min-height:45px;border-radius:8px}
 .nbdt-redesign.nb-app-root>aside nav button[class*="bg-indigo"]{box-shadow:inset 3px 0 0 #a5d6ff,0 0 0 1px rgba(130,196,255,.38)}
+
+/* =======================================================================
+   v0.6.3 · Project-relative weeks and one-step assignment editing
+   ======================================================================= */
+.nb-tracker .nb-quick-panel{display:flex;flex-direction:column;align-self:stretch;min-width:355px;width:37%;max-width:540px;padding:0!important;background:#fff;border:1px solid #d6e4f4;border-radius:12px;box-shadow:0 6px 24px rgba(15,51,98,.06);overflow:hidden;max-height:100%;}
+.nb-quick-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:19px 18px 15px;background:#f5faff!important;border-bottom:1px solid #dfeaf7;flex:none}
+.nb-quick-panel-heading>.nb-button{min-height:36px;min-width:36px;padding:5px;border-radius:8px;border-color:transparent;font-size:18px}
+.nb-quick-person{display:flex;align-items:center;gap:12px;min-width:0}
+.nb-quick-person .nb-avatar{flex:0 0 43px}
+.nb-quick-person>div{min-width:0}
+.nb-quick-person h2{font-size:20px!important;line-height:24px;font-weight:700;color:#081f4e;white-space:normal;overflow-wrap:anywhere}
+.nb-quick-person p{font-size:13px;color:#58799b;margin-top:4px}
+.nb-quick-metrics{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:13px 16px;border-bottom:1px solid #e0eaf5;background:#fff}
+.nb-quick-metrics span{font-size:12px;line-height:20px;padding:3px 8px;background:#f0f4f9;color:#60748c;border-radius:7px;font-weight:650}
+.nb-quick-metrics .nb-metric-active{background:#eaf2ff;color:#0865d6}
+.nb-quick-metrics .nb-metric-done{background:#e7f7ed;color:#168048}
+.nb-quick-metrics .nb-metric-blocked{background:#fff3e3;color:#ad5d07}
+.nb-quick-list{display:flex;flex-direction:column;gap:9px;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:14px 15px;background:#fff;flex:1 1 auto}
+.nb-quick-task-card{border:1px solid #e0eaf5;border-radius:10px;padding:12px 13px;background:#fff;display:flex;flex-direction:column;gap:8px;box-shadow:0 1px 4px rgba(12,44,91,.025)}
+.nb-quick-task-blocked{border-color:#f2d4a4;background:#fffcf6}
+.nb-quick-task-header{display:flex;justify-content:space-between;align-items:flex-start;gap:9px}
+.nb-quick-task-header strong{font-size:14px;line-height:20px;font-weight:700;color:#0d305c;min-width:0;overflow-wrap:anywhere}
+.nb-quick-role{font-size:11px;color:#6d84a0;background:#eef4fc;border-radius:5px;padding:3px 6px;white-space:nowrap}
+.nb-quick-task-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:7px}
+.nb-quick-task-toolbar .nb-quick-status-label{font-size:11px;font-weight:600;color:#6984a1;display:flex;flex-direction:column;gap:3px;flex:1 1 112px;min-width:0}
+.nb-quick-task-toolbar .nb-quick-status-label select{display:block;width:100%;min-width:90px!important;min-height:38px;padding:6px 9px;border-radius:7px;border:1px solid #cfe0f3;background:#f8fbff!important;font-size:13px;font-weight:700;color:#134a83}
+.nb-quick-task-toolbar .nb-quick-status-label select:disabled{opacity:.65}
+.nb-quick-task-meta{color:#67819d;font-size:11px;max-width:110px;overflow-wrap:anywhere;padding-bottom:10px}
+.nb-quick-advanced{padding:8px 10px;border-radius:7px;border:1px solid #d6e5f4;background:white;color:#1c69b1;font-size:12px;min-height:38px;font-weight:650}
+.nb-quick-advanced:hover{background:#eff7ff}
+.nb-quick-error{color:#a83220;font-size:12px;line-height:18px;margin:2px 0;padding:8px;background:#fff0ed;border-radius:7px}
+.nb-quick-saving{font-size:12px;color:#2d6eac}
+.nb-quick-block-reason{font-size:12px;line-height:17px;color:#994f11;padding:6px 8px;background:#fff5e7;border-radius:6px}
+.nb-quick-empty{padding:25px 10px;color:#8193ab;text-align:center;font-size:13px;line-height:1.6}
+.nb-quick-reason-form{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #f1ca91;background:#fff8ed;border-radius:8px}
+.nb-quick-reason-form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#79502c}
+.nb-quick-reason-form input{font-size:13px;padding:8px;border:1px solid #dcb780;border-radius:6px;min-height:38px;width:100%}
+.nb-quick-reason-form>div{display:flex;gap:7px}
+.nb-quick-reason-form button{padding:7px 9px;min-height:35px;border:1px solid #efcf9e;border-radius:6px;background:#fff;color:#955517;font-size:12px;font-weight:650}
+.nb-quick-reason-form button[type="submit"]{background:#eb960d;color:white;border-color:#eb960d}
+.nb-quick-add-area{border-top:1px solid #e0eaf6;padding:14px 15px 16px;background:#f7fbff;flex:none}
+.nb-quick-add-button{min-height:42px;width:100%;text-align:center;border:1px dashed #87bff5;color:#0466cb;border-radius:8px;background:#eaf4ff;font-size:14px;font-weight:700}
+.nb-quick-add-button:hover{background:#dceeff}
+.nb-quick-add-form{display:flex;flex-direction:column;gap:8px}
+.nb-quick-add-form label{color:#245584;font-size:13px;font-weight:650}
+.nb-quick-add-form input{width:100%;min-height:43px;border-radius:8px;font-size:14px;background:#fff}
+.nb-quick-add-buttons{display:flex;gap:8px}
+.nb-quick-add-buttons .nb-button{flex:1;min-width:0}
+.nb-quick-view-note{font-size:12px!important;padding:13px 16px;color:#607996!important;background:#f5faff;border-top:1px solid #e0eaf6}
+.nb-quick-milestones{padding:12px 15px;border-bottom:1px solid #e1ebf7;display:flex;flex-direction:column;gap:5px;background:#f9fcff}
+.nb-quick-milestones>strong{font-size:12px;color:#47678c}
+.nb-quick-milestones .nb-milestone-chip{max-width:100%}
+.nb-tracker .nb-summary-pill{font-variant-numeric:tabular-nums}
+.nb-week-grid .nb-week-head-title strong{font-size:15px;font-weight:780;color:#0b2e5a}
+.nb-week-footer>span{font-weight:700;color:#52749c}
+.nb-week-footer .nb-week-footer-item{min-width:70px}
+@media(max-width:1250px){.nb-tracker .nb-quick-panel{min-width:320px;width:40%;max-width:none}}
+@media(max-width:900px){.nb-tracker .nb-tracker-content:has(.nb-quick-panel){flex-direction:column}.nb-tracker .nb-quick-panel{position:relative;inset:auto;width:100%!important;max-width:none!important;min-width:0!important;max-height:none;border-radius:10px;margin-top:10px}.nb-quick-list{max-height:420px}}
+@media(max-width:600px){.nb-quick-person h2{font-size:18px!important}.nb-quick-panel-heading{padding:13px 12px}.nb-quick-list,.nb-quick-add-area{padding:12px}.nb-tracker .nb-quick-panel{box-shadow:none}.nb-week-footer .nb-week-footer-item{min-width:74px}}
