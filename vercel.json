@@ -4,5 +4,9 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "framework": "vite",
+  "installCommand": "npm install --package-lock=false",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
