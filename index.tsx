@@ -1786,10 +1786,10 @@ const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveChe
   const done = (Object.values(stages).flat() as any[]).filter(i => i.completed).length;
   return <article className="nb-system-card">
     <div className="nb-card-heading"><div className="nb-device">{getDeviceIcon(sys.deviceCategory, 28)}</div><div><h3>{sys.name}</h3><p>{sys.description || sys.documentation || `${sys.deviceCategory} configuration and deployment guide`}</p></div></div>
-    <dl className="nb-spec-list">{[['Endpoint',sys.deviceType || sys.deviceCategory],['OS',`${sys.os} ${sys.osVersion || ''}`],['Network',sys.network],['VLAN',sys.vlan],['Naming',sys.namingConvention],['Owner',owner?.name]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={v || 'Not specified'}>{v || 'Not specified'}</dd></React.Fragment>)}</dl>
-    <div className="nb-card-info"><ClipboardList size={14}/><span>3 stages · {done}/{total} steps</span>{sys.lessonsLearned && <button type="button" onClick={()=>setActiveLessonsLearnedSys(sys)}>Lessons learned</button>}</div>
-    <div className="nb-card-actions">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a> : <button className="nb-button" type="button" onClick={()=>setDraftSystem(sys)}>System details</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={15}/></button></div>
-    {isAdmin && <button className="nb-edit-link" type="button" onClick={()=>setDraftSystem(sys)}><Edit2 size={13}/> Edit system</button>}
+    <dl className="nb-spec-list">{[['Endpoint',sys.deviceType || sys.deviceCategory],['OS',`${sys.os} ${sys.osVersion || ''}`],['Network',sys.network],['VLAN',sys.vlan],['Naming',sys.namingConvention]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={v || 'Not specified'}>{v || 'Not specified'}</dd></React.Fragment>)}</dl>
+    <div className="nb-card-info"><ClipboardList size={16}/><span>{Object.keys(stages).length} checklists · {done}/{total} legacy steps</span>{sys.lessonsLearned && <button type="button" onClick={()=>setActiveLessonsLearnedSys(sys)}>Lessons learned ↗</button>}</div>
+    <div className="nb-card-actions">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation not linked</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
+    <button className="nb-edit-link" type="button" onClick={()=>setDraftSystem(sys)}><Edit2 size={13}/>{isAdmin?'Edit system details':'System details'}</button>
   </article>;
 };
 const SystemActionButton: React.FC<{
@@ -2318,6 +2318,7 @@ const App = () => {
   const [activeNamingConventionSys, setActiveNamingConventionSys] = useState<SystemInfo | null>(null);
   const [activeLessonsLearnedSys, setActiveLessonsLearnedSys] = useState<SystemInfo | null>(null);
   const [systemSearch, setSystemSearch] = useState('');
+  const [systemPage, setSystemPage] = useState(0);
   const [issueSearch, setIssueSearch] = useState('');
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -3049,6 +3050,7 @@ const App = () => {
     setActiveFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
+  useEffect(()=>setSystemPage(0),[systemSearch,activeFilters,assigneeFilter,project.id]);
   const filteredSystems = useMemo(() => {
     return project.systems.filter(s => {
       const matchesSearch = s.name.toLowerCase().includes(systemSearch.toLowerCase()) || 
@@ -3082,6 +3084,8 @@ const App = () => {
       return matchesSearch && osMatch && netMatch && assigneeMatch;
     });
   }, [project.systems, systemSearch, activeFilters, assigneeFilter]);
+
+  useEffect(()=>setSystemPage(p=>Math.min(p,Math.max(0,Math.ceil(filteredSystems.length/6)-1))),[filteredSystems.length]);
 
   const filteredIssues = useMemo(() => {
     return project.issues.filter(i => {
@@ -3153,7 +3157,7 @@ const App = () => {
   );
 
   return (
-    <div className="nbdt-redesign bg-[#020617] w-screen h-screen overflow-hidden flex text-slate-100 font-sans">
+    <div className="nbdt-redesign nb-app-root bg-[#020617] w-screen h-screen overflow-hidden flex text-slate-100 font-sans">
       {copyFeedback && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[110] bg-emerald-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl animate-fadeIn">
           Copied to clipboard!
@@ -3855,152 +3859,36 @@ const App = () => {
 
 
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
-          <div className="px-10 py-6 flex flex-col h-full animate-fadeIn overflow-hidden w-full">
-            <header className="flex items-center justify-between mb-8 shrink-0">
-               <div>
-                  <h1 className="text-3xl font-bold tracking-tighter text-white">System Registry</h1>
-                  <p className="text-slate-500 text-sm font-medium">{project.systems.length} systems registered in the hub.</p>
-               </div>
-               <div className="flex items-center gap-4">
-                  <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="Search systems..." 
-                      className="bg-[#0a0f1d] border border-slate-800 rounded-xl py-3 pl-12 pr-6 text-xs outline-none focus:border-indigo-500 w-[240px] transition-all text-white placeholder:text-slate-600" 
-                      value={systemSearch} 
-                      onChange={(e) => setSystemSearch(e.target.value)} 
-                    />
-                  </div>
-
-                  {/* Admin Toggle (Local for Systems) */}
-                  <button 
-                    onClick={() => {
-                      if (isAdmin) {
-                        setIsAdmin(false);
-                      } else {
-                        setShowAdminAuthModal(true);
-                        setAdminPassInput('');
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 cursor-pointer ${
-                      isAdmin 
-                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' 
-                        : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 backdrop-blur-md'
-                    }`}
-                  >
-                    {isAdmin ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                    <span className="text-[10px] font-black tracking-widest uppercase">
-                      {isAdmin ? 'Admin Mode' : 'View Mode'}
-                    </span>
-                    <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isAdmin ? 'bg-indigo-400' : 'bg-slate-700'}`}>
-                      <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isAdmin ? 'left-5' : 'left-1'}`} />
-                    </div>
-                  </button>
-
-                  {isAdmin && (
-                    <button 
-                      onClick={() => setDraftSystem({ 
-                        id: `sys-${Date.now()}`, 
-                        name: 'NEW SYSTEM', 
-                        deviceType: '', 
-                        deviceCategory: 'PC',
-                        os: 'Windows',
-                        osVersion: '',
-                        network: 'Wired',
-                        vlan: '',
-                        serviceAccount: '',
-                        userAccount: '',
-                        logonType: '',
-                        ipScope: '',
-                        ipReservation: '',
-                        domainOU: '',
-                        airWatchTags: '',
-                        status: 'Active',
-                        assigneeId: ''
-                      })} 
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-2"
-                    >
-                      <Plus size={16}/> Add System
-                    </button>
-                  )}
-               </div>
+          <section className="nb-registry-page" aria-label="System Registry">
+            <header className="nb-registry-heading">
+              <div><h1>System Registry</h1><p>{project.systems.length} systems · Configuration guides · {project.name}</p></div>
+              <div className="nb-registry-actions">
+                <button type="button" className="nb-button" onClick={()=>{
+                  const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
+                  const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
+                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,s.deviceType||s.deviceCategory,s.os,s.network,s.vlan,s.namingConvention,project.members.find(m=>m.id===s.assigneeId)?.name||''])];
+                  const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
+                  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+                }}><Download size={18}/> Export</button>
+                {isAdmin&&<button type="button" className="nb-button nb-primary" onClick={()=>setDraftSystem({id:`sys-${Date.now()}`,name:'',deviceType:'',deviceCategory:'PC',os:'Windows',osVersion:'',network:'Wired',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',assigneeId:''})}><Plus size={18}/> Add system</button>}
+                <button type="button" className="nb-button nb-registry-mode" onClick={()=>{if(isAdmin)setIsAdmin(false);else{setShowAdminAuthModal(true);setAdminPassInput('');}}}>{isAdmin?'Exit edit mode':'Edit mode'}</button>
+              </div>
             </header>
-
-            {/* Red Filters Bar */}
-            <div className="mb-10 p-3 bg-indigo-500/[0.02] border border-slate-800/60 rounded-[2rem] flex items-center gap-4 shrink-0 overflow-x-auto no-scrollbar shadow-inner">
-               <div className="flex items-center gap-3 px-6 py-2 border-r border-slate-800/80">
-                  <Filter size={16} className="text-indigo-400" />
-                  <span className="text-[11px] font-black text-indigo-400/80 uppercase tracking-[0.2em]">Library Filters</span>
-               </div>
-               <div className="flex items-center gap-2.5 px-2">
-                  {['Windows', 'iOS', 'iPadOS', 'Android', 'Linux', 'macOS', 'WiFi', 'Wired'].map(f => {
-                    const isActive = activeFilters.includes(f);
-                    return (
-                      <button 
-                        key={f} 
-                        onClick={() => toggleFilter(f)}
-                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
-                          isActive 
-                          ? 'bg-indigo-600 border-indigo-400 text-white scale-[1.05]' 
-                          : 'bg-slate-900/40 border-slate-800/50 text-slate-500 hover:text-slate-300 hover:border-slate-700 hover:bg-slate-800/60'
-                        }`}
-                      >
-                        {f}
-                      </button>
-                    );
-                  })}
-
-                  <div className="ml-4 flex items-center gap-3 px-4 border-l border-slate-800/80">
-                    <User size={14} className={assigneeFilter ? "text-indigo-400" : "text-slate-600"} />
-                    <select 
-                      value={assigneeFilter} 
-                      onChange={(e) => setAssigneeFilter(e.target.value)}
-                      className={`bg-transparent text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer transition-colors ${
-                        assigneeFilter ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
-                      }`}
-                    >
-                      <option value="" className="bg-[#0a0f1d]">All Assignees</option>
-                      {project.members.map(m => (
-                        <option key={m.id} value={m.id} className="bg-[#0a0f1d]">{m.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {(activeFilters.length > 0 || assigneeFilter) && (
-                    <button 
-                      onClick={() => { setActiveFilters([]); setAssigneeFilter(''); }}
-                      className="ml-6 flex items-center gap-2 px-4 py-2 group"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all">
-                        <X size={12} strokeWidth={3} />
-                      </div>
-                      <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover:text-red-400 transition-colors">Reset Hub Filters</span>
-                    </button>
-                  )}
-               </div>
+            <div className="nb-registry-filters" role="search" aria-label="Filter system registry">
+              <label className="nb-search-field"><Search size={19}/><span className="sr-only">Search systems</span><input value={systemSearch} onChange={e=>setSystemSearch(e.target.value)} placeholder="Search systems…"/></label>
+              <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
+              <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
+              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
+              {(activeFilters.length>0||assigneeFilter||systemSearch)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');}}>Clear filters</button>}
             </div>
-            
-            <div className="flex-1 overflow-y-auto pr-4 no-scrollbar">
-               <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 pb-20">
-                  {filteredSystems.length > 0 ? filteredSystems.map(sys => (
-                    <SystemRegistryCard 
-                      key={sys.id}
-                      sys={sys}
-                      project={project}
-                      isAdmin={isAdmin}
-                      setDraftSystem={setDraftSystem}
-                      setActiveCheckSheetSys={openGuide}
-                      setActiveAppListSys={setActiveAppListSys}
-                      setActiveNamingConventionSys={setActiveNamingConventionSys}
-                      setActiveLessonsLearnedSys={setActiveLessonsLearnedSys}
-                    />
-                  )) : (
-                    <EmptyState icon={Database} title="No systems found" description="Adjust filters or add a new system record in Admin Mode." />
-                  )}
-               </div>
-            </div>
-          </div>
+            {filteredSystems.length>0 ? <div className="nb-registry-grid">
+              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} setDraftSystem={setDraftSystem} setActiveCheckSheetSys={openGuide} setActiveAppListSys={setActiveAppListSys} setActiveNamingConventionSys={setActiveNamingConventionSys} setActiveLessonsLearnedSys={setActiveLessonsLearnedSys}/>)}
+            </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
+            <footer className="nb-registry-pagination">
+              <p>{filteredSystems.length?`Showing ${systemPage*6+1}–${Math.min((systemPage+1)*6,filteredSystems.length)} of ${filteredSystems.length} systems`:'Showing 0 systems'}</p>
+              <nav aria-label="System pages"><button type="button" className="nb-button" disabled={systemPage===0} onClick={()=>setSystemPage(p=>Math.max(0,p-1))}><ChevronLeft size={18}/><span className="sr-only">Previous page</span></button>{Array.from({length:Math.ceil(filteredSystems.length/6)},(_,i)=><button key={i} type="button" aria-current={systemPage===i?'page':undefined} className={'nb-page-number '+(systemPage===i?'selected':'')} onClick={()=>setSystemPage(i)}>{i+1}</button>)}<button type="button" className="nb-button" disabled={systemPage>=Math.ceil(filteredSystems.length/6)-1} onClick={()=>setSystemPage(p=>p+1)}><ChevronRight size={18}/><span className="sr-only">Next page</span></button></nav>
+            </footer>
+          </section>
         )}
 
         {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} onEdit={()=>{setDraftSystem(project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys);closeGuide();}} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
@@ -4417,8 +4305,8 @@ const App = () => {
         )}
 
         {activeTab === 'config-report' && (
-          <div className="flex-1 flex flex-col overflow-auto animate-fadeIn">
-            <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
+          <div className="nb-report-shell flex-1 flex flex-col overflow-auto animate-fadeIn">
+            <header className="nb-report-legacy-actions px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
               <div>
                 <h1 className="text-3xl font-bold tracking-tighter text-white">Configuration Report</h1>
                 <p className="text-slate-500 text-sm font-medium">Local device readiness and legacy aggregates</p>
