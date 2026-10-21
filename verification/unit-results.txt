@@ -1,0 +1,61 @@
+(node:6330) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[32m✔ separate endpoint profiles are discoverable [90m(1.282705ms)[39m[39m
+[32m✔ profile view never leaks another profile inventory [90m(0.845104ms)[39m[39m
+[32m✔ unknown profile is rejected [90m(0.276624ms)[39m[39m
+[32m✔ merging secondary profile preserves primary inventory and platform [90m(0.534225ms)[39m[39m
+[32m✔ migration needs a reason [90m(0.319771ms)[39m[39m
+[32m✔ migration resets acceptance and preserves source link [90m(2.881864ms)[39m[39m
+[32m✔ deployed run cannot migrate silently [90m(0.249365ms)[39m[39m
+[32m✔ valid Owner and Helper assignments pass [90m(0.23692ms)[39m[39m
+[32m✔ Owner cannot be duplicated as Helper [90m(0.990202ms)[39m[39m
+[32m✔ unknown Helper rejected [90m(0.431478ms)[39m[39m
+[32m✔ task duration cannot exceed project [90m(0.211357ms)[39m[39m
+[32m✔ open linked issue drives effective blocker status [90m(0.314017ms)[39m[39m
+[32m✔ resolved issue does not block [90m(0.108897ms)[39m[39m
+[32m✔ ISO week year is correct across year boundary [90m(0.490193ms)[39m[39m
+[32m✔ project date uses configured timezone [90m(14.259224ms)[39m[39m
+[32m✔ CSV escapes spreadsheet formula prefixes [90m(0.246468ms)[39m[39m
+[32m✔ import validates duplicate device identities [90m(0.431868ms)[39m[39m
+[32m✔ N/A needs explicit permission [90m(0.206899ms)[39m[39m
+[32m✔ N/A needs a reason [90m(0.145218ms)[39m[39m
+[32m✔ allowed N/A counts only with reason [90m(0.269982ms)[39m[39m
+[32m✔ evidence-required item blocks acceptance until recorded [90m(0.165142ms)[39m[39m
+[32m✔ stale evidence is not completion [90m(0.096ms)[39m[39m
+[32m✔ system counters aggregate profiles without double counting devices [90m(0.28654ms)[39m[39m
+[32m✔ archived devices excluded from scope [90m(0.087985ms)[39m[39m
+[32m✔ primary profile merge commits its runs without dropping other devices [90m(0.136775ms)[39m[39m
+[32m✔ secondary profile does not inherit primary published guide [90m(0.241014ms)[39m[39m
+[32m✔ secondary profile does not inherit primary hardware [90m(0.120545ms)[39m[39m
+(node:6337) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[32m✔ empty guide cannot be published [90m(2.90315ms)[39m[39m
+[32m✔ mobile profile rejects BIOS [90m(0.367415ms)[39m[39m
+[32m✔ explicit applicability is enforced [90m(0.38881ms)[39m[39m
+[32m✔ empty stage cannot be accepted [90m(0.241807ms)[39m[39m
+[32m✔ ready cannot bypass base [90m(0.289953ms)[39m[39m
+[32m✔ future stage checks are blocked [90m(0.401503ms)[39m[39m
+[32m✔ base check alone is not acceptance [90m(0.443667ms)[39m[39m
+[32m✔ ordered stages can be accepted [90m(0.244454ms)[39m[39m
+[32m✔ reopening base invalidates later acceptance [90m(1.118438ms)[39m[39m
+[32m✔ device counts are distinct from legacy quantities [90m(0.61204ms)[39m[39m
+[32m✔ forged downstream acceptance does not count [90m(0.920315ms)[39m[39m
+[32m✔ new publication preserves pinned device run [90m(0.190282ms)[39m[39m
+[32m✔ run cannot cross profile boundary [90m(0.104824ms)[39m[39m
+[32m✔ unsafe links are rejected [90m(0.139597ms)[39m[39m
+[32m✔ HTTPS link is accepted [90m(0.328236ms)[39m[39m
+[32m✔ owner is not duplicated as helper [90m(0.52277ms)[39m[39m
+[32m✔ date-only parsing does not use UTC [90m(0.610025ms)[39m[39m
+[32m✔ derived due date is last day of task range [90m(0.125701ms)[39m[39m
+[32m✔ explicit due date wins [90m(0.210604ms)[39m[39m
+[32m✔ week labels include year [90m(14.646583ms)[39m[39m
+[34mℹ tests 47[39m
+[34mℹ suites 0[39m
+[34mℹ pass 47[39m
+[34mℹ fail 0[39m
+[34mℹ cancelled 0[39m
+[34mℹ skipped 0[39m
+[34mℹ todo 0[39m
+[34mℹ duration_ms 754.799595[39m
+(node:6324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)

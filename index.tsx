@@ -1,4 +1,9 @@
+import {ProfileGuide as SystemGuide,TaskEditor,DataTools,StoreStatus} from './src/enhancements';
+import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
+import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
 import './redesign.css';
+import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
+import {isoWeek} from './src/extended-model.mjs';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -61,6 +66,7 @@ Navigation,
   ClipboardCheck,
   FileText,
   Layout,
+  LayoutDashboard,
   Filter,
   Tag,
   Hash,
@@ -110,11 +116,11 @@ const firebaseConfig = {
   appId: "1:822830436377:web:61c14daa4a8919f38d5a88"
 };
 
-const LOCAL_UI_MODE = import.meta.env.VITE_DATA_MODE !== 'firebase';
+const LOCAL_UI_MODE = true; // This revision is local-only until server enforcement is implemented.
 const app = LOCAL_UI_MODE ? null : initializeApp(firebaseConfig);
 const db = app ? getDatabase(app) : null;
 const UI_STORAGE_PREFIX = LOCAL_UI_MODE ? 'nbdt_redesign_local_' : '';
-const uiStorage = { getItem: (key: string) => localStorage.getItem(UI_STORAGE_PREFIX + key), setItem: (key: string, value: string) => localStorage.setItem(UI_STORAGE_PREFIX + key, value) };
+const uiStorage = demoStorage;
 
 // --- Types ---
 type SystemStatus = 'Active' | 'Limited' | 'Pilot' | 'Legacy';
@@ -131,6 +137,12 @@ interface ChecklistItem {
 }
 
 interface RoadmapTask {
+  helperIds?: string[];
+  blockerIds?: string[];
+  dueDate?: string;
+  systemId?: string;
+  version?: number;
+  comments?: any[];
   id: string;
   label: string;
   category?: string;
@@ -165,6 +177,15 @@ interface CheckSheetData {
 }
 
 interface SystemInfo {
+  endpointProfiles?: any[];
+  valueStates?: Record<string,string>;
+  cyberHistory?: any[];
+  devices?: any[];
+  deviceRuns?: any[];
+  publishedGuide?: any;
+  guideDraft?: any;
+  valueState?: string;
+  cyberStatus?: string;
   id: string;
   name: string;
   deviceType: string;      
@@ -236,6 +257,8 @@ interface ConfigReportRow {
 }
 
 interface ProjectData {
+  timezone?: string;
+  version?: number;
   id: string;
   name: string;
   tasks: RoadmapTask[];
@@ -2073,61 +2096,20 @@ const ProjectPanel: React.FC<{
 
 
 const StatusBadge = ({status}: {status: string}) => <span className={'nb-badge nb-status-' + status.toLowerCase().replaceAll(' ','-')}>{status}</span>;
-const SystemGuide = ({sys, project, isAdmin, onClose, onEdit, onToggle, onAdd, onRemove, onReorder}: any) => {
-  const [stage,setStage] = useState<keyof CheckSheetData>('configuration');
-  const [technical,setTechnical] = useState(true);
-  const [lessons,setLessons] = useState(false);
-  const [newStep,setNewStep] = useState('');
-  useEffect(()=>{const close=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose();};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close);},[onClose]);
-  const data = sys.checkSheetData || DEFAULT_CHECKSHEET;
-  const items: CheckSheetItem[] = data[stage] || [];
-  const owner = project.members.find((m: any)=>m.id===sys.assigneeId);
-  const url = safeDocumentationUrl(sys.documentationUrl);
-  const stages: [keyof CheckSheetData,string][] = [['configuration','Base Configuration'],['readyForDeployment','Ready for Deployment'],['deployment','Deployment']];
-  const index = stages.findIndex(([key])=>key===stage);
-  return <div className="nb-guide-overlay"><section className="nb-guide" role="dialog" aria-modal="true" aria-label={'Configuration guide: '+sys.name}>
-    <header className="nb-guide-header"><div className="nb-card-heading"><div className="nb-device">{getDeviceIcon(sys.deviceCategory,28)}</div><div><h2>{sys.name}</h2><p>{sys.description || sys.documentation || 'System configuration guide'}</p></div></div><div className="nb-actions">{url && <a className="nb-button nb-primary" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}{isAdmin && <button type="button" className="nb-button" onClick={onEdit}><Edit2 size={15}/> Edit guide</button>}<button type="button" className="nb-button" aria-label="Close guide" onClick={onClose}><X size={19}/></button></div></header>
-    <div className="nb-guide-scroll"><section className="nb-technical"><button type="button" className="nb-section-toggle" onClick={()=>setTechnical(!technical)} aria-expanded={technical}>Technical essentials <ChevronDown size={17}/></button>{technical && <dl className="nb-technical-grid">{[[Monitor,'Endpoint',sys.deviceType || sys.deviceCategory],[Network,'VLAN',sys.vlan],[User,'Service account',sys.serviceAccount],[Tag,'Naming convention',sys.namingConvention],[Cpu,'Operating system',`${sys.os} ${sys.osVersion || ''}`],[Globe,'IP scope',sys.ipScope],[Layers,'Domain / OU',sys.domainOU],[AppWindow,'Required applications',sys.appList],[Cable,'Connection',sys.network],[Lock,'IP reservation',sys.ipReservation],[Smartphone,'AirWatch / MDM',sys.airWatchTags],[User,'Owner',owner?.name]].map(([Icon,label,value]: any)=><div key={label}><span className="nb-tech-icon"><Icon size={21}/></span><div><dt>{label}</dt><dd>{value || 'Not specified'}</dd></div></div>)}</dl>}</section>
-    <section className="nb-lessons"><button type="button" className="nb-section-toggle" onClick={()=>setLessons(!lessons)} aria-expanded={lessons}><span><FileText size={17}/> Lessons Learned</span><span>{sys.lessonsLearned ? 'View notes' : 'No notes recorded'} <ChevronDown size={16}/></span></button>{lessons && <p className="nb-note">{sys.lessonsLearned || 'No lessons learned have been added to this system.'}</p>}</section>
-    <section className="nb-checklist"><div className="nb-section-heading"><h3>Configuration checklists</h3><span aria-live="polite">{items.filter(i=>i.completed).length} of {items.length} steps completed</span></div>
-    <div className="nb-stage-tabs" role="tablist" aria-label="Configuration stage">{stages.map(([key,label],i)=><button type="button" key={key} role="tab" aria-selected={stage===key} className={stage===key?'selected':''} onClick={()=>setStage(key)}><span>{i+1}</span>{label}</button>)}</div>
-    <div className="nb-check-rows">{items.length===0 && <p className="nb-empty">No steps recorded for this stage.</p>}{items.map((item,i)=><div className="nb-check-row" key={item.id}><label><input type="checkbox" checked={item.completed} disabled={!isAdmin} onChange={()=>onToggle(stage,item.id)}/><span>{item.label}</span></label>{isAdmin && <div className="nb-actions"><button type="button" aria-label="Move step up" disabled={i===0} onClick={()=>onReorder(stage,i,i-1)}>↑</button><button type="button" aria-label="Move step down" disabled={i===items.length-1} onClick={()=>onReorder(stage,i,i+1)}>↓</button><button type="button" aria-label="Remove step" onClick={()=>onRemove(stage,item.id)}><Trash2 size={14}/></button></div>}</div>)}</div>
-    {isAdmin && <form className="nb-add-step" onSubmit={e=>{e.preventDefault();if(newStep.trim()){onAdd(stage,newStep.trim());setNewStep('');}}}><input aria-label="New checklist step" placeholder="Add a configuration step..." value={newStep} onChange={e=>setNewStep(e.target.value)}/><button className="nb-button" type="submit">Add step</button></form>}
-    <div className="nb-guide-footer"><button type="button" className="nb-button" disabled={index===0} onClick={()=>setStage(stages[index-1][0])}>← Previous stage</button>{index<2 ? <button type="button" className="nb-button nb-primary" onClick={()=>setStage(stages[index+1][0])}>Continue to {stages[index+1][1]} →</button> : <button type="button" className="nb-button nb-primary" onClick={onClose}>Back to all systems</button>}</div>
-    </section><button type="button" className="nb-back" onClick={onClose}>‹ Back to all systems</button></div>
-  </section></div>;
-};
-const WeeklyTracker = ({project,isAdmin,onAuth,onEdit,onTimeline,week,setWeek}: any) => {
-  const [view,setView] = useState('Overview');
-  const [query,setQuery] = useState('');
-  const [status,setStatus] = useState('');
-  const [person,setPerson] = useState('');
-  const [selected,setSelected] = useState<{id:string,week:number}|null>(null);
-  const [span,setSpan] = useState(4);
-  const tasks: RoadmapTask[] = project.tasks.filter((t: RoadmapTask)=>!t.isMilestone);
-  const matches = (t: RoadmapTask) => (!status || t.status===status) && (!person || t.memberId===person) && (!query || `${t.label} ${project.members.find((m:any)=>m.id===t.memberId)?.name || ''}`.toLowerCase().includes(query.toLowerCase()));
-  const atWeek = (id:string,w:number) => tasks.filter(t=>t.memberId===id && t.startWeek<=w && t.startWeek+t.duration>w && matches(t));
-  const people = project.members.filter((m:any)=>!person || m.id===person);
-  const weeks = Array.from({length:Math.min(span,TOTAL_WEEKS-week)},(_,i)=>week+i);
-  const current = tasks.filter(t=>t.startWeek<=week && t.startWeek+t.duration>week && matches(t));
-  const chosen = selected ? atWeek(selected.id,selected.week) : [];
-  const selectedPerson = selected && project.members.find((m:any)=>m.id===selected.id);
-  const addTask = () => onEdit({id:`t-${Date.now()}`,label:'New task',startWeek:week,duration:1,status:'Planned',description:'',memberId:person || project.members[0]?.id || ''});
-  return <section className="nb-tracker"><header className="nb-page-header"><div><h1>Weekly Tracker{view==='Week' ? ` · Week ${week+1}` : ''}</h1><p>Weekly assignments · {project.name} · {getWeekRange(project.startDate,week)}</p></div><div className="nb-actions"><button type="button" className="nb-button" onClick={onTimeline}>Master Timeline</button><button type="button" className="nb-button" onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</button>{isAdmin && <button type="button" className="nb-button nb-primary" onClick={addTask}><Plus size={16}/> Add task</button>}</div></header>
-  <div className="nb-toolbar"><div className="nb-segments">{['Overview','Week','List'].map(v=><button type="button" className={v===view?'selected':''} key={v} onClick={()=>setView(v)}>{v}</button>)}</div><div className="nb-actions"><button type="button" className="nb-button" aria-label="Previous week" disabled={week===0} onClick={()=>setWeek(week-1)}>‹</button><select aria-label="Selected week" value={week} onChange={e=>setWeek(Number(e.target.value))}>{Array.from({length:TOTAL_WEEKS},(_,i)=><option key={i} value={i}>Week {i+1}</option>)}</select><button type="button" className="nb-button" aria-label="Next week" disabled={week===TOTAL_WEEKS-1} onClick={()=>setWeek(week+1)}>›</button></div>{view==='Overview' && <select aria-label="Visible weeks" value={span} onChange={e=>setSpan(Number(e.target.value))}>{[2,4,6].map(n=><option key={n} value={n}>{n} weeks</option>)}</select>}<select aria-label="Filter by person" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select><select aria-label="Filter by status" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Completed','Blocked'].map(v=><option key={v}>{v}</option>)}</select><input aria-label="Search tasks or people" placeholder="Search tasks or people..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
-  <div className="nb-summary">{people.length} people · {current.length} tasks this week · {current.filter(t=>t.status==='Blocked').length} blocked</div>
-  <div className="nb-tracker-content"><div className="nb-tracker-table-wrap">{view==='Overview' ? <table className="nb-week-grid"><thead><tr><th>Employee</th>{weeks.map(w=><th key={w}>W{w+1}<small>{getWeekRange(project.startDate,w)}</small></th>)}</tr></thead><tbody>{people.map((m:any)=><tr key={m.id}><th><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></th>{weeks.map(w=>{const list=atWeek(m.id,w);return <td key={w}><button type="button" className={'nb-week-cell '+(selected?.id===m.id && selected?.week===w?'selected':'')} onClick={()=>setSelected({id:m.id,week:w})}><strong>{list.length ? `${list.length} tasks` : 'No tasks planned'}</strong>{list.slice(0,4).map(t=><span className="nb-mini-task" key={t.id}><span>{t.label}</span><StatusBadge status={t.status}/></span>)}{list.length>4 && <span className="nb-more">+{list.length-4} more · View all {list.length}</span>}</button></td>})}</tr>)}</tbody></table> : <div className="nb-task-list"><div className="nb-list-heading"><span>Task / Person</span><span>Status</span><span>Week</span></div>{(view==='Week'?people:[{id:'all',name:'All assignments'}]).map((m:any)=>{const list=view==='Week'?atWeek(m.id,week):tasks.filter(matches);return <section key={m.id}><button type="button" className="nb-person-heading" onClick={()=>view==='Week' && setSelected({id:m.id,week})}>{m.name} <small>{list.length} assignments</small></button>{list.map(t=><button type="button" className="nb-task-row" key={t.id} onClick={()=>onEdit(t)}><span>{t.label}<small>{view==='List'?project.members.find((x:any)=>x.id===t.memberId)?.name:t.category || 'Assignment'}</small></span><StatusBadge status={t.status}/><span>W{t.startWeek+1}–{t.startWeek+t.duration}</span></button>)}</section>})}</div>}</div>
-  {selected && <aside className="nb-assignment-panel"><div className="nb-section-heading"><h2>{selectedPerson?.name} · Week {selected.week+1}</h2><button type="button" className="nb-button" aria-label="Close assignments" onClick={()=>setSelected(null)}><X size={17}/></button></div><p>{chosen.length} assignments</p>{chosen.map(t=><button type="button" className="nb-assignment" key={t.id} onClick={()=>onEdit(t)}><div><strong>{t.label}</strong><StatusBadge status={t.status}/></div><small>{t.category || 'Assignment'} · {getWeekRange(project.startDate,selected.week)}</small>{t.description && <p>{t.description}</p>}</button>)}{chosen.length===0 && <p className="nb-empty">No matching assignments.</p>}</aside>}</div>
-  <footer className="nb-week-footer"><span>Project weeks</span><div>{Array.from({length:TOTAL_WEEKS},(_,i)=><button type="button" className={i===week?'selected':''} key={i} onClick={()=>setWeek(i)}>W{i+1}</button>)}</div></footer></section>;
-};
 const App = () => {
   // Secure Access startup screen disabled: users open the application directly.
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report'>(() => {
+  const [activeTab, setActiveTabRaw] = useState<'overview' | 'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report'>(() => {
+    const route = readAppRoute(window.location.href);
+    if (route.projectId) return route.tab as any;
     const hash = window.location.hash.replace('#', '');
-    if (['roadmap', 'systems', 'sync', 'issues', 'config-report'].includes(hash)) return hash as any;
-    return 'systems';
+    if (['overview', 'roadmap', 'systems', 'sync', 'issues', 'config-report'].includes(hash)) return hash as any;
+    return 'overview';
   });
 
+  const [mobileNav,setMobileNav]=useState(false);
+  const [routeError,setRouteError]=useState('');
+  const setActiveTab=(tab:any)=>{if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes before navigating?'))return;delete document.documentElement.dataset.nbdtDirty;setDraftTask(null);setDraftSystem(null);setActiveCheckSheetSys(null);setMobileNav(false);setActiveTabRaw(tab);window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,tab));};
+  useEffect(()=>{const f=()=>{const tab=location.hash.slice(1);if(['overview','roadmap','systems','sync','issues','config-report'].includes(tab))setActiveTab(tab);};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f);},[]);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [panelPosition, setPanelPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [memberRect, setMemberRect] = useState<{ x: number; y: number } | null>(null);
@@ -2352,13 +2334,8 @@ const App = () => {
   const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
   const [adminPassInput, setAdminPassInput] = useState('');
 
-  useEffect(() => {
-    (window as any).setIsAdmin = setIsAdmin;
-    (window as any).setShowAdminAuthModal = setShowAdminAuthModal;
-    (window as any).setAdminPassInput = setAdminPassInput;
-  }, []);
 
-  const ADMIN_PASSWORD = '741593';
+  const ADMIN_PASSWORD = ''; // No production credentials in this demo.
   useEffect(() => {
     const styleId = 'nbdt-typography-standards';
     let style = document.getElementById(styleId) as HTMLStyleElement | null;
@@ -2433,7 +2410,7 @@ const App = () => {
     }
   }, [project.startDate]);
 
-  const [currentStartWeek, setCurrentStartWeek] = useState(() => Math.max(1, Math.min(todayWeekIndex + 1, TOTAL_WEEKS)));
+  const [currentStartWeek, setCurrentStartWeek] = useState(() => {const selected=new URLSearchParams(location.search).get('week');const parsed=weekIndexFromIso(project.startDate,selected);const numeric=Number(selected);return parsed!==null?parsed+1:selected!==null&&Number.isInteger(numeric)&&numeric>=0&&numeric<=520?numeric+1:Math.max(1,Math.min(todayWeekIndex+1,521));});
   const [roadmapView, setRoadmapView] = useState<'weekly' | 'timeline'>('weekly');
   const isWeeklyFocus = roadmapView === 'weekly';
   const focusedWeekIndex = Math.max(0, Math.min(currentStartWeek - 1, TOTAL_WEEKS - 1));
@@ -2497,7 +2474,7 @@ const App = () => {
 
   useEffect(() => {
     uiStorage.setItem('nbdt_last_project_id', project.id);
-    uiStorage.setItem(`nbdt_project_${project.id}`, JSON.stringify(project));
+
   }, [project]);
 
   // Firebase Sync
@@ -2579,10 +2556,14 @@ const App = () => {
       });
   };
 
-  const switchProject = async (id: string) => {
+  const switchProject = async (id: string, preserveRoute=false) => {
     try {
       setIsProjectMenuOpen(false);
       if (id === project.id) return;
+      if(!preserveRoute){
+        setActiveTabRaw('overview');setActiveCheckSheetSys(null);setDraftSystem(null);setDraftTask(null);
+        window.history.pushState({nbdt:true},'',sectionPath(id,'overview'));
+      }
 
       // Load from local storage first
       const saved = uiStorage.getItem(`nbdt_project_${id}`);
@@ -2630,6 +2611,45 @@ const App = () => {
     }
   };
 
+  // Resolve the same page after reload, link opening and browser Back/Forward.
+  useEffect(() => {
+    const syncRoute=()=>{
+      const route=readAppRoute(window.location.href);
+      if(route.projectId && route.projectId!==project.id){
+        if(projects.some(p=>p.id===route.projectId)){setRouteError('');void switchProject(route.projectId,true);}
+        else setRouteError('Project not found in this browser. You may need to import its project backup.');
+        return;
+      }
+      setRouteError('');
+      setActiveTabRaw(route.tab as any);
+      if(route.tab==='systems' && route.systemId){
+        const sys=project.systems.find(s=>s.id===route.systemId);
+        setActiveCheckSheetSys(sys||null);
+        if(!sys)setRouteError('System not found in this project. The link may refer to a removed system.');
+      }else setActiveCheckSheetSys(null);
+      if(route.tab==='roadmap' && route.week){
+        const w=weekIndexFromIso(project.startDate,route.week);
+        if(w!==null)setCurrentStartWeek(w+1);
+      }
+    };
+    syncRoute();
+    window.addEventListener('popstate',syncRoute);
+    return ()=>window.removeEventListener('popstate',syncRoute);
+  },[project.id,project.systems,projects]);
+
+  const openGuide=(sys:SystemInfo)=>{
+    if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes?'))return;
+    setActiveTabRaw('systems');setActiveCheckSheetSys(sys);
+    window.history.pushState({nbdt:true},'',guidePath(projectRef.current.id,sys.id,{profileId:sys.id}));
+  };
+  const closeGuide=()=>{
+    setActiveCheckSheetSys(null);
+    window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,'systems'));
+  };
+  const updateGuideRoute=(systemId:string,selection:{profileId?:string,deviceId?:string,stage?:string})=>{
+    window.history.replaceState({nbdt:true},'',guidePath(projectRef.current.id,systemId,selection));
+  };
+
   const createNewProject = (name: string) => {
     const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-4);
     const newMeta = { id, name };
@@ -2638,9 +2658,9 @@ const App = () => {
       id,
       name,
       tasks: [],
-      members: INITIAL_MEMBERS,
-      systems: INITIAL_SYSTEMS,
-      issues: INITIAL_ISSUES,
+      members: [],
+      systems: [],
+      issues: [],
       startDate: '2026-01-05',
       updatedAt: Date.now()
     };
@@ -2648,6 +2668,8 @@ const App = () => {
     const updatedProjectsList = [...projects, newMeta];
     setProjects(updatedProjectsList);
     setProject(newProj);
+    setActiveTabRaw('overview');setActiveCheckSheetSys(null);
+    window.history.pushState({nbdt:true},'',sectionPath(id,'overview'));
     updatedAtRef.current = newProj.updatedAt;
     
     // Update Firebase
@@ -2687,6 +2709,8 @@ const App = () => {
     const updatedProjectsList = [...projects, { id: newId, name: newName }];
     setProjects(updatedProjectsList);
     setProject(newData);
+    setActiveTabRaw('overview');setActiveCheckSheetSys(null);
+    window.history.pushState({nbdt:true},'',sectionPath(newId,'overview'));
     
     // Update Firebase
     if (!LOCAL_UI_MODE && db) set(ref(db, 'nbdt/projects_list'), updatedProjectsList);
@@ -2732,12 +2756,12 @@ const App = () => {
     setDeletingProjectId(null);
   };
 
-  const handleAction = (updater: (prev: ProjectData) => ProjectData) => {
-    const next = updater(project);
-    setProject(next);
-    broadcastState(next);
+  const projectRef=useRef(project);useEffect(()=>{projectRef.current=project;},[project]);
+  const actionQueue=useRef<Promise<any>>(Promise.resolve());
+  const handleAction=(updater:(prev:ProjectData)=>ProjectData)=>{
+    const operation=async()=>{const previous=projectRef.current;const next={...updater(previous),version:(previous.version||0)+1};await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));projectRef.current=next;setProject(next);return next;};
+    const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
-
   const exportConfigReport = () => {
     const rows = project.configReportRows || INITIAL_CONFIG_REPORT_ROWS;
     const worksheet = XLSX.utils.json_to_sheet(rows);
@@ -2796,12 +2820,12 @@ const App = () => {
     }));
   };
 
-  const saveTask = (t: RoadmapTask) => {
+  const saveTask = async (t: RoadmapTask) => {
     const normalizedTask = {
       ...t,
-      status: getTaskStatusFromChecklist(t.checklist, t.status)
+      status: t.status
     };
-    handleAction(prev => ({
+    await handleAction(prev => ({
       ...prev,
       tasks: prev.tasks.some(task => task.id === normalizedTask.id) 
         ? prev.tasks.map(item => item.id === normalizedTask.id ? normalizedTask : item) 
@@ -2997,8 +3021,8 @@ const App = () => {
     }
   };
 
-  const saveSystem = (s: SystemInfo) => {
-    handleAction(prev => ({
+  const saveSystem = async (s: SystemInfo) => {
+    await handleAction(prev => ({
       ...prev,
       systems: prev.systems.some(item => item.id === s.id) 
         ? prev.systems.map(item => item.id === s.id ? s : item) 
@@ -3031,18 +3055,18 @@ const App = () => {
         (s.deviceType || '').toLowerCase().includes(systemSearch.toLowerCase()) ||
         (s.osVersion || '').toLowerCase().includes(systemSearch.toLowerCase());
       
-      const osChoices = ['Windows', 'Linux', 'iOS', 'Android'];
+      const osChoices = ['Windows', 'Linux', 'iOS', 'iPadOS', 'Android', 'macOS'];
       const netChoices = ['WiFi', 'Wired'];
 
       const activeOsFilters = activeFilters.filter(f => osChoices.includes(f));
       const activeNetFilters = activeFilters.filter(f => netChoices.includes(f));
 
       // OS check: exact match against filter list
-      const osMatch = activeOsFilters.length === 0 || activeOsFilters.includes(s.os);
+      const osMatch = activeOsFilters.length === 0 || [s,...(s.endpointProfiles||[])].some(p=>activeOsFilters.includes(p.os));
       
       // Network check: robust fuzzy matching for WiFi/Wired
-      const netMatch = activeNetFilters.length === 0 || activeNetFilters.some(f => {
-        const netValue = (s.network || '').toLowerCase();
+      const netMatch = activeNetFilters.length === 0 || activeNetFilters.some(f => [s,...(s.endpointProfiles||[])].some((profile:any)=>{
+        const netValue = (profile.network || '').toLowerCase();
         const filterValue = f.toLowerCase();
         if (filterValue === 'wifi') {
             return netValue.includes('wifi') || netValue.includes('wi-fi') || netValue.includes('wireless');
@@ -3051,7 +3075,7 @@ const App = () => {
             return netValue.includes('wired') || netValue.includes('cable') || netValue.includes('ethernet');
         }
         return netValue.includes(filterValue);
-      });
+      }));
 
       const assigneeMatch = !assigneeFilter || s.assigneeId === assigneeFilter;
 
@@ -3169,7 +3193,7 @@ const App = () => {
         </button>
       </div>
 
-      <aside className={`${isSidebarExpanded ? 'w-72' : 'w-20'} border-r border-slate-900 bg-[#020617] flex flex-col py-6 gap-8 shrink-0 z-50 transition-all duration-300 ease-in-out overflow-hidden`}>
+      <aside data-open={mobileNav} data-expanded={isSidebarExpanded} className={`${isSidebarExpanded ? 'w-72' : 'w-20'} border-r border-slate-900 bg-[#020617] flex flex-col py-6 gap-8 shrink-0 z-50 transition-all duration-300 ease-in-out overflow-hidden`}>
          <div className="relative px-4">
             <button 
               onClick={() => setIsSidebarExpanded(true)}
@@ -3312,7 +3336,8 @@ const App = () => {
             )}
          </div>
 
-         <nav className="flex flex-col gap-4 px-4">
+         <nav aria-label="Main navigation" className="flex flex-col gap-4 px-4">
+            <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-4 p-2 rounded-lg ${activeTab==='overview'?'text-indigo-400 bg-indigo-500/10':'text-slate-600'}`}><LayoutDashboard size={20}/><span>Overview</span></button>
             <button onClick={() => setActiveTab('roadmap')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'roadmap' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
                <Calendar className="w-6 h-6 shrink-0" />
                {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Weekly Tracker</span>}
@@ -3387,10 +3412,14 @@ const App = () => {
          </div>
       </aside>
 
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onTimeline={()=>setRoadmapView('timeline')} week={focusedWeekIndex} setWeek={(w:number)=>setCurrentStartWeek(w+1)}/> }
+      <button className="nb-mobile-menu" type="button" aria-label="Toggle navigation" aria-expanded={mobileNav} onClick={()=>setMobileNav(!mobileNav)}>☰ Menu</button>
+      <main className={"flex-1 flex flex-col overflow-hidden relative "+(draftSystem||draftTask?"nb-editing-profile":"")}>
+        <StoreStatus/>
+        {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
+        {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onTimeline={()=>setRoadmapView('timeline')} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);url.searchParams.set('week',isoWeek(d.toISOString().slice(0,10)));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'roadmap' && !isWeeklyFocus && (
-          <div className="flex-1 flex flex-col overflow-hidden animate-fadeIn">
+          <div className="flex-1 flex flex-col overflow-auto animate-fadeIn">
             <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50">
               <div className="flex items-center gap-8">
                 <div>
@@ -3825,7 +3854,7 @@ const App = () => {
         )}
 
 
-        {activeTab === 'systems' && (
+        {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <div className="px-10 py-6 flex flex-col h-full animate-fadeIn overflow-hidden w-full">
             <header className="flex items-center justify-between mb-8 shrink-0">
                <div>
@@ -3905,7 +3934,7 @@ const App = () => {
                   <span className="text-[11px] font-black text-indigo-400/80 uppercase tracking-[0.2em]">Library Filters</span>
                </div>
                <div className="flex items-center gap-2.5 px-2">
-                  {['Windows', 'iOS', 'Android', 'Linux', 'WiFi', 'Wired'].map(f => {
+                  {['Windows', 'iOS', 'iPadOS', 'Android', 'Linux', 'macOS', 'WiFi', 'Wired'].map(f => {
                     const isActive = activeFilters.includes(f);
                     return (
                       <button 
@@ -3961,7 +3990,7 @@ const App = () => {
                       project={project}
                       isAdmin={isAdmin}
                       setDraftSystem={setDraftSystem}
-                      setActiveCheckSheetSys={setActiveCheckSheetSys}
+                      setActiveCheckSheetSys={openGuide}
                       setActiveAppListSys={setActiveAppListSys}
                       setActiveNamingConventionSys={setActiveNamingConventionSys}
                       setActiveLessonsLearnedSys={setActiveLessonsLearnedSys}
@@ -3974,7 +4003,7 @@ const App = () => {
           </div>
         )}
 
-        {activeCheckSheetSys && <SystemGuide sys={activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={()=>setActiveCheckSheetSys(null)} onEdit={()=>{setDraftSystem(activeCheckSheetSys);setActiveCheckSheetSys(null);}} onToggle={(section: keyof CheckSheetData,id:string)=>toggleCheckSheetItem(activeCheckSheetSys.id,section,id)} onAdd={(section:keyof CheckSheetData,label:string)=>addCheckSheetItem(activeCheckSheetSys.id,section,label)} onRemove={(section:keyof CheckSheetData,id:string)=>removeCheckSheetItem(activeCheckSheetSys.id,section,id)} onReorder={(section:keyof CheckSheetData,a:number,b:number)=>reorderCheckSheetItems(activeCheckSheetSys.id,section,a,b)}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} onEdit={()=>{setDraftSystem(project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys);closeGuide();}} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -4388,11 +4417,11 @@ const App = () => {
         )}
 
         {activeTab === 'config-report' && (
-          <div className="flex-1 flex flex-col overflow-hidden animate-fadeIn">
+          <div className="flex-1 flex flex-col overflow-auto animate-fadeIn">
             <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
               <div>
                 <h1 className="text-3xl font-bold tracking-tighter text-white">Configuration Report</h1>
-                <p className="text-slate-500 text-sm font-medium">Real-time Deployment Analytics</p>
+                <p className="text-slate-500 text-sm font-medium">Local device readiness and legacy aggregates</p>
               </div>
               <div className="flex items-center gap-4">
                 <input 
@@ -4406,7 +4435,7 @@ const App = () => {
                   onClick={exportConfigReport}
                   className="flex items-center gap-3 px-6 py-3 bg-slate-900/40 border border-slate-800 text-slate-400 rounded-2xl transition-all hover:bg-slate-800 hover:text-white uppercase tracking-widest text-[11px] font-black"
                 >
-                  <Download size={16} /> Export Data
+                  <Download size={16} /> Export Legacy Data
                 </button>
                 <button 
                   disabled={!isAdmin} onClick={() => fileInputRef.current?.click()}
@@ -4441,6 +4470,8 @@ const App = () => {
                 </button>
               </div>
             </header>
+            <Report project={project} isAdmin={isAdmin} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}}/>
+            <details className="nb-panel nb-legacy"><summary>Legacy aggregate editor and import/export (not device readiness)</summary><p>Original aggregate data. These values do not count as device acceptance.</p>
             <ConfigurationReport 
               isAdmin={isAdmin} 
               members={project.members} 
@@ -4448,7 +4479,7 @@ const App = () => {
               projectName={project.name}
               rows={project.configReportRows || INITIAL_CONFIG_REPORT_ROWS}
               onRowsChange={(newRows) => handleAction(prev => ({ ...prev, configReportRows: newRows }))}
-            />
+            /></details>
           </div>
         )}
 
@@ -4561,328 +4592,8 @@ const App = () => {
         )}
 
         {/* --- Dialogs & Modals --- */}
-        {draftTask && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" onClick={() => setDraftTask(null)} />
-            <div className="relative w-full max-w-2xl bg-[#0a0f1d] border border-slate-800 rounded-[2.5rem] shadow-2xl p-10 animate-fadeIn flex flex-col max-h-[90vh] overflow-y-auto no-scrollbar">
-               <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-black uppercase tracking-tight text-white">Edit Hub Record</h2>
-                  <button onClick={() => setDraftTask(null)} className="p-2 hover:bg-slate-800 rounded-full text-slate-500 hover:text-white transition-all"><X size={24} /></button>
-               </div>
-               
-               <div className="space-y-8">
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest">Label</label>
-                    <textarea 
-                      autoFocus 
-                      className="w-full bg-[#020617] border border-indigo-500/30 rounded-2xl p-6 text-lg font-bold outline-none text-white placeholder:text-slate-700 min-h-[120px] resize-y leading-tight focus:border-indigo-500 transition-all" 
-                      placeholder="Task name..."
-                      value={draftTask.label} 
-                      onChange={e => setDraftTask({...draftTask, label: e.target.value})} 
-                    />
-                  </div>
-
-                  {/* Checklist Section */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Checklist</label>
-                      {isAdmin && (
-                        <button 
-                          onClick={() => {
-                            const newItem: ChecklistItem = { id: Date.now().toString(), label: '', completed: false };
-                            setDraftTask({ ...draftTask, checklist: [...(draftTask.checklist || []), newItem] });
-                          }}
-                          className="flex items-center gap-1.5 text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors"
-                        >
-                          <Plus size={12} /> Add Item
-                        </button>
-                      )}
-                    </div>
-                    <div className="space-y-3">
-                      {(draftTask.checklist || []).map((item, idx) => (
-                        <div key={item.id} className="group/item rounded-2xl border border-slate-800/70 bg-slate-950/35 p-3 transition-all hover:border-indigo-500/30 hover:bg-slate-950/55">
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newList = [...(draftTask.checklist || [])];
-                                newList[idx] = { ...item, completed: !item.completed };
-                                setDraftTask({
-                                  ...draftTask,
-                                  checklist: newList,
-                                  status: getTaskStatusFromChecklist(newList, draftTask.status)
-                                });
-                              }}
-                              className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${item.completed ? 'bg-emerald-400 border-emerald-300 text-slate-950' : 'bg-slate-950 border-slate-700 text-slate-600 hover:border-indigo-400 hover:text-indigo-300'}`}
-                              title={item.completed ? 'Mark as planned' : 'Mark as completed'}
-                            >
-                              {item.completed ? <Check size={15} strokeWidth={4} /> : null}
-                            </button>
-                            <input
-                              className="flex-1 bg-transparent border-b border-transparent focus:border-indigo-500/30 outline-none text-[13px] font-normal transition-all text-slate-100 placeholder:text-slate-600"
-                              placeholder="Checklist item..."
-                              value={item.label}
-                              onChange={e => {
-                                const newList = [...(draftTask.checklist || [])];
-                                newList[idx] = { ...item, label: e.target.value };
-                                setDraftTask({ ...draftTask, checklist: newList });
-                              }}
-                            />
-                            {isAdmin && !draftTask.isMilestone && (
-                              <button
-                                type="button"
-                                disabled={draftTask.startWeek >= TOTAL_WEEKS - 1}
-                                onClick={() => moveDraftChecklistItemToNextWeek(item.id)}
-                                className="shrink-0 rounded-xl border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-blue-300 hover:bg-blue-500/15 hover:border-blue-400/50 hover:text-blue-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                                title="Move this subtask to next week. If no task exists there, a one-week task will be created."
-                              >
-                                Next Week
-                                <ArrowRight size={12} />
-                              </button>
-                            )}
-                            {isAdmin && (
-                              <button
-                                onClick={() => {
-                                  const newList = (draftTask.checklist || []).filter(i => i.id !== item.id);
-                                  setDraftTask({
-                                    ...draftTask,
-                                    checklist: newList,
-                                    status: getTaskStatusFromChecklist(newList, draftTask.status)
-                                  });
-                                }}
-                                className="opacity-0 group-hover/item:opacity-100 p-1.5 text-slate-600 hover:text-red-400 transition-all"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            )}
-                          </div>
-                          {isAdmin && !draftTask.isMilestone && (
-                            <div className="mt-2 ml-9 flex items-center gap-2 text-[9px] font-normal text-slate-500">
-                              <ArrowRight size={11} className="text-blue-400" />
-                              Moves only this subtask to Week {Math.min(TOTAL_WEEKS, draftTask.startWeek + 2)}. New task is one week only.
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                      {(!draftTask.checklist || draftTask.checklist.length === 0) && (
-                        <p className="text-[10px] text-slate-600 italic">No checklist items added yet.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="relative">
-                      <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest">Date</label>
-                      <div className="relative group/date">
-                        <Calendar size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/date:text-blue-400 pointer-events-none" />
-                        <input 
-                          type="date" 
-                          className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 text-[12px] font-bold text-blue-400 outline-none cursor-pointer hover:border-slate-700 transition-colors" 
-                          value={getDateInputValue(project.startDate, draftTask)} 
-                          onChange={e => {
-                            const newDate = e.target.value;
-                            setDraftTask({
-                              ...draftTask, 
-                              date: newDate, 
-                              startWeek: getWeekFromDate(project.startDate, newDate)
-                            });
-                          }} 
-                        />
-                      </div>
-                      {draftTask.isMilestone && (
-                        <div className="mt-2 text-[9px] font-black text-amber-500 uppercase tracking-widest opacity-60">Specific Day Selected</div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest">Status</label>
-                      <select className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 outline-none font-bold text-indigo-400 text-[12px] cursor-pointer hover:border-slate-700 transition-colors" value={draftTask.status} onChange={e => setDraftTask({...draftTask, status: e.target.value as TaskStatus})}>
-                        {['Planned', 'In Progress', 'Completed', 'Blocked'].map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-8 space-y-4">
-                    {isAdmin ? (
-                       <button onClick={() => saveTask(draftTask)} className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
-                         <Save size={18} /> Save Changes
-                       </button>
-                     ) : (
-                       <button onClick={() => setDraftTask(null)} className="w-full py-5 bg-slate-800 text-slate-400 rounded-2xl font-black uppercase text-[12px] tracking-widest transition-all">Close Viewer</button>
-                     )}
-                    {isAdmin && (
-                      <div className="w-full">
-                        {deleteConfirmTaskId === draftTask.id ? (
-                          <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2">
-                            <p className="text-[9px] font-black text-red-400 uppercase tracking-widest text-center">Are you absolutely sure?</p>
-                            <div className="flex gap-2">
-                              <button 
-                                onClick={() => { 
-                                  handleAction(p => ({ ...p, tasks: p.tasks.filter(t => t.id !== draftTask.id) })); 
-                                  setDraftTask(null); 
-                                  setDeleteConfirmTaskId(null);
-                                }} 
-                                className="flex-1 py-4 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-500 transition-all"
-                              >
-                                Yes, Delete
-                              </button>
-                              <button 
-                                onClick={() => setDeleteConfirmTaskId(null)} 
-                                className="flex-1 py-4 bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={() => setDeleteConfirmTaskId(draftTask.id)} 
-                            className="w-full py-4 text-red-500/60 hover:text-red-400 text-[10px] font-black uppercase tracking-[0.2em] transition-all"
-                          >
-                            Delete Permanently
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-               </div>
-            </div>
-          </div>
-        )}
-
-        {draftSystem && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" onClick={() => setDraftSystem(null)} />
-            <div className="relative w-full max-w-3xl bg-[#080d1a] border border-slate-800 rounded-[3rem] shadow-2xl overflow-hidden animate-fadeIn p-10 max-h-[95vh] overflow-y-auto no-scrollbar">
-               <div className="flex items-center justify-between mb-10 shrink-0">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 shadow-inner">
-                        {getDeviceIcon(draftSystem.deviceCategory, 24)}
-                    </div>
-                    <h2 className="text-3xl font-black tracking-tight uppercase text-white">System Engineering</h2>
-                  </div>
-                  <div className="flex items-center gap-4">
-                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest opacity-60">Assignee</span>
-                     <select className="bg-slate-900 border border-slate-800 rounded-xl px-5 py-2.5 text-[10px] font-black text-indigo-400 outline-none uppercase cursor-pointer shadow-lg" value={draftSystem.assigneeId || ''} onChange={e => setDraftSystem({...draftSystem, assigneeId: e.target.value})}>
-                        <option value="">UNASSIGNED</option>
-                        {project.members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                     </select>
-                  </div>
-               </div>
-
-               <div className="nb-new-fields"><label>Short description<input readOnly={!isAdmin} value={draftSystem.description || ''} onChange={e=>setDraftSystem({...draftSystem,description:e.target.value})} placeholder="What this system is used for"/></label><label>Documentation URL (HTTPS)<input readOnly={!isAdmin} type="url" value={draftSystem.documentationUrl || ''} onChange={e=>setDraftSystem({...draftSystem,documentationUrl:e.target.value})} placeholder="SharePoint guide link"/></label></div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="space-y-6">
-                    <div>
-                       <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">System Identity</label>
-                       <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none uppercase text-white shadow-inner" placeholder="e.g. Primary POS Terminal" value={draftSystem.name} onChange={e => setDraftSystem({...draftSystem, name: e.target.value})} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Device Category</label>
-                          <select className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none uppercase text-white cursor-pointer shadow-inner" value={draftSystem.deviceCategory} onChange={e => setDraftSystem({...draftSystem, deviceCategory: e.target.value as DeviceCategory})}>
-                             {['PC', 'Laptop', 'Tablet', 'Phone', 'Kiosk'].map(c => <option key={c} value={c}>{c}</option>)}
-                          </select>
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Hardware ID / Model</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none text-white shadow-inner" placeholder="e.g. Nino III J2" value={draftSystem.deviceType} onChange={e => setDraftSystem({...draftSystem, deviceType: e.target.value})} />
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">OS Family</label>
-                          <select className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none uppercase text-white cursor-pointer shadow-inner" value={draftSystem.os} onChange={e => setDraftSystem({...draftSystem, os: e.target.value as OSType})}>
-                             {['Windows', 'Linux', 'iOS', 'Android', 'Other'].map(o => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">OS Version / Build</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none text-white shadow-inner" placeholder="e.g. 21H2 LTSC" value={draftSystem.osVersion} onChange={e => setDraftSystem({...draftSystem, osVersion: e.target.value})} />
-                       </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Network Type</label>
-                          <select className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none uppercase text-white cursor-pointer shadow-inner" value={draftSystem.network} onChange={e => setDraftSystem({...draftSystem, network: e.target.value})}>
-                             {['Wired', 'WiFi', 'Offline'].map(n => <option key={n} value={n}>{n}</option>)}
-                          </select>
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Segment / VLAN</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-black focus:border-indigo-500 transition-all outline-none text-white font-mono shadow-inner" placeholder="e.g. 500" value={draftSystem.vlan} onChange={e => setDraftSystem({...draftSystem, vlan: e.target.value})} />
-                       </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div>
-                       <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Service Credentials</label>
-                       <div className="relative group/field">
-                          <ShieldCheck size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-indigo-400 transition-colors" />
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl py-5 pl-14 pr-5 font-bold focus:border-indigo-500 transition-all outline-none text-white shadow-inner" placeholder="e.g. POS_SRV_HUB" value={draftSystem.serviceAccount} onChange={e => setDraftSystem({...draftSystem, serviceAccount: e.target.value})} />
-                       </div>
-                    </div>
-
-                    <div>
-                       <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">User Account</label>
-                       <div className="relative group/field">
-                          <User size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-indigo-400 transition-colors" />
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl py-5 pl-14 pr-5 font-bold focus:border-indigo-500 transition-all outline-none text-white shadow-inner" placeholder="e.g. AD\POSUSER (268)" value={draftSystem.userAccount} onChange={e => setDraftSystem({...draftSystem, userAccount: e.target.value})} />
-                       </div>
-                    </div>
-
-                    <div>
-                       <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Authentication Type</label>
-                       <div className="relative group/field">
-                          <LogIn size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within/field:text-indigo-400 transition-colors" />
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl py-5 pl-14 pr-5 font-bold focus:border-indigo-500 transition-all outline-none uppercase text-white shadow-inner" placeholder="e.g. Autologon (Encrypted)" value={draftSystem.logonType} onChange={e => setDraftSystem({...draftSystem, logonType: e.target.value})} />
-                       </div>
-                    </div>
-                    {/* Edit fields for new properties */}
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">IP Scope</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-bold outline-none text-white shadow-inner" value={draftSystem.ipScope} onChange={e => setDraftSystem({...draftSystem, ipScope: e.target.value})} />
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">IP Reservation</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-bold outline-none text-white shadow-inner" value={draftSystem.ipReservation} onChange={e => setDraftSystem({...draftSystem, ipReservation: e.target.value})} />
-                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Domain OU</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-bold outline-none text-white shadow-inner" value={draftSystem.domainOU} onChange={e => setDraftSystem({...draftSystem, domainOU: e.target.value})} />
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">AirWatch Tags</label>
-                          <input className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 font-bold outline-none text-white shadow-inner" value={draftSystem.airWatchTags} onChange={e => setDraftSystem({...draftSystem, airWatchTags: e.target.value})} />
-                       </div>
-                    </div>
-
-                    <div>
-                       <label className="text-[10px] font-black text-slate-500 block mb-3 uppercase tracking-widest opacity-60">Engineering Notes</label>
-                       <textarea className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-6 min-h-[140px] outline-none font-mono text-xs text-slate-300 focus:border-indigo-500 transition-all shadow-inner leading-relaxed" placeholder="Document specific configuration, dependencies, or maintenance history here..." value={draftSystem.documentation || ''} onChange={e => setDraftSystem({...draftSystem, documentation: e.target.value})} />
-                    </div>
-                  </div>
-               </div>
-
-               <div className="pt-10 border-t border-slate-800/60 mt-4 flex gap-4 shrink-0">
-                  {isAdmin ? (
-                    <button onClick={() => saveSystem(draftSystem)} className="flex-1 py-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest active:scale-95 transition-all shadow-2xl shadow-indigo-500/10 flex items-center justify-center gap-3">
-                      <Save size={18} /> Save Hub Passport
-                    </button>
-                  ) : (
-                    <button onClick={() => setDraftSystem(null)} className="w-full py-6 bg-slate-800 text-slate-400 rounded-2xl font-black uppercase text-xs tracking-widest transition-all">Close Viewer</button>
-                  )}
-                  {isAdmin && <button onClick={() => { handleAction(p => ({ ...p, systems: p.systems.filter(s => s.id !== draftSystem.id) })); setDraftSystem(null); }} className="px-8 bg-red-500/10 text-red-500 border border-red-500/10 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-95"><Trash2 size={24}/></button>}
-               </div>
-            </div>
-          </div>
-        )}
+        {draftTask && <TaskEditor key={draftTask.id} task={draftTask} project={project} isAdmin={isAdmin} onClose={()=>setDraftTask(null)} onSave={saveTask} onDelete={async()=>{if(isAdmin){await handleAction(p=>({...p,tasks:p.tasks.filter(t=>t.id!==draftTask.id)}));setDraftTask(null);}}}/>}
+        {draftSystem && <SystemEditor key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={(next:SystemInfo)=>{if(isAdmin)return saveSystem(next);throw Error('Edit mode is required');}} onDelete={()=>{if(isAdmin){handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==draftSystem.id)}));setDraftSystem(null);}}}/>}
         {showAdminAuthModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
             <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" onClick={() => setShowAdminAuthModal(false)} />
@@ -4890,30 +4601,10 @@ const App = () => {
               <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 mx-auto mb-6 shadow-inner">
                 <ShieldCheck size={32} />
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tight mb-2 text-white">Admin Access</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tight mb-2 text-white">Local edit mode</h2>
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8">{LOCAL_UI_MODE ? 'Local preview only. Not production authentication.' : 'Enter Authorization Key'}</p>
               
-              <input 
-                type="password"
-                autoFocus
-                className="w-full bg-[#020617] border border-slate-800 rounded-2xl p-5 text-center text-xl font-black tracking-[0.5em] focus:border-indigo-500 transition-all outline-none text-white shadow-inner mb-6"
-                placeholder="••••••"
-                value={adminPassInput}
-                onChange={e => setAdminPassInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    if (LOCAL_UI_MODE || adminPassInput === ADMIN_PASSWORD) {
-                      setIsAdmin(true);
-                      setShowAdminAuthModal(false);
-                    } else {
-                      alert('Access Denied: Incorrect Key');
-                      setAdminPassInput('');
-                    }
-                  }
-                  if (e.key === 'Escape') setShowAdminAuthModal(false);
-                }}
-              />
-              
+              <p className="nb-notice">Editing changes only this browser's demo data. No identity verification or server authorization is connected.</p>
               <div className="flex gap-3">
                 <button 
                   onClick={() => setShowAdminAuthModal(false)}
@@ -4923,7 +4614,7 @@ const App = () => {
                 </button>
                 <button 
                   onClick={() => {
-                    if (LOCAL_UI_MODE || adminPassInput === ADMIN_PASSWORD) {
+                    if (LOCAL_UI_MODE) {
                       setIsAdmin(true);
                       setShowAdminAuthModal(false);
                     } else {
@@ -5133,4 +4824,5 @@ const App = () => {
 };
 
 const root = createRoot(document.getElementById('root')!);
-root.render(<App />);
+root.render(<div className="nb-notice" role="status">Opening local demo storage…</div>);
+initDemoStore().then(()=>root.render(<App/>)).catch((error:Error)=>root.render(<section className="nb-notice" role="alert"><h1>Demo storage unavailable</h1><p>{error.message}</p><button type="button" onClick={()=>location.reload()}>Retry</button><p>No server or localStorage fallback was activated.</p></section>));

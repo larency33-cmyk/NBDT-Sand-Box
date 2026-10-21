@@ -1,26 +1,43 @@
-# NBDT UI redesign
+# NBDT — локальный веб-проект v0.4
 
-## Scope
-UI update based on the supplied screenshots. Existing project data structures and the Master Timeline remain. New Weekly Tracker Overview / Week / List, system cards and stage-based system guide. Configuration Report and Issues use the shared light theme. No SQL Server / backend migration is included.
+Это обновлённая версия предоставленного проекта v0.3. Сохранены его исходная структура, legacy-модули Master Timeline, Cable Hub и Issue Tracker, demo-хранилище и данные при обновлении исходников. **Это не production-релиз.** Для полноценной корпоративной версии необходимы сервер, права доступа и подключение инфраструктуры.
 
-## Local launch
-1. Install Node.js 22.12+ and npm.
-2. In this directory run `npm install`.
-3. Run `npm run dev` and open the local address printed by Vite.
-4. `npm run build` creates the production frontend; `npm run preview` previews it locally.
+## Запуск в Windows
 
-The supplied original lockfile was not in sync with package.json. It is intentionally omitted; npm install generates a fresh lockfile. Review dependencies and commit that lockfile before deployment.
+1. Установите **Node.js 22.12+** с npm и обеспечьте доступ к npm registry.
+2. Распакуйте ZIP в отдельную папку.
+3. Запустите `START_WINDOWS.cmd` (либо выполните `npm install` и `npm run dev` в терминале).
+4. Откройте адрес из вывода Vite, обычно `http://127.0.0.1:5173`.
 
-## Safe default
-Without configuration, VITE_DATA_MODE defaults to local. No Firebase app is initialized and no Firebase reads or writes are performed. Local state uses a separate nbdt_redesign_local_ prefix. Existing original localStorage records are not modified. Existing seed records from the original source are retained, not live project data. No new illustrative device counts are added.
+Для production-сборки на своей машине выполните `npm run lint` и `npm run build`; готовые файлы появятся в `dist/` только после успешной сборки. Настройка Vercel (`vercel.json`) уже включает rewrite для deep links, но публикация не выполнялась.
 
-The local Edit mode dialog accepts any input: it is a UI sandbox, NOT authentication. Do not publish this as a protected application. The legacy Firebase mode retains the original frontend password logic; this is NOT production security. No backend authorization has been implemented.
+## Проверки
 
-## Optional legacy Firebase mode
-Only after backup and security review, set VITE_DATA_MODE=firebase in .env.local and restart Vite. This enables the original Firebase configuration and sync. This can change the original database. The UI redesign has not been tested against the live database. Never enable it merely to preview the new interface.
+```sh
+npm test
+npm run check:syntax
+node scripts/check-bindings.cjs
+npm run lint
+npm run build
+```
 
-## Data compatibility
-Existing systems/tasks/checklists are retained. Optional description and documentationUrl fields are added to systems. Engineering notes remain in documentation; only documentationUrl is treated as an HTTPS link. No inferred links or fake completion counts are created. Weekly labels are project-relative (Week 1..28), not ISO calendar weeks. The guide uses system-level checklists from the original model, NOT per-device completion. Preparation, shared-task roles, device inventory and Deployed counters shown in the reference images are not implemented because the original data model has no corresponding fields.
+Фактически подтверждены 56 unit-тестов и синтаксическая проверка TypeScript/TSX; см. `verification/v04-checks.txt`. Поскольку в среде подготовки отсутствовал доступ к npm registry, **полный install, TypeScript dependency-aware lint, Vite/Tailwind build и новый браузерный регрессионный прогон не подтверждены**. Приложенные v0.3 browser logs относятся только к предыдущей изолированной проверке.
 
-## Deployment boundary
-This is a frontend redesign, not a production-ready RCG deployment. Backend authentication, SQL Server migration, secrets, logging, corporate networking and security approvals remain separate work.
+## Новое в v0.4
+
+- Прямые ссылки `/projects/:projectId/systems/:systemId/guide?profile=...&device=...&stage=...`, восстановление выбранного устройства/профиля/стадии после reload и browser navigation; совместимость со старыми hash-разделами.
+- ISO-недели (включая 2026-W53/2027-W01) в Weekly Tracker, переход к реальной неделе, диапазон планирования расширен до 520 недель; legacy Master Timeline остаётся 28-недельным.
+- Переход к следующему этапу чек-листа только **после успешного сохранения** текущего acceptance.
+- iOS/iPadOS/Android guard на неподходящие Windows-пункты в публикуемых guide; отдельные устройства и endpoint profiles продолжают иметь независимые run-результаты.
+- Отчёт отображает четыре KPI, отделяет legacy snapshots, Cyber-значение в обычном режиме читается как текст; изменение Cyber доступно только через явный локальный edit mode с комментарием и ожиданием сохранения.
+- Фильтр систем учитывает вторичные endpoint profiles, импорт проверяет ссылки устройства/профиля и конфликты активных runs.
+- Устранена имитация пароля «Admin» в локальном demo; теперь это честно названный **Local edit mode**, а не авторизация.
+- Единые визуальные токены из спецификации: navy/sidebar, brand blue, статусные цвета и типографика, дополнительная адаптивность.
+
+## Работа с данными
+
+IndexedDB браузера хранит изменения **только в этом браузере и origin**. Перед заменой версии или переносом на другой адрес откройте Overview → Demo data, backup & audit → **Export project backup**. При необходимости импортируйте JSON в новую версию. Поля инженерных настроек/примерные VLAN/IP не являются утверждёнными параметрами корпоративной сети.
+
+⚠️ Разработка не подключает корпоративную аутентификацию, SQL Server, серверный audit, SharePoint attachment upload или многопользовательскую синхронизацию. UI edit mode не обеспечивает защиту данных.
+
+Подробный аудит — `NBDT_v0_4_implementation_report_RU.md`. Полное исходное задание — `NBDT_Website_Master_Specification_RU.md`.

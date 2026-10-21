@@ -1,0 +1,32 @@
+(node:2564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ empty guide cannot be published (3.605122ms)
+✔ mobile profile rejects BIOS (0.415712ms)
+✔ explicit applicability is enforced (2.800613ms)
+✔ empty stage cannot be accepted (0.253611ms)
+✔ ready cannot bypass base (0.299924ms)
+✔ future stage checks are blocked (0.423592ms)
+✔ base check alone is not acceptance (0.173961ms)
+✔ ordered stages can be accepted (2.377745ms)
+✔ reopening base invalidates later acceptance (4.002892ms)
+✔ device counts are distinct from legacy quantities (0.640317ms)
+✔ forged downstream acceptance does not count (1.338237ms)
+✔ new publication preserves pinned device run (0.168694ms)
+✔ run cannot cross profile boundary (0.127449ms)
+✔ unsafe links are rejected (0.202665ms)
+✔ HTTPS link is accepted (0.31366ms)
+✔ owner is not duplicated as helper (1.976342ms)
+✔ date-only parsing does not use UTC (0.189167ms)
+✔ derived due date is last day of task range (0.115285ms)
+✔ explicit due date wins (0.238404ms)
+✔ week labels include year (40.531396ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 910.705219
+(node:2558) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
