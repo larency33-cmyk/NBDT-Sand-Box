@@ -807,3 +807,137 @@ button,select,input,textarea {font-family:inherit}
  .nb-summary-actions{width:100%;justify-content:flex-start}
  .nb-week-head{min-height:138px}
 }
+
+/* ============================================================================
+   v0.6.2 — Weekly Tracker approved-reference layout (desktop + small screens)
+   The milestone row is part of the true table header and can hold multiple milestones.
+   ============================================================================ */
+@media (min-width:761px){
+ .nbdt-redesign.nb-app-root>aside[data-open="true"]{width:232px!important;flex:0 0 232px;}
+}
+.nb-tracker{--wk-blue:#0066f5;--wk-border:#d8e6f4;--wk-muted:#6c83a3;background:#f3f8fe!important}
+.nb-tracker>.nb-page-header{padding:11px 23px 13px;min-height:100px;background:linear-gradient(105deg,#f7fbff 0%,#edf6ff 100%);border-bottom:1px solid #d9e8f6;gap:18px}
+.nb-tracker-breadcrumb{font-size:12px;color:#3b75be;letter-spacing:.01em;margin-bottom:6px}
+.nb-tracker>.nb-page-header h1{font-size:32px!important;font-weight:750;letter-spacing:-.7px;line-height:1.15;color:#071f4a}
+.nb-tracker>.nb-page-header p{color:#56759d;font-size:14px;line-height:1.35;margin-top:5px}
+.nb-tracker>.nb-page-header .nb-actions{gap:9px}
+.nb-tracker>.nb-page-header .nb-actions .nb-button{min-width:unset;padding:9px 13px;min-height:42px;border-radius:8px;font-size:13px}
+.nb-tracker>.nb-page-header .nb-actions .nb-primary{min-width:110px}
+.nb-tracker>.nb-toolbar{padding:10px 23px;display:flex;align-items:center;gap:11px;min-height:62px;flex-wrap:nowrap;background:#fff;border-top:0}
+.nb-tracker>.nb-toolbar>.nb-segments{flex:0 0 auto;border-radius:8px;min-height:44px}
+.nb-tracker>.nb-toolbar>.nb-segments>.nb-button{min-width:85px;min-height:44px;padding:10px 13px;border-radius:0;font-size:14px;font-weight:600}
+.nb-tracker>.nb-toolbar>.nb-segments>.nb-button[aria-pressed="true"]{background:#0563ec!important;color:white!important}
+.nb-tracker .nb-project-start{display:flex!important;align-items:center;flex:0 0 auto;width:auto!important;min-height:44px;gap:8px;padding:4px 10px;border:1px solid #d9e5f3;background:#f7faff;border-radius:8px;font-size:12px;color:#607b9b;white-space:nowrap}
+.nb-project-start svg{color:#2777d8;flex-shrink:0}
+.nb-project-start strong{font-size:13px;font-weight:700;color:#14396b;white-space:nowrap}
+.nb-tracker>.nb-toolbar>.nb-project-start input[type="date"]{flex:none!important;min-width:128px!important;width:137px!important;height:33px!important;padding:4px 7px!important;background:white!important;color:#103766;font-size:12px!important;border-color:#d5e4f5}
+.nb-tracker>.nb-toolbar>select{height:44px;min-height:44px;min-width:134px;padding:9px 13px;border-radius:8px;color:#184773;font-size:13px}
+.nb-tracker>.nb-toolbar>select[aria-label="Status filter"]{min-width:132px}
+.nb-search-box{display:flex;align-items:center;flex:1 1 180px;min-width:150px;gap:9px;border:1px solid #dae6f4;border-radius:8px;height:44px;padding:0 12px;background:#fff}
+.nb-search-box svg{color:#57769b;flex-shrink:0}
+.nb-tracker>.nb-toolbar .nb-search-box input{width:100%;min-width:0!important;flex:1 1 auto;box-shadow:none;border:0!important;background:transparent!important;padding:4px 0;height:38px;font-size:13px}
+.nb-search-box:focus-within{outline:2px solid #b4d8ff;outline-offset:0}
+.nb-start-error{color:#ad3025;font-size:12px;max-width:200px}
+.nb-tracker>.nb-summary{display:flex;align-items:center;min-height:46px;padding:8px 24px 9px!important;gap:10px;background:#f3f8fe;white-space:normal}
+.nb-tracker>.nb-summary .nb-summary-metrics{display:flex;align-items:center;gap:0;flex-wrap:wrap;width:auto}
+.nb-tracker>.nb-summary .nb-summary-pill{border:0;border-radius:0;background:transparent;padding:3px 14px 3px 0;margin:0 13px 0 0;box-shadow:none;gap:8px;font-size:13px!important;font-weight:550;line-height:19px;color:#215ca6;white-space:nowrap}
+.nb-tracker>.nb-summary .nb-summary-pill:not(:last-of-type){border-right:1px solid #d3e1f3}
+.nb-summary-pill svg{color:#0968d5}
+.nb-summary-pill.nb-summary-blockers svg{color:#ef5a3d}
+.nb-current-indicator{font-size:11px;font-weight:700;border:1px solid #9bdcca;border-radius:999px;color:#09825c;padding:4px 9px;background:#eafbf4}
+.nb-tracker>.nb-summary .nb-summary-actions{margin-left:auto}
+.nb-tracker>.nb-summary .nb-button{margin-left:0!important}
+.nb-tracker-content{padding:0 23px!important;min-height:0}
+.nb-tracker-table-wrap{width:100%;border:1px solid #d5e3f3;border-radius:11px;box-shadow:0 2px 10px rgb(12 54 108 / 3%);scrollbar-width:thin;scrollbar-color:#c6daed #f4f8fd}
+.nb-week-grid{min-width:1080px;width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.nb-week-grid thead th{height:auto!important;padding:0!important;background:#edf5ff;vertical-align:top;border-right:1px solid #d9e7f5;border-bottom:1px solid #d6e5f5}
+.nb-week-grid thead th:first-child{width:220px}
+.nb-week-grid .nb-employee-head{text-align:left!important;padding:33px 17px!important;color:#0c2c56;font-size:14px!important;font-weight:700!important;vertical-align:middle!important}
+.nb-week-grid .nb-week-head{display:flex;flex-direction:column;min-height:90px;padding:9px 11px 9px;gap:4px}
+.nb-week-grid .nb-week-milestones{display:flex;flex-direction:column;gap:3px;min-height:30px;max-height:89px;overflow-y:auto;scrollbar-width:thin;position:relative}
+.nb-week-grid .nb-week-head-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;padding:0 2px;min-height:40px;line-height:20px}
+.nb-week-grid .nb-week-head-title strong{font-size:14px;line-height:18px;font-weight:750;color:#0c2a56}
+.nb-week-grid .nb-week-head-title small{width:100%;font-size:12px;font-weight:400;line-height:16px;color:#6983a5;margin:0}
+.nb-week-grid .nb-milestone-chip{width:100%;min-height:28px;display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:4px 9px;border-radius:6px;color:#0053ca;background:#e9f3ff;border:1px solid #c9e0ff;font-size:12px;font-weight:700;line-height:17px}
+.nb-week-grid .nb-milestone-chip svg{width:15px;height:15px;flex-shrink:0}
+.nb-week-grid .nb-ms-critical{background:#ffe8ed;border-color:#ffcbd5;color:#c51d38}
+.nb-week-grid .nb-ms-review{background:#efeaff;border-color:#d8cafa;color:#5d32c5}
+.nb-week-grid .nb-ms-complete{background:#e0f8ef;border-color:#b9ead6;color:#07804d}
+.nb-week-grid .nb-milestone-empty{height:28px;min-height:28px;display:flex;align-items:center;justify-content:center;padding:3px 7px;width:100%;border:1px dashed #c1d8f1;border-radius:6px;background:#f5faff;color:#7793b5;font-size:12px;font-weight:400}
+.nb-week-grid .nb-milestone-add{position:absolute;z-index:2;top:3px;right:3px;border:1px solid #b9d6f4;box-shadow:0 1px 4px rgb(20 66 130 / 12%);border-radius:5px;color:#0876ee;background:white;width:24px;height:23px;font-size:16px;line-height:19px;padding:0;opacity:0;transition:opacity .12s ease}
+.nb-week-grid thead th:hover .nb-milestone-add,.nb-week-grid .nb-milestone-add:focus-visible{opacity:1}
+.nb-week-grid .nb-current-week-column{background:#e2f0ff!important;box-shadow:inset 0 4px 0 #1476e9}
+.nb-week-today-badge{font-size:10px!important;color:#0066e9;background:#e3f0ff;border-radius:4px;padding:2px 5px;font-weight:700}
+.nb-week-grid tbody th,.nb-week-grid tbody td{border-right:1px solid #e0e9f4;border-bottom:1px solid #e0e9f4;background:#fff;vertical-align:middle}
+.nb-week-grid tbody th{height:auto!important;min-height:0!important;padding:10px 13px!important}
+.nb-week-grid .nb-person-cell{display:flex;align-items:center;gap:13px}
+.nb-week-grid .nb-avatar{display:flex!important;align-items:center!important;justify-content:center!important;width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;flex:0 0 43px!important;line-height:1!important;font-size:18px!important;padding:0!important;text-align:center!important;border-radius:50%}
+.nb-week-grid .nb-person-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nb-week-grid .nb-person-copy strong{font-size:14px;line-height:19px;font-weight:700;color:#0f2a55}
+.nb-week-grid .nb-person-copy small{font-size:12px;line-height:16px;margin:0;color:#738bac;font-weight:400}
+.nb-week-grid td{min-width:0!important;vertical-align:top!important}
+.nb-week-grid .nb-week-cell{display:flex!important;flex-direction:column;gap:1px;min-height:111px!important;padding:11px 12px 8px!important;border:1px solid transparent;border-radius:6px;box-shadow:none;background:transparent;color:#17395f;cursor:pointer}
+.nb-week-grid .nb-week-cell:hover{background:#f3f8ff}
+.nb-week-grid .nb-week-cell.selected{background:#edf6ff!important;border:1.5px solid #0066f5!important;box-shadow:inset 0 0 0 .5px #0066f5;border-radius:6px}
+.nb-week-grid .nb-week-cell-head{display:flex;gap:4px;align-items:baseline;min-height:22px;padding:0}
+.nb-week-grid .nb-week-cell-head strong{font-size:12px;line-height:19px;color:#183e73;font-weight:750}
+.nb-week-grid .nb-mini-task{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:2px 0;min-height:20px!important;line-height:18px!important;border-bottom:1px solid #e7eef6;border-radius:0!important;font-size:12px;color:#223f68}
+.nb-week-grid .nb-mini-task>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:18px}
+.nb-week-grid .nb-mini-task .nb-badge{font-size:12px!important;font-weight:650;line-height:18px;padding:0!important;background:transparent!important}
+.nb-week-grid .nb-more{font-size:12px;line-height:18px;color:#048d97;margin-top:2px}
+.nb-week-grid tbody tr.nb-no-assignments .nb-week-cell{min-height:70px!important;padding:11px 12px!important}
+.nb-week-grid tbody tr.nb-no-assignments .nb-week-cell-head strong{color:#879bb4;font-weight:500}
+.nb-week-grid tbody .nb-current-week-cell{background:linear-gradient(90deg,rgba(0,102,245,.045),rgba(0,102,245,.02))}
+.nb-week-grid tbody .nb-current-week-cell:not(:has(.selected)){box-shadow:inset 2px 0 0 rgba(0,102,245,.17)}
+.nb-tracker[data-view="overview"] .nb-tracker-content:not(:has(.nb-assignment-panel)) .nb-week-grid{width:100%}
+.nb-tracker .nb-week-footer{display:flex!important;align-items:center;gap:7px;flex-wrap:nowrap;padding:9px 23px 11px;background:transparent;border-top:0;min-height:60px}
+.nb-week-footer>span{font-size:12px;color:#6c84a1;white-space:nowrap;margin-right:8px}
+.nb-week-footer .nb-week-footer-scroll{display:flex;align-items:center;gap:5px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:thin;padding:2px}
+.nb-week-footer .nb-button{min-height:37px!important;padding:7px 9px!important;border-radius:6px;font-size:12px;font-weight:600;flex:0 0 auto}
+.nb-week-footer .nb-week-footer-item.nb-in-visible-range{background:#e8f3ff;border-color:#a8cff9;color:#1c60b5}
+.nb-week-footer .nb-week-footer-item.nb-is-today:not([aria-pressed="true"]){border-color:#23a488;box-shadow:inset 0 -3px 0 #21a685;color:#186c5d}
+.nb-week-footer .nb-button[aria-pressed="true"]{background:#0066f5!important;border-color:#0066f5!important;color:#fff!important}
+.nb-week-footer .nb-weeks-prev,.nb-week-footer .nb-weeks-next{min-width:38px!important;font-size:22px;line-height:20px;padding:5px!important;color:#0769ce}
+.nb-week-footer .nb-go-today{min-width:56px;color:#16735b;border-color:#b9e4d9}
+@media(min-width:1250px){.nb-week-grid{min-width:1000px!important}}
+@media(max-width:1250px){.nb-tracker>.nb-toolbar{flex-wrap:wrap}.nb-search-box{flex:1 1 210px}.nb-week-grid{min-width:1040px!important}}
+@media(max-width:900px){
+ .nb-tracker>.nb-page-header{padding:15px 16px}
+ .nb-tracker>.nb-toolbar{padding:12px 16px;flex-wrap:wrap}
+ .nb-tracker>.nb-toolbar>.nb-segments{flex:1 1 100%}
+ .nb-tracker>.nb-toolbar>.nb-segments>.nb-button{flex:1}
+ .nb-tracker>.nb-summary{padding:10px 16px!important}
+ .nb-tracker-content{padding:0 16px!important}
+ .nb-tracker .nb-week-footer{padding:10px 16px}
+ .nb-week-grid{min-width:1040px!important}
+ .nb-week-grid .nb-milestone-add{opacity:1}
+}
+@media(max-width:760px){
+ .nbdt-redesign.nb-app-root .nb-tracker>.nb-page-header h1{font-size:27px!important}
+ .nb-tracker>.nb-page-header .nb-actions{width:100%;justify-content:flex-start}
+ .nb-tracker>.nb-toolbar .nb-project-start{flex:1 1 auto;width:auto!important}
+ .nb-tracker>.nb-summary .nb-summary-pill{font-size:12px!important}
+ .nb-week-footer>span{display:none}
+ .nb-week-footer .nb-go-today{padding:5px 7px!important;min-width:45px}
+ .nb-week-footer .nb-week-footer-scroll{overflow-x:auto}
+ .nb-week-grid{min-width:1040px!important}
+ .nb-tracker .nb-mobile-person-card .nb-avatar{display:flex;align-items:center;justify-content:center;line-height:1}
+}
+@media(prefers-reduced-motion:reduce){.nb-week-grid .nb-milestone-add{transition:none}}
+/* Consistent semantic status text across weekly preview, not green Active / blue Planned. */
+.nb-tracker .nb-status-in-progress{color:#0065e8!important;background:transparent!important}
+.nb-tracker .nb-status-completed{color:#07863b!important;background:transparent!important}
+.nb-tracker .nb-status-planned{color:#7086a8!important;background:transparent!important}
+.nb-tracker .nb-status-blocked{color:#e56d04!important;background:transparent!important}
+/* Keep the flag at the left, text legible, and preserve full task names via panel. */
+.nb-week-grid .nb-milestone-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nb-week-grid .nb-week-cell:focus-visible{outline:2px solid #0876ee;outline-offset:-3px}
+/* Sidebar hierarchy echoes the approved NBDT reference while preserving the real project selector. */
+@media(min-width:761px){
+ .nbdt-redesign.nb-app-root>aside[data-expanded="true"]{width:232px!important;flex:0 0 232px!important}
+ .nbdt-redesign.nb-app-root>aside[data-expanded="false"]{width:72px!important;flex:0 0 72px!important}
+}
+.nbdt-redesign.nb-app-root>aside .nbdt-brand-wordmark{font-size:22px!important;font-weight:750!important;line-height:1.12!important;letter-spacing:-.03em!important;text-transform:none!important;color:#fff!important;margin:0 0 4px!important}
+.nbdt-redesign.nb-app-root>aside .nbdt-brand-wordmark+div span{font-size:13px!important;line-height:1.25!important;letter-spacing:0!important;font-weight:500!important;color:#b7d0ec!important}
+.nbdt-redesign.nb-app-root>aside nav button{min-height:45px;border-radius:8px}
+.nbdt-redesign.nb-app-root>aside nav button[class*="bg-indigo"]{box-shadow:inset 3px 0 0 #a5d6ff,0 0 0 1px rgba(130,196,255,.38)}

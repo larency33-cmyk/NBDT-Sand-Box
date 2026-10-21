@@ -18,7 +18,8 @@ test('report avoids simulated production percentages and retains explicit no-dev
  assert.ok(w.includes('counts(s)'));
 });
 test('weekly tracker emits ISO week number without duplicate W and supports direct jump to populated week',()=>{
- assert.ok(w.includes('Number(selectedIsoWeek.split(\'-W\')[1])'));
+ assert.ok(w.includes('weekIso(w)'));
+ assert.ok(w.includes('Current week') || w.includes('nb-current-indicator'));
  assert.ok(w.includes('closestScheduledWeek'));
  assert.ok(w.includes('View scheduled assignments'));
 });
@@ -38,7 +39,8 @@ test('system cards distinguish legacy steps from genuine device completion',()=>
  assert.ok(app.includes('Documentation not linked'));
 });
 test('brand and nav use unified NBDT labels without changing project records',()=>{
- assert.ok(app.includes('NBDT · PROJECT'));
+ assert.ok(app.includes('nbdt-brand-wordmark'));
+ assert.ok(app.includes('>NBDT</span>'));
  assert.ok(app.includes('>Configuration Report</span>'));
  assert.ok(app.includes('>Issues</span>'));
  assert.ok(app.includes("name: 'Legend OTS'"));

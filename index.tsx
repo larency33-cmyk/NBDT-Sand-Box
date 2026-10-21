@@ -1,6 +1,7 @@
 import {ProfileGuide as SystemGuide,TaskEditor,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
+import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import './redesign.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
@@ -271,7 +272,7 @@ interface ProjectData {
 }
 
 // --- Constants ---
-const TOTAL_WEEKS = 28;
+const TOTAL_WEEKS = 520;
 const WEEK_WIDTH = 200; 
 const MEMBER_LABEL_WIDTH = 220; 
 
@@ -477,8 +478,7 @@ const parseLocalDate = (dateStr: string) => {
 };
 
 const getWeekRange = (startDateStr: string, weekIndex: number) => {
-  const start = parseLocalDate(startDateStr);
-  start.setDate(start.getDate() + (weekIndex * 7));
+  const start = parseLocalDate(projectWeekDate(startDateStr, weekIndex));
   const end = new Date(start);
   end.setDate(end.getDate() + 6);
   
@@ -490,18 +490,11 @@ const getDateInputValue = (startDateStr: string, task: RoadmapTask) => {
   if (task.isMilestone && task.date) {
     return task.date;
   }
-  const date = parseLocalDate(startDateStr);
-  date.setDate(date.getDate() + (task.startWeek * 7));
+  const date = parseLocalDate(projectWeekDate(startDateStr,task.startWeek));
   return date.toISOString().split('T')[0];
 };
 
-const getWeekFromDate = (startDateStr: string, dateStr: string) => {
-  const start = parseLocalDate(startDateStr);
-  const current = parseLocalDate(dateStr);
-  const diffTime = current.getTime() - start.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(0, Math.floor(diffDays / 7));
-};
+const getWeekFromDate = (startDateStr: string, dateStr: string) => Math.max(0, weekIndexFromDate(startDateStr,dateStr)??0);
 
 const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, currentStatus: TaskStatus): TaskStatus => {
   const items = checklist || [];
@@ -2397,23 +2390,28 @@ const App = () => {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const start = parseLocalDate(project.startDate || '2026-01-05');
-      if (isNaN(start.getTime())) throw new Error('Invalid start date');
-      start.setHours(0, 0, 0, 0);
-      const diffTime = today.getTime() - start.getTime();
-      const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      const todayLocal = todayInTimezone(project.timezone || 'Europe/Paris');
+      const start = mondayOf(project.startDate || '2026-01-05');
+      const difference = (Date.parse(todayLocal + 'T12:00:00Z') - start.getTime()) / DAY_MS;
       return {
-        daysFromStart: days,
-        todayWeekIndex: Math.floor(days / 7)
+        daysFromStart: Math.round(difference),
+        todayWeekIndex: currentWeekIndex(project.startDate,project.timezone || 'Europe/Paris') ?? 0
       };
     } catch (e) {
       return { daysFromStart: 0, todayWeekIndex: 0 };
     }
   }, [project.startDate]);
 
-  const [currentStartWeek, setCurrentStartWeek] = useState(() => {const selected=new URLSearchParams(location.search).get('week');const parsed=weekIndexFromIso(project.startDate,selected);const numeric=Number(selected);return parsed!==null?parsed+1:selected!==null&&Number.isInteger(numeric)&&numeric>=0&&numeric<=520?numeric+1:Math.max(1,Math.min(todayWeekIndex+1,521));});
-  const [roadmapView, setRoadmapView] = useState<'weekly' | 'timeline'>('weekly');
-  const isWeeklyFocus = roadmapView === 'weekly';
+  const [currentStartWeek, setCurrentStartWeek] = useState(() => {const selected=new URLSearchParams(location.search).get('week');const parsed=weekIndexFromIso(project.startDate,selected);return parsed!==null?parsed+1:Math.max(1,Math.min(todayWeekIndex+1,520));});
+  const isWeeklyFocus = true; // Single Weekly Tracker workflow.
+  // On initial load (and after a project/date change), select the calendar week
+  // containing today unless an explicit week was supplied in the link.
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('week');
+    const pinned = requested ? weekIndexFromIso(project.startDate, requested) : null;
+    const today = currentWeekIndex(project.startDate, project.timezone || 'Europe/Paris');
+    setCurrentStartWeek(Math.max(1,Math.min(520,(pinned ?? today ?? 0)+1)));
+  }, [project.id, project.startDate]);
   const focusedWeekIndex = Math.max(0, Math.min(currentStartWeek - 1, TOTAL_WEEKS - 1));
   const roadmapWeekWidth = isWeeklyFocus ? 1280 : WEEK_WIDTH;
   const visibleWeekIndexes = useMemo(() => {
@@ -2432,13 +2430,6 @@ const App = () => {
   const selectedWeekPlanned = selectedWeekTasks.filter(task => task.status === 'Planned').length;
   const selectedWeekCompletion = selectedWeekTasks.length ? Math.round((selectedWeekCompleted / selectedWeekTasks.length) * 100) : 0;
 
-  useEffect(() => {
-    if (!isNaN(todayWeekIndex) && activeTab === 'roadmap') {
-        setTimeout(() => {
-            scrollToWeek(todayWeekIndex + 1);
-        }, 100);
-    }
-  }, [activeTab, todayWeekIndex]);
 
   const scrollToWeek = (week: number) => {
     const clampedWeek = Math.max(1, Math.min(week, TOTAL_WEEKS));
@@ -3208,7 +3199,7 @@ const App = () => {
                </div>
                {isSidebarExpanded && (
                  <div className="flex flex-col items-start overflow-hidden text-left flex-1" onClick={(e) => { e.stopPropagation(); setIsProjectMenuOpen(!isProjectMenuOpen); }}>
-                    <span className="nbdt-brand-wordmark text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none mb-1">NBDT · PROJECT</span>
+                    <span className="nbdt-brand-wordmark text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none mb-1">NBDT</span>
                     <div className="flex items-center gap-2 w-full">
                       <span className="font-black text-sm tracking-tight text-white truncate flex-1">{project.name}</span>
                       <ChevronDown size={14} className={`text-slate-500 transition-transform ${isProjectMenuOpen ? 'rotate-180' : ''}`} />
@@ -3421,443 +3412,7 @@ const App = () => {
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onTimeline={()=>setRoadmapView('timeline')} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);url.searchParams.set('week',isoWeek(d.toISOString().slice(0,10)));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
-        {activeTab === 'roadmap' && !isWeeklyFocus && (
-          <div className="flex-1 flex flex-col overflow-auto animate-fadeIn">
-            <header className="px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50">
-              <div className="flex items-center gap-8">
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tighter text-white">Project Roadmap</h1>
-                  <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
-                    {isWeeklyFocus ? `Weekly Board · Week ${currentStartWeek} · ${selectedWeekRange}` : 'Master Timeline · 28-week delivery plan'}
-                  </p>
-                </div>
-                <div className="hidden xl:flex items-center rounded-2xl border border-slate-800/80 bg-slate-950/70 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
-                  <button
-                    onClick={() => setRoadmapView('weekly')}
-                    className={`group relative min-w-[150px] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${isWeeklyFocus ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200'}`}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2"><Calendar size={13} /> Weekly Focus</span>
-                  </button>
-                  <button
-                    onClick={() => setRoadmapView('timeline')}
-                    className={`group relative min-w-[160px] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${!isWeeklyFocus ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-white/[0.04] hover:text-slate-200'}`}
-                  >
-                    <span className="relative z-10 flex items-center justify-center gap-2"><Layout size={13} /> Master Timeline</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-6">
-                {/* Admin Toggle (Inline for Roadmap) */}
-                <button 
-                  onClick={() => {
-                    if (isAdmin) {
-                      setIsAdmin(false);
-                    } else {
-                      setShowAdminAuthModal(true);
-                      setAdminPassInput('');
-                    }
-                  }}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 cursor-pointer ${
-                    isAdmin 
-                      ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' 
-                      : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 backdrop-blur-md'
-                  }`}
-                >
-                  {isAdmin ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                  <span className="text-[10px] font-black tracking-widest uppercase">
-                    {isAdmin ? 'Admin Mode' : 'View Mode'}
-                  </span>
-                  <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isAdmin ? 'bg-indigo-400' : 'bg-slate-700'}`}>
-                    <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isAdmin ? 'left-5' : 'left-1'}`} />
-                  </div>
-                </button>
-
-                {/* Week Navigation */}
-                <div className="flex items-center bg-[#0a0f1d] border border-slate-800 rounded-2xl p-1 gap-2">
-                   <button onClick={handlePrevWeek} disabled={currentStartWeek <= 1} className="p-2 hover:bg-slate-800 rounded-xl disabled:opacity-20 transition-colors"><ChevronLeft size={18} /></button>
-                   <span className="text-[10px] font-black tracking-widest min-w-[150px] text-center uppercase text-slate-300">{isWeeklyFocus ? `WEEK ${currentStartWeek}` : `WEEKS ${currentStartWeek}-${displayWeekEnd}`}</span>
-                   <button onClick={handleNextWeek} disabled={currentStartWeek >= TOTAL_WEEKS} className="p-2 hover:bg-slate-800 rounded-xl disabled:opacity-20 transition-colors"><ChevronRight size={18} /></button>
-                </div>
-              </div>
-            </header>
-
-            {/* Sub-header with legend and jump button */}
-            <div className="px-10 py-3 flex items-center justify-between border-b border-slate-900/30 bg-slate-950/20">
-              <div className="flex items-center gap-4">
-                <span className="text-xs font-bold text-slate-500 tracking-[0.3em] uppercase opacity-80">{isWeeklyFocus ? 'Team Focus Board' : 'Master Delivery (28 Weeks)'}</span>
-                <div className="h-px w-10 bg-slate-800"></div>
-                <button onClick={() => scrollToWeek(todayWeekIndex + 1)} className="flex items-center gap-2 text-orange-500 text-[11px] font-black tracking-widest hover:text-orange-400 transition-colors">
-                  <Navigation className="w-4 h-4 rotate-45 fill-current" /> JUMP TO TODAY
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-slate-600"></div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Planned</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">In Progress</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Completed</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <span className="text-[9px] font-black tracking-widest text-slate-500 uppercase">Blocked</span>
-                </div>
-              </div>
-            </div>
-
-            <div 
-                ref={scrollContainerRef}
-                onScroll={handleScroll}
-                className="flex-1 overflow-x-auto overflow-y-auto bg-[#020617] no-scrollbar scroll-smooth"
-            >
-               <div className="inline-block relative min-h-full" style={{ width: roadmapCanvasWidth }}>
-                  {daysFromStart >= 0 && daysFromStart <= TOTAL_WEEKS * 7 && (!isWeeklyFocus || todayWeekIndex === focusedWeekIndex) && (
-                    <div className="absolute top-0 bottom-0 w-[1.5px] bg-orange-500/50 z-[55] pointer-events-none" style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? ((daysFromStart - (focusedWeekIndex * 7) + 0.5) * (roadmapWeekWidth / 7)) : ((daysFromStart + 0.5) * (WEEK_WIDTH / 7))) }}>
-                       {/* Today Indicator Label */}
-                       <div className="sticky top-2 left-0 -translate-x-1/2 flex flex-col items-center z-[70]">
-                          <span className="text-[8px] font-black text-orange-500 uppercase tracking-[0.3em] drop-shadow-sm">Today</span>
-                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 mt-1 shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
-                       </div>
-                       {/* Subtle Line Glow */}
-                       <div className="h-full w-full bg-gradient-to-b from-orange-500/20 via-orange-500/5 to-transparent" />
-                    </div>
-                  )}
-
-                  <div className={`flex border-b border-slate-800/30 sticky top-0 z-50 bg-[#020617]/95 backdrop-blur-xl ${isWeeklyFocus ? 'h-20' : 'h-40'}`}>
-                     <div className="sticky left-0 z-[60] bg-[#020617] border-r border-slate-800/50 w-[220px] flex items-center justify-center px-4">
-                        {isWeeklyFocus ? (
-                          <div className="w-full rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] px-4 py-3 shadow-xl">
-                            <div className="text-[8px] font-black uppercase tracking-[0.26em] text-indigo-400/70">Focus Week</div>
-                            <div className="mt-1 text-sm font-black text-white tracking-tight">Week {currentStartWeek}</div>
-                            <div className="mt-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{selectedWeekRange}</div>
-                          </div>
-                        ) : (
-                          <div className="w-full bg-[#0a0f1d] border border-slate-800 p-4 rounded-2xl shadow-xl">
-                             <h3 className="text-[10px] font-bold text-slate-500 tracking-[0.2em] mb-2 uppercase opacity-60">Timeline Start</h3>
-                             <div className="relative group/date">
-                               <input 
-                                 type="date" 
-                                 value={project.startDate} 
-                                 readOnly={!isAdmin}
-                                 onChange={(e) => isAdmin && handleAction(p => ({ ...p, startDate: e.target.value }))} 
-                                 onClick={(e) => isAdmin && (e.target as any).showPicker?.()} 
-                                 className={`w-full bg-slate-950 border border-slate-800 rounded-xl p-2 pr-10 text-[11px] font-bold text-indigo-400 outline-none transition-all appearance-none ${isAdmin ? 'cursor-pointer hover:border-indigo-500/50' : 'cursor-default'}`} 
-                               />
-                               {isAdmin && <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500/50 group-hover/date:text-indigo-400 pointer-events-none transition-colors" size={14} />}
-                             </div>
-                          </div>
-                        )}
-                     </div>
-                     {visibleWeekIndexes.map((i) => {
-                       const isCurrentWeek = i === todayWeekIndex;
-                       const weekStart = parseLocalDate(project.startDate);
-                       weekStart.setDate(weekStart.getDate() + (i * 7));
-                       
-                       const days = Array.from({ length: 7 }).map((_, dayIdx) => {
-                         const d = new Date(weekStart);
-                         d.setDate(d.getDate() + dayIdx);
-                         return d.getDate();
-                       });
-
-                       return (
-                        <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r border-slate-800/20 flex flex-col items-center justify-center relative transition-all duration-500 ${isCurrentWeek ? 'bg-indigo-500/[0.03]' : ''}`}>
-                          {isCurrentWeek && (
-                            <>
-                              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent opacity-80" />
-                              <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
-                            </>
-                          )}
-                          <div className={`flex flex-col items-center ${isWeeklyFocus ? 'mb-2' : 'mb-6'}`}>
-                            <span className={`text-xs font-black mb-1 transition-colors duration-500 ${isCurrentWeek ? 'text-white scale-110' : 'text-slate-400'}`}>WEEK {i + 1}</span>
-                            <span className={`text-[10px] font-bold font-mono tracking-tight transition-colors duration-500 ${isCurrentWeek ? 'text-indigo-400' : 'text-slate-600'}`}>{getWeekRange(project.startDate, i)}</span>
-                          </div>
-
-                          {/* Days Row */}
-                          <div className={`absolute bottom-0 left-0 right-0 flex border-t border-slate-800/30 ${isWeeklyFocus ? 'h-6' : 'h-8'} bg-slate-950/20`}>
-                            {days.map((day, dayIdx) => (
-                              <div key={dayIdx} className="flex-1 flex items-center justify-center border-r border-slate-800/10 last:border-r-0 relative group/day-label">
-                                 <span className="text-[9px] font-bold text-slate-500 group-hover/day-label:text-indigo-400 transition-colors">{day.toString().padStart(2, '0')}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                       );
-                     })}
-                  </div>
-
-                   {/* Milestones Row */}
-                  <div className={`border-b-2 border-indigo-500/20 flex items-center relative overflow-visible bg-indigo-500/[0.02] ${isWeeklyFocus ? 'h-[86px]' : 'h-[52px]'}`}>
-                     <div className="sticky left-0 z-[50] bg-[#020617] border-r border-indigo-500/20 w-[220px] flex items-center justify-center px-4 h-full">
-                        {isAdmin ? (
-                          <button 
-                            onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: currentStartWeek - 1, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} 
-                            className="w-full py-2 bg-indigo-600/90 hover:bg-indigo-600 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                          >
-                             <Flag size={14} /> Milestones
-                          </button>
-                        ) : (
-                          <div className="w-full py-2 bg-indigo-600/90 text-white rounded-lg text-[10px] font-semibold tracking-tight shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
-                             <Flag size={14} /> Milestones
-                          </div>
-                        )}
-                     </div>
-                     {visibleWeekIndexes.map((i) => (
-                        <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r border-indigo-500/10 h-full relative z-10 flex items-center justify-center group/ms-cell ${isAdmin && dragOverCell?.memberId === 'milestones' && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: 'milestones', week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: 'milestones', startWeek: i, isMilestone: true } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
-                          {isAdmin && <button onClick={() => setDraftTask({ id: `m-${Date.now()}`, label: 'New Milestone', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: 'milestones', isMilestone: true })} className="opacity-0 group-hover/ms-cell:opacity-100 p-2 bg-indigo-600 rounded-full text-white transition-all z-20 scale-75 hover:scale-100"><Plus size={16}/></button>}
-                        </div>
-                     ))}
-                     {project.tasks.filter(t => t.isMilestone && (!isWeeklyFocus || t.startWeek === focusedWeekIndex)).map(m => {
-                        const mDate = m.date ? parseLocalDate(m.date) : parseLocalDate(project.startDate);
-                        if (!m.date) mDate.setDate(mDate.getDate() + (m.startWeek * 7));
-                        const mDateStr = mDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }).toUpperCase();
-                        
-                        const mConfig = m.status === 'Completed' ? { accent: 'bg-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.4)]' }
-                          : m.status === 'In Progress' ? { accent: 'bg-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.4)]' }
-                          : m.status === 'Blocked' ? { accent: 'bg-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.4)]' }
-                          : { accent: 'bg-slate-500', bg: 'bg-slate-700/10', border: 'border-slate-600/30', text: 'text-slate-400', glow: 'shadow-[0_0_20px_rgba(100,116,139,0.2)]' };
-
-                        return (
-                          <div 
-                            key={m.id} 
-                            draggable={isAdmin} 
-                            onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(m.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', m.id); }} 
-                            onMouseEnter={(e) => setHoveredTaskInfo({ task: m, memberName: 'Milestones', config: mConfig, isMilestone: true, rect: e.currentTarget.getBoundingClientRect() })}
-                            onMouseLeave={() => setHoveredTaskInfo(null)}
-                            className={`absolute top-2 bottom-2 z-30 group/m transition-all duration-500 hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] ${draggingTaskId === m.id ? 'opacity-0' : 'opacity-100'} ${isAdmin ? 'cursor-move' : 'cursor-default'}`} 
-                            style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (m.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : (WEEK_WIDTH - 16) }} 
-                            onClick={() => isAdmin && setDraftTask(m)}
-                          >
-                             <div className={`relative flex h-full w-full items-center gap-2.5 overflow-hidden border ${mConfig.border} ${isWeeklyFocus ? 'rounded-2xl px-4' : 'rounded-md px-3'} bg-gradient-to-r from-violet-500/[0.14] via-[#0d1524]/95 to-[#08111f]/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_10px_26px_rgba(0,0,0,0.38)] backdrop-blur-xl group-hover/m:border-white/25 transition-all duration-500`}>
-                                <div className={`flex ${isWeeklyFocus ? 'h-8 w-8 rounded-xl' : 'h-5 w-5 rounded-lg'} shrink-0 items-center justify-center border border-white/15 relative z-10 ${mConfig.accent} ${mConfig.glow}`}>
-                                   <Flag size={isWeeklyFocus ? 12 : 8} className="text-white fill-white/20" />
-                                </div>
-                                {/* Subtle internal glow */}
-                                <div className={`absolute -top-10 -left-10 w-24 h-24 rounded-full blur-3xl opacity-10 ${mConfig.accent}`} />
-                                
-                                <div className="min-w-0 flex-1 h-full flex items-center relative z-10">
-                                   <span className={`${isWeeklyFocus ? 'text-[12px]' : 'text-[10px]'} font-black text-slate-100 tracking-tight truncate group-hover/m:text-white transition-colors duration-300 leading-none`}>{m.label}</span>
-                                </div>
-                                <div className="hidden">
-                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{mDateStr}</span>
-                                </div>
-                                
-                                <div className="hidden">
-                                   {m.checklist && m.checklist.length > 0 ? (
-                                      <div className="flex items-center gap-2 bg-white/5 rounded-full px-2.5 py-1 border border-white/5">
-                                         <div className="flex -space-x-1">
-                                            {m.checklist.slice(0, 4).map((item, i) => (
-                                               <div key={item.id} className={`w-1.5 h-1.5 rounded-full border border-[#0a0f1d] ${item.completed ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} style={{ zIndex: 4-i }} />
-                                            ))}
-                                         </div>
-                                         <span className="text-[9px] font-black tracking-tighter text-slate-400">
-                                            {m.checklist.filter(i => i.completed).length}/{m.checklist.length}
-                                         </span>
-                                      </div>
-                                   ) : (
-                                      <div className={`w-12 h-1 rounded-full opacity-20 ${mConfig.accent}`} />
-                                   )}
-                                </div>
-                             </div>
-                          </div>
-                        );
-                     })}
-                  </div>
-
-                  {/* Team Members Grid */}
-                  <div className={isWeeklyFocus ? "pb-16" : "pb-40"}>
-                     {project.members.map(member => {
-                        const memberFocusTasks = project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex)));
-                        const maxSubtaskCount = isWeeklyFocus ? Math.max(0, ...memberFocusTasks.map(t => (t.checklist || []).length)) : 0;
-                        const dynamicWeeklyRowHeight = Math.max(96, 92 + (maxSubtaskCount * 42));
-                        return (
-                        <div 
-                          key={member.id} 
-                          className={`flex border-b border-slate-800/10 group relative transition-all duration-300 ${isWeeklyFocus ? '' : 'h-[52px]'} ${member.isLead && !member.isTeamLead ? 'bg-indigo-500/[0.04] border-indigo-500/10' : ''} ${selectedMemberId === member.id ? 'bg-indigo-500/10' : ''} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-40 grayscale-[0.5]' : ''}`}
-                          style={isWeeklyFocus ? { height: dynamicWeeklyRowHeight } : undefined}
-                        >
-                           <div className={`sticky left-0 z-40 w-[220px] flex px-3 shrink-0 transition-all ${isWeeklyFocus ? 'items-start pt-10' : 'items-center'} ${member.isLead && !member.isTeamLead ? 'bg-[#0a0f1d]' : 'bg-[#020617]'}`}>
-                              <div 
-                                className={`flex-1 flex items-center gap-3 group/member cursor-pointer h-10 px-3 rounded-l-md transition-all duration-500 relative overflow-hidden [mask-image:linear-gradient(to_right,black_50%,transparent_100%)] ${selectedMemberId === member.id ? 'bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/[0.03] hover:bg-white/[0.06]'}`}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  setMemberRect(rect);
-                                  setSelectedMemberId(member.id);
-                                  setPanelPosition({ x: rect.right + 40, y: Math.max(20, Math.min(window.innerHeight - 500, rect.top - 100)) });
-                                }}
-                              >
-                                 {/* Activity Indicator Bar */}
-                                 <div className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-full transition-all duration-500 ${member.isTeamLead ? 'bg-orange-500' : member.isLead ? 'bg-indigo-500' : 'bg-slate-600'} ${selectedMemberId === member.id ? 'h-full top-0 bottom-0' : 'group-hover/member:h-4'}`} />
-
-                                 {/* Fade out borders */}
-                                 <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r ${selectedMemberId === member.id ? 'from-indigo-500/40' : 'from-white/10'} to-transparent`} />
-                                 <div className={`absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r ${selectedMemberId === member.id ? 'from-indigo-500/40' : 'from-white/10'} to-transparent`} />
-                                 <div className={`absolute top-0 left-0 bottom-0 w-[1px] ${selectedMemberId === member.id ? 'bg-indigo-500/40' : 'bg-white/10'}`} />
-
-                                 {editingMemberId === member.id ? (
-                                   <input autoFocus className="bg-slate-900 border border-indigo-500 text-[10px] font-black text-white p-1 rounded w-full outline-none uppercase" value={member.name} onChange={(e) => updateMemberName(member.id, e.target.value)} onBlur={() => setEditingMemberId(null)} onKeyDown={(e) => e.key === 'Enter' && setEditingMemberId(null)} />
-                                 ) : (
-                                   <>
-                                     {/* Integrated Project Count - Moved to Left with unique zone */}
-                                     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg shrink-0 transition-all duration-500 relative z-10 border ${selectedMemberId === member.id ? 'bg-indigo-500/40 text-white border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.5)]' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 group-hover/member:bg-indigo-500/20 group-hover/member:text-white group-hover/member:border-indigo-500/40'}`}>
-                                       <Layers size={10} className={`transition-colors ${selectedMemberId === member.id ? 'text-white' : 'text-indigo-400 group-hover/member:text-white'}`} />
-                                       <span className="text-[9px] font-black tracking-tighter">
-                                         {(userProjects[member.id] || []).length}
-                                       </span>
-                                     </div>
-
-                                     <div className="flex flex-col flex-1 min-w-0 relative z-10">
-                                       <span className={`text-[10px] font-black tracking-[0.1em] uppercase truncate transition-colors ${member.isTeamLead ? 'text-orange-500' : member.isLead ? 'text-indigo-400' : 'text-white group-hover/member:text-indigo-200'}`}>{member.name}</span>
-                                     </div>
-
-                                     {isAdmin && (
-                                       <div className="flex opacity-0 group-hover/member:opacity-100 transition-opacity absolute right-2 top-1/2 -translate-y-1/2 bg-[#020617]/90 backdrop-blur-md rounded-lg p-0.5 border border-white/10 shadow-xl z-50">
-                                          <button onClick={(e) => { e.stopPropagation(); setEditingMemberId(member.id); }} className="p-1 text-slate-500 hover:text-blue-400 transition-colors"><Edit2 size={12}/></button>
-                                          {!member.isLead && <button onClick={(e) => { e.stopPropagation(); handleAction(prev => ({ ...prev, members: prev.members.filter(m => m.id !== member.id) })); }} className="p-1 text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={12}/></button>}
-                                       </div>
-                                     )}
-                                   </>
-                                 )}
-                              </div>
-                           </div>
-                           {visibleWeekIndexes.map((i) => (
-                            <div key={i} style={{ width: roadmapWeekWidth }} className={`flex-shrink-0 border-r h-full relative z-10 transition-colors ${member.isLead && !member.isTeamLead ? 'border-indigo-500/5' : 'border-slate-800/10'} ${dragOverCell?.memberId === member.id && dragOverCell?.week === i ? 'bg-indigo-500/20' : ''}`} onDragOver={(e) => { if (!isAdmin) return; e.preventDefault(); setDragOverCell({ memberId: member.id, week: i }); }} onDragLeave={() => setDragOverCell(null)} onDrop={(e) => { if (!isAdmin) return; e.preventDefault(); const taskId = e.dataTransfer.getData('text/plain'); handleAction(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, memberId: member.id, startWeek: i, isMilestone: false } : t) })); setDraggingTaskId(null); setDragOverCell(null); }}>
-                               {isAdmin && <button onClick={() => setDraftTask({ id: `t-${Date.now()}`, label: 'NEW TASK', startWeek: i, duration: 1, status: 'Planned', description: '', memberId: member.id })} className="opacity-0 hover:opacity-100 absolute inset-0 flex items-center justify-center transition-all bg-indigo-500/5 transition-opacity"><Plus size={14} className="text-indigo-500" /></button>}
-                            </div>
-                          ))}
-                          {project.tasks.filter(t => t.memberId === member.id && !t.isMilestone && (!isWeeklyFocus || (t.startWeek <= focusedWeekIndex && (t.startWeek + t.duration) > focusedWeekIndex))).map(task => {
-                            const statusConfigs = {
-                              'Completed': { dot: 'bg-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-50', glow: '' },
-                              'In Progress': { dot: 'bg-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-50', glow: '' },
-                              'Blocked': { dot: 'bg-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-50', glow: '' },
-                              'Planned': { dot: 'bg-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/30', text: 'text-slate-100', glow: '' }
-                            };
-
-                            let config = { ...statusConfigs[task.status] };
-
-                            if (member.isTeamLead) {
-                              config = { dot: 'bg-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-50', glow: '' };
-                            } else if (member.isLead) {
-                              config = { ...config, border: 'border-indigo-500/40', bg: 'bg-indigo-500/10', glow: '' };
-                            }
-
-                            const taskChecklist = task.checklist || [];
-                            const taskChecklistDone = taskChecklist.filter(item => item.completed).length;
-                            const taskChecklistTotal = taskChecklist.length;
-                            const taskProgress = taskChecklistTotal > 0
-                              ? Math.round((taskChecklistDone / taskChecklistTotal) * 100)
-                              : task.status === 'Completed' ? 100 : task.status === 'In Progress' ? 50 : 0;
-                            const progressRing = `conic-gradient(${task.status === 'Blocked' ? '#f43f5e' : task.status === 'Completed' ? '#10b981' : task.status === 'In Progress' ? '#3b82f6' : '#64748b'} ${taskProgress}%, rgba(51,65,85,0.45) 0)`;
-
-                            return (
-                              <div 
-                                key={task.id} 
-                                draggable={isAdmin} 
-                                onDragStart={(e) => { if (!isAdmin) return; setDraggingTaskId(task.id); setHoveredTaskInfo(null); e.dataTransfer.setData('text/plain', task.id); }} 
-                                onMouseEnter={(e) => !isWeeklyFocus && setHoveredTaskInfo({ task, memberName: member.name, config, isMilestone: false, rect: e.currentTarget.getBoundingClientRect() })}
-                                onMouseLeave={() => setHoveredTaskInfo(null)}
-                                onClick={() => isAdmin && setDraftTask(task)} 
-                                className={`absolute ${isWeeklyFocus ? 'top-2 bottom-2 rounded-2xl' : 'top-2 bottom-2 rounded-md'} border transition-all duration-500 z-20 group/task hover:z-[500] hover:scale-[1.005] hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.45)] overflow-hidden ${isWeeklyFocus ? 'bg-gradient-to-r from-[#101827]/95 via-[#0d1524]/95 to-[#08111f]/95 border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]' : 'bg-[#0b1120] border-slate-800/60'} ${isAdmin ? 'cursor-move' : 'cursor-default'} ${selectedMemberId && selectedMemberId !== member.id ? 'opacity-20 grayscale blur-[1px]' : isWeeklyFocus ? 'opacity-100' : task.status === 'Planned' ? 'opacity-85' : 'opacity-100'}`} 
-                                style={{ left: MEMBER_LABEL_WIDTH + (isWeeklyFocus ? 10 : (task.startWeek * WEEK_WIDTH) + 8), width: isWeeklyFocus ? (roadmapWeekWidth - 20) : ((task.duration * WEEK_WIDTH) - 16) }}
-                              >
-                                {/* Accent Bar */}
-                                <div className={`absolute left-0 top-0 bottom-0 ${isWeeklyFocus ? 'w-1.5' : 'w-1'} ${config.dot}`} />
-
-                                {isWeeklyFocus ? (
-                                  <div className="grid grid-cols-[minmax(280px,38%)_1fr] h-full pl-4 pr-3 py-3 gap-4 relative items-start">
-                                    <div className="flex items-start gap-3 min-w-0 border-r border-white/10 pr-4 pt-6">
-                                      <div className="relative mt-0.5 w-12 h-12 shrink-0 rounded-2xl p-[3px] shadow-[0_0_22px_rgba(59,130,246,0.16)]" style={{ background: progressRing }}>
-                                        <div className="w-full h-full rounded-[14px] bg-[#06101f] border border-white/10 flex items-center justify-center">
-                                          <span className="text-[10px] font-black text-slate-100 tabular-nums">{taskProgress}%</span>
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-col min-w-0 flex-1">
-                                        <div className="flex items-center gap-2 min-w-0">
-                                          <span className="text-[15px] font-black truncate tracking-tight text-white drop-shadow-[0_1px_10px_rgba(0,0,0,0.75)] group-hover/task:text-indigo-50 transition-colors duration-300">{task.label}</span>
-                                          <span className={`w-2 h-2 rounded-full shrink-0 ${config.dot}`} />
-                                        </div>
-                                        <div className="mt-1 flex items-center gap-2 min-w-0">
-                                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-200/95">{task.status}</span>
-                                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-700">•</span>
-                                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-200/80 truncate">{taskChecklistDone}/{taskChecklistTotal || 0} subtasks</span>
-                                        </div>
-                                        <div className="mt-2 h-2.5 rounded-full bg-slate-950/85 overflow-hidden border border-white/10 shadow-inner">
-                                          <div className={`h-full rounded-full ${task.status === 'Blocked' ? 'bg-rose-500' : task.status === 'Completed' ? 'bg-emerald-500' : task.status === 'In Progress' ? 'bg-blue-500' : 'bg-slate-500'} shadow-[0_0_12px_currentColor] transition-all duration-700`} style={{ width: `${taskProgress}%` }} />
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="min-w-0 flex flex-col justify-start h-full">
-                                      <div className="flex items-center justify-between gap-3 mb-2">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.24em] text-slate-300/90">Subtasks</span>
-                                        {taskChecklistTotal > 0 && <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{taskChecklistDone} of {taskChecklistTotal}</span>}
-                                      </div>
-                                      {taskChecklistTotal > 0 ? (
-                                        <div className="flex flex-col gap-2 overflow-visible pr-1 pb-4">
-                                          {taskChecklist.map(item => (
-                                            <button
-                                              key={item.id}
-                                              type="button"
-                                              disabled={!isAdmin}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleTaskChecklistItem(task.id, item.id);
-                                              }}
-                                              className={`group/subtask flex items-center gap-3 min-w-0 rounded-xl border px-3.5 py-2.5 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] ${item.completed ? 'bg-emerald-500/[0.12] border-emerald-400/30 text-white' : 'bg-indigo-500/[0.24] border-indigo-300/35 text-white hover:border-indigo-200/70 hover:bg-indigo-500/[0.30]'}`}
-                                            >
-                                              <div className={`w-[20px] h-[20px] rounded-full shrink-0 flex items-center justify-center border-2 transition-all ${item.completed ? 'bg-white border-white text-emerald-600' : 'bg-slate-950 border-slate-950'}`}>
-                                                {item.completed && <Check size={13} strokeWidth={4} />}
-                                              </div>
-                                              <span className="text-[13px] font-normal tracking-tight truncate text-white drop-shadow-[0_1px_8px_rgba(0,0,0,0.65)]">{item.label}</span>
-                                            </button>
-                                          ))}
-                                        </div>
-                                      ) : (
-                                        <div className="rounded-xl border border-dashed border-slate-600/70 bg-slate-950/55 px-3 py-2 text-[11px] font-normal text-slate-400 uppercase tracking-widest">
-                                          No subtasks added
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center w-full h-full px-3">
-                                    <div className="flex flex-col min-w-0">
-                                      <span className="text-[11px] font-normal truncate tracking-tight text-slate-100 group-hover/task:text-white transition-colors duration-300">{task.label}</span>
-                                    </div>
-                                    {task.checklist && task.checklist.length > 0 && (
-                                      <div className="flex items-center gap-1.5 ml-auto pl-2 opacity-30">
-                                        <span className="text-[7px] font-medium tracking-tight text-slate-500">
-                                          {task.checklist.filter(i => i.completed).length}/{task.checklist.length}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                       </div>
-                        );
-                     })}
-                      {isAdmin && (
-                        <button onClick={() => { const nextNum = project.members.filter(m => m.id.startsWith('nbdt')).length + 1; const newMember: NDBTMember = { id: `nbdt-${Date.now()}`, name: `NBDT ${String(nextNum).padStart(2, '0')}` }; handleAction(prev => ({ ...prev, members: [...prev.members, newMember] })); }} className="w-[220px] sticky left-0 py-3 border-b border-slate-800/20 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/5 text-[11px] font-medium tracking-tight flex items-center justify-center gap-2 transition-all">
-                           <UserPlus size={12} /> Add Team Member
-                        </button>
-                      )}
-                  </div>
-               </div>
-            </div>
-          </div>
-        )}
-
-
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((mondayOf(value).getTime()-mondayOf(projectRef.current.startDate).getTime())/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);url.searchParams.set('week',isoWeek(projectWeekDate(project.startDate,w)));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
             <header className="nb-registry-heading">

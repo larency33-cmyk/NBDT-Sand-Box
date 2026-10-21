@@ -1,10 +1,11 @@
+import {projectWeekDate} from './schedule.mjs';
 export const STAGES = ['configuration','readyForDeployment','deployment'];
 export const LABELS = {configuration:'Base Configuration',readyForDeployment:'Ready for Deployment',deployment:'Deployment'};
 export const uid = () => globalThis.crypto?.randomUUID?.() || `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 export function localDate(value) { const [y,m,d]=String(value).split('-').map(Number); const date=new Date(y,m-1,d); return Number.isFinite(date.getTime()) ? date : new Date(2026,0,5); }
 export function dateText(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-export function weekRange(start,w) { const a=localDate(start); a.setDate(a.getDate()+w*7); const b=new Date(a);b.setDate(b.getDate()+6);return `${a.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} - ${b.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}`; }
-export function dueDate(start,t) { if(t.dueDate)return t.dueDate;const d=localDate(start);d.setDate(d.getDate()+(t.startWeek+t.duration)*7-1);return dateText(d); }
+export function weekRange(start,w) { const a=localDate(projectWeekDate(start,w)); const b=new Date(a);b.setDate(b.getDate()+6);return `${a.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} - ${b.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}`; }
+export function dueDate(start,t) { if(t.dueDate)return t.dueDate;const d=localDate(projectWeekDate(start,t.startWeek));d.setDate(d.getDate()+t.duration*7-1);return dateText(d); }
 export function safeUrl(value) { try { const u=new URL(value); return u.protocol==='https:'&&!u.username&&!u.password ? u.href : null; } catch { return null; } }
 export function validateGuide(sys,guide) {
  const errors=[];if(!guide?.stages) return ['No guide stages'];
