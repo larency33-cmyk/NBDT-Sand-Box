@@ -1,3 +1,7 @@
+# NBDT Web Project v0.6.4 — Overlay Quick Assignment Panel
+
+**Что нового:** `NBDT_v0_6_4_release_notes_RU.md`.
+
 # NBDT Project Workspace v0.6.3
 
 Основано на пользовательской **v0.6.2**. Не переносит отклонённый v0.7.

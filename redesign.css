@@ -1000,3 +1000,64 @@ button,select,input,textarea {font-family:inherit}
 @media(max-width:1250px){.nb-tracker .nb-quick-panel{min-width:320px;width:40%;max-width:none}}
 @media(max-width:900px){.nb-tracker .nb-tracker-content:has(.nb-quick-panel){flex-direction:column}.nb-tracker .nb-quick-panel{position:relative;inset:auto;width:100%!important;max-width:none!important;min-width:0!important;max-height:none;border-radius:10px;margin-top:10px}.nb-quick-list{max-height:420px}}
 @media(max-width:600px){.nb-quick-person h2{font-size:18px!important}.nb-quick-panel-heading{padding:13px 12px}.nb-quick-list,.nb-quick-add-area{padding:12px}.nb-tracker .nb-quick-panel{box-shadow:none}.nb-week-footer .nb-week-footer-item{min-width:74px}}
+
+/* v0.6.4 - Layered quick assignment drawer.
+   Intentionally rendered as a body portal. Never let it become a flex child
+   of .nb-tracker-content: opening it must not shrink the four-week grid. */
+.nb-quick-overlay-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:9998;
+  background:rgba(4,28,61,.08);
+}
+.nb-assignment-panel.nb-quick-panel.nb-overlay-panel{
+  position:fixed!important;
+  z-index:9999!important;
+  top:clamp(72px,23vh,212px)!important;
+  right:16px!important;
+  bottom:16px!important;
+  left:auto!important;
+  width:min(490px,calc(100vw - 32px))!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  flex-shrink:0!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:1px solid #c5d8ee!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 18px 60px rgba(6,38,75,.25),0 4px 16px rgba(6,38,75,.10)!important;
+  animation:nb-quick-overlay-in .16s ease-out;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif;
+  color:#152f51;
+}
+.nb-overlay-panel:focus{outline:none}
+.nb-overlay-panel .nb-quick-panel-heading{flex:0 0 auto}
+.nb-overlay-panel .nb-quick-list{min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;flex:1 1 auto}
+.nb-overlay-panel .nb-quick-add-area{flex:0 0 auto}
+.nb-overlay-panel .nb-quick-metrics{flex:0 0 auto}
+.nb-overlay-panel .nb-quick-milestones{flex:0 0 auto;max-height:140px;overflow:auto}
+.nb-overlay-panel :focus-visible{outline:3px solid #0066f5;outline-offset:2px}
+@keyframes nb-quick-overlay-in{from{opacity:.5;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:760px){
+ .nb-assignment-panel.nb-quick-panel.nb-overlay-panel{
+  top:0!important;right:0!important;bottom:0!important;left:0!important;
+  width:100vw!important;height:100dvh!important;
+  max-height:100dvh!important;border:0!important;border-radius:0!important;
+  padding-top:env(safe-area-inset-top)!important;
+  padding-bottom:env(safe-area-inset-bottom)!important;
+ }
+ .nb-overlay-panel .nb-quick-list{max-height:none!important}
+}
+@media (max-height:650px) and (min-width:761px){
+ .nb-assignment-panel.nb-quick-panel.nb-overlay-panel{top:12px!important;bottom:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-assignment-panel.nb-quick-panel.nb-overlay-panel{animation:none}
+}

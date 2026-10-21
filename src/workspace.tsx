@@ -4,6 +4,7 @@ import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
+import {createPortal} from 'react-dom';
 import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,ClipboardCheck,BookOpen,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle} from 'lucide-react';
 const fieldIcons:any={'Endpoint':Monitor,'Operating system':AppWindow,'Connection':Plug,'VLAN':Network,'IP scope':Globe,'Reservation':LockKeyhole,'Service account reference':UserRoundKey,'Domain / OU':Workflow,'MDM / AirWatch':ShieldCheck,'Applications':LayoutGrid,'Naming convention':Tag,'Owner':UserRound};
 import {STAGES,LABELS,uid,weekRange,dueDate,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
@@ -77,6 +78,37 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState('');
+ const panelRef=useRef<HTMLElement|null>(null);
+ const panelTriggerRef=useRef<HTMLElement|null>(null);
+ const closeQuickPanel=()=>{
+  if(quickAdding)return;
+  if(addingAssignment&&newAssignment.trim()&&!window.confirm('Discard unsaved assignment?'))return;
+  setSelected(null);setDetail(null);setAddingAssignment(false);setNewAssignment('');setQuickError('');
+ };
+ const openQuickPanel=(personId:string,w:number,task:any=null)=>{
+  if(!selected&&document.activeElement instanceof HTMLElement)panelTriggerRef.current=document.activeElement;
+  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');
+ };
+ // The overlay must not resize the matrix; preserve focus and keyboard access.
+ useEffect(()=>{
+  if(!selected){const target=panelTriggerRef.current;panelTriggerRef.current=null;if(target?.isConnected)target.focus();return;}
+  panelRef.current?.focus();
+ },[selected?.id,selected?.week]);
+ useEffect(()=>{
+  if(!selected)return;
+  const onKeyDown=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'){event.preventDefault();closeQuickPanel();return;}
+   if(event.key!=='Tab'||!panelRef.current)return;
+   const controls=Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(el=>el.getClientRects().length>0);
+   if(!controls.length){event.preventDefault();panelRef.current.focus();return;}
+   const first=controls[0],last=controls[controls.length-1];
+   if(event.shiftKey&&(document.activeElement===first||document.activeElement===panelRef.current)){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  };
+  window.addEventListener('keydown',onKeyDown);
+  return()=>window.removeEventListener('keydown',onKeyDown);
+ },[selected?.id,selected?.week,addingAssignment,newAssignment,quickAdding]);
+
  useEffect(()=>{const tick=()=>setTodayDate(todayInTimezone(project.timezone||'Europe/Paris'));tick();const timer=window.setInterval(tick,60000);return()=>clearInterval(timer);},[project.timezone]);
  const actualCurrentWeek=currentWeekIndex(project.startDate,project.timezone||'Europe/Paris',new Date(todayDate+'T12:00:00Z'));
  const currentWeek=actualCurrentWeek===null?-1:actualCurrentWeek;
@@ -159,9 +191,9 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
          <span className="nb-mobile-person-count">{mobileList.length} assignments</span>
         </header>
         <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
-        {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>isAdmin?onEdit(ms):void 0}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
-        {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{setSelected({id:m.id,week});setDetail(t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
-        <button type="button" className="nb-mobile-open-assignments" onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}>View assignments →</button>
+        {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
+        {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
+        <button type="button" className="nb-mobile-open-assignments" onClick={()=>{openQuickPanel(m.id,week);}}>View assignments →</button>
        </section>;
       })}
      </div>
@@ -194,7 +226,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
           const list=at(m.id,w);
           const blocked=list.filter((t:any)=>t.status==='Blocked').length;
           return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')}>
-           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{setSelected({id:m.id,week:w});setDetail(null);}}>
+           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{openQuickPanel(m.id,w);}}>
             <div className="nb-week-cell-head">
              <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
              {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
@@ -210,14 +242,17 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
      </table>
     </>:<div className="nb-task-list">
       <div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>
-      {people.map((m:any)=>{const list=tasks.filter((t:any)=>assignments(t).includes(m.id)&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{setSelected({id:m.id,week});open(t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
+      {people.map((m:any)=>{const list=tasks.filter((t:any)=>assignments(t).includes(m.id)&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{openQuickPanel(m.id,week);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{openQuickPanel(m.id,week,t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
      </div>}
    </div>
+  </div>
 
-   {selected&&<aside className="nb-assignment-panel nb-quick-panel" aria-label="Person assignments">
+   {selected&&createPortal(<>
+    <div className="nb-quick-overlay-backdrop" aria-hidden="true" onClick={closeQuickPanel}/>
+    <aside ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Person assignments" className="nb-assignment-panel nb-quick-panel nb-overlay-panel">
     <header className="nb-quick-panel-heading">
       <div className="nb-quick-person"><span className="nb-avatar">{selectedPerson?.name?.charAt(0)}</span><div><h2>{selectedPerson?.name}</h2><p>{weekIso(selected.week)} · {weekRange(project.startDate,selected.week)}</p></div></div>
-      <B aria-label="Close person panel" onClick={()=>{setSelected(null);setDetail(null);setAddingAssignment(false);setQuickError('');}}>✕</B>
+      <B aria-label="Close person panel" onClick={closeQuickPanel}>✕</B>
     </header>
     <div className="nb-quick-metrics">
      <span className="nb-metric-active">{chosen.filter((t:any)=>t.status==='In Progress').length} Active</span>
@@ -225,21 +260,21 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
      <span className="nb-metric-done">{chosen.filter((t:any)=>t.status==='Completed').length} Done</span>
      <span className="nb-metric-blocked">{chosen.filter((t:any)=>t.status==='Blocked').length} Blocked</span>
     </div>
-    {!!milestonesAt(selected.week).length&&<div className="nb-quick-milestones"><strong>Milestones</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>isAdmin?onEdit(ms):void 0}><Flag size={14}/><span>{ms.label}</span></button>)}</div>}
+    {!!milestonesAt(selected.week).length&&<div className="nb-quick-milestones"><strong>Milestones</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><Flag size={14}/><span>{ms.label}</span></button>)}</div>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
-     {chosen.map((t:any)=><QuickAssignmentRow key={t.id} task={t} ownerName={project.members.find((m:any)=>m.id===t.memberId)?.name||'Unassigned'} personId={selected.id} role={role(t,selected.id)} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>onEdit(project.tasks.find((item:any)=>item.id===t.id)||t)} />)}
+     {chosen.map((t:any)=><QuickAssignmentRow key={t.id} task={t} ownerName={project.members.find((m:any)=>m.id===t.memberId)?.name||'Unassigned'} personId={selected.id} role={role(t,selected.id)} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>{closeQuickPanel();onEdit(project.tasks.find((item:any)=>item.id===t.id)||t);}} />)}
     </div>
     {isAdmin?<div className="nb-quick-add-area">
      {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}>+ Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
       <label htmlFor="nb-quick-new-task">New assignment for {selectedPerson?.name}</label>
-      <input id="nb-quick-new-task" required maxLength={160} autoFocus placeholder="Type task name and press Enter…" value={newAssignment} disabled={quickAdding} onChange={e=>setNewAssignment(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){setAddingAssignment(false);setQuickError('');}}}/>
+      <input id="nb-quick-new-task" required maxLength={160} autoFocus placeholder="Type task name and press Enter…" value={newAssignment} disabled={quickAdding} onChange={e=>setNewAssignment(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setAddingAssignment(false);setNewAssignment('');setQuickError('');}}}/>
       <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!newAssignment.trim()}>{quickAdding?'Saving…':'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
      </form>}
      {quickError&&<p className="nb-quick-error" role="alert">{quickError}</p>}
     </div>:<p className="nb-quick-view-note">Enable Edit mode to change statuses or add assignments.</p>}
-   </aside>}
-  </div>
+    </aside>
+   </>,document.body)}
 
   <footer className="nb-week-footer">
    <span>Project weeks</span>

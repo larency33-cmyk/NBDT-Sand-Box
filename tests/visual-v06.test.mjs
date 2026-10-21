@@ -30,7 +30,7 @@ test('weekly matrix annotates empty rows and offers appropriately labelled cells
  assert.ok(css.includes('tr.nb-no-assignments .nb-week-cell'));
 });
 test('weekly panel opens only from a selected person/week cell',()=>{
- assert.ok(w.includes('setSelected({id:m.id,week:w})'));
+ assert.ok(w.includes('openQuickPanel(m.id,w)')); // drawer replaces the old in-flow selection handler
  assert.ok(w.includes('nb-quick-panel'));
  assert.ok(w.includes('onQuickTaskSave'));
 });
