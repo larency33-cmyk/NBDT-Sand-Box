@@ -1787,7 +1787,7 @@ const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveChe
   return <article className="nb-system-card">
     <div className="nb-card-heading"><div className="nb-device">{getDeviceIcon(sys.deviceCategory, 28)}</div><div><h3>{sys.name}</h3><p>{sys.description || sys.documentation || `${sys.deviceCategory} configuration and deployment guide`}</p></div></div>
     <dl className="nb-spec-list">{[['Endpoint',sys.deviceType || sys.deviceCategory],['OS',`${sys.os} ${sys.osVersion || ''}`],['Network',sys.network],['VLAN',sys.vlan],['Naming',sys.namingConvention]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={v || 'Not specified'}>{v || 'Not specified'}</dd></React.Fragment>)}</dl>
-    <div className="nb-card-info"><ClipboardList size={16}/><span>{Object.keys(stages).length} checklists · {done}/{total} legacy steps</span>{sys.lessonsLearned && <button type="button" onClick={()=>setActiveLessonsLearnedSys(sys)}>Lessons learned ↗</button>}</div>
+    <div className="nb-card-info"><ClipboardList size={17}/><span>{Object.keys(stages).length} checklists · {sys.lessonsLearned?'Lessons available':'No lessons recorded'}</span>{total>0&&<span className="nb-card-legacy-tag">{done}/{total} legacy steps</span>}{sys.lessonsLearned && <button type="button" onClick={()=>setActiveLessonsLearnedSys(sys)}>View lessons ↗</button>}</div>
     <div className="nb-card-actions">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation not linked</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
     <button className="nb-edit-link" type="button" onClick={()=>setDraftSystem(sys)}><Edit2 size={13}/>{isAdmin?'Edit system details':'System details'}</button>
   </article>;
@@ -3208,7 +3208,7 @@ const App = () => {
                </div>
                {isSidebarExpanded && (
                  <div className="flex flex-col items-start overflow-hidden text-left flex-1" onClick={(e) => { e.stopPropagation(); setIsProjectMenuOpen(!isProjectMenuOpen); }}>
-                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none mb-1">Project</span>
+                    <span className="nbdt-brand-wordmark text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] leading-none mb-1">NBDT · PROJECT</span>
                     <div className="flex items-center gap-2 w-full">
                       <span className="font-black text-sm tracking-tight text-white truncate flex-1">{project.name}</span>
                       <ChevronDown size={14} className={`text-slate-500 transition-transform ${isProjectMenuOpen ? 'rotate-180' : ''}`} />
@@ -3352,11 +3352,11 @@ const App = () => {
             </button>
             <button onClick={() => setActiveTab('issues')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'issues' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
                <AlertCircle className="w-6 h-6 shrink-0" />
-               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Issue Tracker</span>}
+               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Issues</span>}
             </button>
             <button onClick={() => setActiveTab('config-report')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'config-report' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
                <FileBarChart className="w-6 h-6 shrink-0" />
-               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Config Report</span>}
+               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Configuration Report</span>}
             </button>
              {isAdmin && (
                <button onClick={() => setActiveTab('sync')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'sync' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>

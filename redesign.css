@@ -539,3 +539,211 @@ button,select,input,textarea {font-family:inherit}
  .nbdt-redesign.nb-app-root>aside[data-expanded="false"] nav button{justify-content:center;padding-inline:8px}
  .nbdt-redesign.nb-app-root>aside[data-expanded="false"] nav span{display:none}
 }
+
+/* NBDT v0.6 — final visual refinement of reference screens.
+   Adjust existing components; retain actual data, edit permissions and persistence.
+   This layer is scoped to project workspace screens so legacy editors stay functional. */
+:root {
+  --nbdt-ink: #0b2553;
+  --nbdt-blue: #0066f5;
+  --nbdt-edge: #d6e5f5;
+  --nbdt-sky: #eef7ff;
+  --nbdt-soft-shadow: 0 3px 14px rgb(5 43 89 / 4%);
+}
+/* App shell and hierarchy — visually consistent with the reference's navy/blue layout. */
+.nbdt-redesign.nb-app-root>aside {background:linear-gradient(175deg,#06264b 0%,#082b51 38%,#041b34 100%)!important}
+.nbdt-redesign.nb-app-root main .nb-page-header h1,
+.nbdt-redesign.nb-app-root main .nb-registry-heading h1 {letter-spacing:-.034em;font-weight:760}
+.nbdt-redesign.nb-app-root main .nb-primary {box-shadow:0 2px 7px rgb(0 102 245 / 10%)}
+.nbdt-redesign.nb-app-root main .nb-button:active:not(:disabled){transform:translateY(1px)}
+/* Registry: same information hierarchy and button alignment as the 3-column mockup. */
+.nb-registry-page{padding:21px 24px 26px!important;max-width:1920px;margin-inline:auto}
+.nb-registry-heading {margin-bottom:19px;gap:16px}
+.nb-registry-heading h1{font-size:clamp(27px,2vw,34px)!important}
+.nb-registry-heading p{font-size:15px!important;color:#5c7192!important;margin-top:5px}
+.nb-registry-filters {gap:11px;margin-bottom:16px}
+.nb-registry-filters .nb-search-field,.nb-registry-filters .nb-filter-field {background:white;min-height:47px;border:1px solid #cddff2;border-radius:8px}
+.nb-registry-filters .nb-search-field:focus-within,.nb-registry-filters .nb-filter-field:focus-within{border-color:var(--brand-border);box-shadow:0 0 0 3px rgb(0 102 245 / 8%)}
+.nb-registry-grid{gap:17px;align-items:stretch}
+.nb-registry-grid .nb-system-card {min-height:351px;padding:17px 17px 16px;border:1px solid #d4e4f5;border-radius:11px;box-shadow:var(--nbdt-soft-shadow)}
+.nb-registry-grid .nb-system-card:hover{border-color:#adcff6;box-shadow:0 5px 17px rgb(6 49 101 / 7%)}
+.nb-registry-grid .nb-card-heading{gap:13px;align-items:flex-start}
+.nb-registry-grid .nb-device{width:45px;height:45px;min-width:45px;display:grid;place-items:center;background:#edf6ff;border-radius:9px;color:#154b84}
+.nb-registry-grid .nb-card-heading h3{font-size:19px;line-height:25px;font-weight:740;letter-spacing:-.018em}
+.nb-registry-grid .nb-card-heading p{font-size:14px;color:#546d8f;line-height:20px;min-height:40px;margin-top:4px}
+.nb-registry-grid .nb-spec-list{grid-template-columns:104px minmax(0,1fr);gap:2px 10px;margin:15px 0 13px;font-size:14px;line-height:21px}
+.nb-registry-grid .nb-spec-list dt{font-weight:450;color:#6980a0}
+.nb-registry-grid .nb-spec-list dd{font-weight:500;color:#213d64}
+.nb-registry-grid .nb-card-info{background:#eaf5ff;border-radius:6px;min-height:35px;display:flex;flex-wrap:wrap;align-content:center;gap:6px;padding:6px 9px;color:#0766c6}
+.nb-registry-grid .nb-card-info>span:first-of-type{flex:1 1 155px}
+.nb-registry-grid .nb-card-info .nb-card-legacy-tag{color:#5c7899;font-size:11px;font-weight:450;flex:none}
+.nb-registry-grid .nb-card-info button{margin-left:auto;color:#0664c3;font-size:12px}
+.nb-registry-grid .nb-card-actions{gap:9px;margin-top:11px}
+.nb-registry-grid .nb-card-actions>.nb-button{border:1px solid #bddaf7;border-radius:7px;min-height:45px;font-weight:650}
+.nb-registry-grid .nb-card-actions>.nb-button:not(:disabled):first-child {color:#005dc8;border-color:#0066f5}
+.nb-registry-grid .nb-card-actions>.nb-primary{color:white}
+.nb-registry-grid .nb-edit-link{margin-top:10px;align-self:flex-start;color:#4d7097}
+.nb-registry-pagination{margin-top:13px;padding-top:2px}
+/* Guide: visual density, technical groups and stage rails close to screenshot S5. */
+.nb-profile-guide {max-width:1920px}
+.nb-guide-page .nb-page-header {padding:13px 24px 17px;gap:15px}
+.nb-guide-page .nb-page-header h1{font-size:clamp(24px,2vw,31px)!important}
+.nb-guide-page .nb-page-header p{color:#526e90;font-size:14px}
+.nb-guide-body{padding:0 24px 28px}
+.nb-guide-body>.nb-context {min-height:60px;border:1px solid #dce8f5;border-radius:9px;background:#fff;margin:0 0 13px;padding:10px 12px;gap:12px}
+.nb-guide-body>.nb-context strong{color:#0b2a55;font-size:14px}
+.nb-technical {border-radius:10px;background:linear-gradient(115deg,#eff8ff,#f4faff);border-color:#a4cefa;box-shadow:0 1px 3px rgb(9 89 180 / 3%)}
+.nb-technical .nb-section-toggle{border-bottom:1px solid #cee3fa;min-height:45px;padding:9px 17px;color:#09255b;font-size:17px}
+.nb-technical-grid{grid-template-rows:repeat(3,minmax(68px,auto));padding:6px 12px}
+.nb-technical-grid>div{padding:8px 11px;min-height:70px}
+.nb-technical-grid dt{font-size:13px;color:#496995}
+.nb-technical-grid dd{font-size:14px;line-height:20px;font-weight:550}
+.nb-tech-icon{width:42px;height:42px;flex-basis:42px;background:#e1f1ff;border:1px solid #c3defa;color:#0066ce}
+.nb-guide-body .nb-lessons {border-radius:9px;margin:12px 0}
+.nb-config-workspace {border-radius:10px;padding:15px 17px 12px;border-color:#cfe1f4;box-shadow:var(--nbdt-soft-shadow)}
+.nb-config-header h2{font-size:20px!important}
+.nb-stage-tabs{margin:11px 0 13px}
+.nb-stage-tabs button{height:52px;font-size:15px;white-space:normal}
+.nb-checklist>.nb-section-heading {padding-bottom:9px}
+.nb-checklist>.nb-section-heading h2 {font-size:16px!important}
+.nb-check-row{min-height:46px;grid-template-columns:minmax(0,1fr) minmax(0,40%)}
+.nb-check-row label{font-size:15px;color:#213958}
+.nb-check-row label input[type="checkbox"]{width:23px!important;height:23px!important;min-height:23px!important;flex-basis:23px}
+.nb-check-row label span small{font-size:12px;color:#7690ab;line-height:15px}
+.nb-config-workspace .nb-guide-footer{margin-top:11px;padding-top:3px}
+.nb-config-workspace .nb-guide-footer .nb-button:last-child{background:#0066f5;color:#fff}
+.nb-config-workspace .nb-guide-footer .nb-button:last-child:disabled{background:#edf4fb!important;color:#748dac!important;border-color:#d3e1f1!important}
+/* Weekly Overview: keep real emptiness compact, display four weeks without nested vertical scroll. */
+.nb-tracker>.nb-page-header{padding:23px 24px 17px;background:transparent}
+.nb-tracker>.nb-page-header h1{font-size:clamp(28px,2.1vw,34px)!important}
+.nb-tracker>.nb-page-header p{font-size:15px}
+.nb-tracker>.nb-toolbar{border-top:1px solid #ebf1f8;min-height:68px}
+.nb-tracker>.nb-summary{padding:12px 24px 10px;color:#476489;font-size:14px}
+.nb-tracker-content{min-height:0;align-items:stretch}
+.nb-tracker-table-wrap{max-height:none!important;overflow-x:auto!important;overflow-y:visible!important;scrollbar-color:#a9c4df #f0f5fb}
+.nb-week-grid{width:100%;min-width:1100px}
+.nb-week-grid tbody td,.nb-week-grid tbody th{border-bottom:1px solid #e2ebf6}
+.nb-week-grid tbody th{height:auto;min-height:132px;padding:15px 13px}
+.nb-week-grid tbody .nb-week-cell{min-height:134px}
+.nb-week-grid tbody tr.nb-no-assignments th{height:83px;min-height:83px;padding:9px 13px}
+.nb-week-grid tbody tr.nb-no-assignments .nb-week-cell{min-height:83px;padding:11px 13px}
+.nb-week-grid tbody tr.nb-no-assignments .nb-week-cell>strong{font-weight:500;color:#8195ae}
+.nb-week-grid tbody tr.nb-has-assignments .nb-week-cell{padding:10px 12px}
+.nb-week-grid tbody tr.nb-has-assignments .nb-mini-task{line-height:19px;min-height:25px}
+.nb-week-grid thead th{height:60px;vertical-align:middle;background:#edf5fd}
+.nb-week-grid tbody th>.nb-avatar {vertical-align:middle}
+.nb-week-grid tbody th>small{margin-top:1px}
+.nb-week-cell.selected{background:#f0fcff;border:2px solid #009cb2}
+.nb-week-cell:hover:not(.selected){background:#f3f8ff}
+.nb-mini-task .nb-badge{max-width:85px;overflow:hidden;text-overflow:ellipsis}
+.nb-week-footer{margin-top:0;flex-wrap:nowrap;align-items:center;padding:12px 24px}
+.nb-week-footer>span{color:#55769a;font-size:13px}
+.nb-week-footer>div{overflow-x:auto;scrollbar-width:thin;min-width:0}
+.nb-week-footer .nb-button{white-space:nowrap;min-height:39px;padding:7px 11px}
+/* Week view: table layout and drilldown panel, no separate over-scrolling list. */
+.nb-tracker[data-view="week"] .nb-tracker-content{align-items:stretch}
+.nb-tracker[data-view="week"] .nb-task-list{width:100%}
+.nb-tracker[data-view="week"] .nb-list-heading{min-height:36px;align-items:center;background:#edf4fb;border-bottom:1px solid #d5e5f5}
+.nb-tracker[data-view="week"] .nb-person-heading{background:#f8fbff;min-height:63px;border-top:1px solid #e2ebf5;gap:11px}
+.nb-tracker[data-view="week"] .nb-person-heading .nb-button:nth-child(2){padding:0;gap:13px;font-weight:700;min-height:46px}
+.nb-tracker[data-view="week"] .nb-person-heading small{font-weight:450;flex:1}
+.nb-tracker[data-view="week"] .nb-task-row{min-height:45px;padding:8px 14px 8px 64px;border-bottom:1px solid #e6eef7;align-items:center;gap:10px;text-align:left}
+.nb-tracker[data-view="week"] .nb-task-row>span:first-child small{display:none}
+.nb-tracker[data-view="week"] .nb-task-row>span:first-child{min-width:0;overflow-wrap:anywhere}
+.nb-tracker[data-view="week"] .nb-assignment-panel{background:#fff;padding:17px 21px}
+.nb-tracker[data-view="week"] .nb-assignment-panel>.nb-section-heading{min-height:40px}
+.nb-tracker[data-view="week"] .nb-assignment{border-bottom:1px solid #e3edf6;min-height:68px;text-align:left}
+.nb-tracker[data-view="week"] .nb-assignment:hover{background:#f4f9ff}
+.nb-tracker[data-view="week"] .nb-assignment .nb-badge{white-space:nowrap}
+/* Report: now KPI first and readiness title/tabs/filters use reference ordering. */
+.nb-report-shell .nb-report{padding:21px 24px 26px}
+.nb-report>.nb-page-header{padding-bottom:17px;margin-bottom:0}
+.nb-report .nb-kpis{margin:8px 0 22px;gap:16px}
+.nb-report .nb-kpi{min-height:156px;padding:17px 18px}
+.nb-report .nb-kpi>div{grid-template-columns:48px minmax(0,1fr) 68px;grid-template-rows:46px 47px minmax(21px,auto);column-gap:9px}
+.nb-report .nb-kpi h3{font-size:14px;font-weight:650}
+.nb-report .nb-kpi strong{font-size:38px}
+.nb-report .nb-kpi p{color:#6580a1;font-size:13px;line-height:18px}
+.nb-report .nb-readiness-heading{display:flex;justify-content:flex-start;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:12px}
+.nb-report .nb-readiness-heading h2{font-size:22px;margin:0}
+.nb-report .nb-readiness-heading h2 small{display:inline;margin-left:12px;font-size:14px;font-weight:450;color:#6581a2}
+.nb-report .nb-scope-tabs{display:flex;align-items:center;min-height:42px;border:1px solid #cdddf0;border-radius:8px;overflow:hidden}
+.nb-report .nb-scope-tabs .nb-button{min-height:42px!important;padding:8px 17px;border:0!important;border-right:1px solid #d1e0f3!important;border-radius:0!important;font-size:13px;color:#234569!important;background:#fff!important}
+.nb-report .nb-scope-tabs .nb-button:last-child{border-right:0!important}
+.nb-report .nb-scope-tabs .nb-button[aria-pressed="true"]{background:#deecfe!important;color:#005cc6!important;font-weight:700}
+.nb-report .nb-report-filters{padding:10px 12px;margin:0;background:#fff;border:1px solid var(--border);border-radius:10px;min-height:64px}
+.nb-report .nb-report-filters input[aria-label="Search systems"]{flex:3 1 290px;min-width:190px}
+.nb-report .nb-report-filters select{flex:1 1 140px;min-width:115px;max-width:220px}
+.nb-report .nb-report-primary-tools {justify-content:flex-end;padding:4px 0 0;margin:0;background:transparent;border:0;min-height:44px}
+.nb-report .nb-report-primary-tools .nb-button{min-height:39px;font-size:13px}
+.nb-report .nb-report-primary-tools details summary{min-height:39px;padding:8px 12px;background:#fff}
+.nb-report .nb-report-primary-tools label{font-size:13px}
+.nb-report .nb-report-table{margin-top:9px;border-radius:11px;box-shadow:var(--nbdt-soft-shadow)}
+.nb-report .nb-report-table th{font-size:14px;font-weight:650;background:#edf4fc;padding:13px 15px}
+.nb-report .nb-report-table td{padding:13px 15px;min-height:55px}
+.nb-report .nb-report-table td:first-child{min-width:175px}
+.nb-report .nb-system-name{display:block;font-size:14px;color:#071f4a;font-weight:700;line-height:20px}
+.nb-report .nb-report-table td:first-child small{margin-top:3px;color:#6480a0;font-size:12px;font-weight:400;line-height:16px}
+.nb-report .nb-report-progress{max-width:190px}
+.nb-report .nb-report-progress progress{height:9px}
+.nb-report .nb-panel{margin-top:15px}
+/* Fluid workspace widths. Keep true tables locally scrollable. */
+@media(max-width:1400px){
+ .nb-registry-grid .nb-system-card{min-height:342px}
+ .nb-report .nb-kpis{gap:12px}
+ .nb-report .nb-kpi{padding:15px 14px}
+ .nb-report .nb-kpi>div{grid-template-columns:42px minmax(0,1fr) 54px;column-gap:6px}
+ .nb-report .nb-kpi .nb-kpi-icon{width:40px;height:40px}
+ .nb-report .nb-kpi .nb-kpi-ring{width:53px;height:53px}
+ .nb-report .nb-kpi .nb-kpi-ring span{width:42px;height:42px}
+}
+@media(max-width:1200px){
+ .nb-tracker[data-view="week"] .nb-tracker-content:has(.nb-assignment-panel){flex-direction:column}
+ .nb-tracker[data-view="week"] .nb-assignment-panel{width:100%!important;max-width:none;min-width:0;border:1px solid var(--border);border-radius:0 0 10px 10px;position:relative;top:auto;right:auto}
+ .nb-report .nb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:900px){
+ .nb-technical-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(6,minmax(70px,auto))}
+ .nb-technical-grid>div{border-bottom:1px solid #d1e4f7!important}
+ .nb-technical-grid>div:nth-child(n+7){border-left:1px solid #d1e4f7}
+ .nb-technical-grid>div:nth-child(6n){border-bottom:0!important}
+ .nb-registry-grid .nb-system-card{min-height:0}
+}
+@media(max-width:700px){
+ .nb-registry-page{padding:15px 12px!important}
+ .nb-registry-grid{grid-template-columns:minmax(0,1fr)}
+ .nb-registry-grid .nb-card-actions{flex-wrap:wrap}
+ .nb-registry-grid .nb-card-actions>*{flex:1 1 155px}
+ .nb-guide-page .nb-page-header{padding:12px}
+ .nb-guide-body{padding:0 12px 25px}
+ .nb-technical-grid{grid-template-columns:1fr;grid-template-rows:none;grid-auto-flow:row}
+ .nb-technical-grid>div{border-left:0!important;min-height:60px}
+ .nb-technical-grid>div:nth-child(6n){border-bottom:1px solid #d1e4f7!important}
+ .nb-technical-grid>div:last-child{border-bottom:0!important}
+ .nb-report-shell .nb-report{padding:16px 12px 22px}
+ .nb-report .nb-readiness-heading{align-items:flex-start;gap:12px}
+ .nb-report .nb-scope-tabs{flex:1 1 100%}
+ .nb-report .nb-scope-tabs .nb-button{flex:1;min-width:0;padding:8px!important}
+ .nb-report .nb-report-primary-tools{justify-content:flex-start;flex-wrap:wrap}
+ .nb-report .nb-report-filters select{max-width:none;flex:1 1 45%}
+ .nb-report .nb-kpis{grid-template-columns:1fr}
+ .nb-tracker>.nb-page-header{padding:16px 12px}
+ .nb-tracker>.nb-toolbar{padding:10px 12px}
+ .nb-tracker>.nb-summary{padding:10px 12px}
+ .nb-week-footer{padding:10px 12px}
+ .nb-tracker[data-view="week"] .nb-task-row{padding:11px 12px;min-height:62px}
+}
+@media(prefers-reduced-motion:reduce){.nbdt-redesign .nb-registry-grid .nb-system-card:hover{box-shadow:var(--nbdt-soft-shadow)}}
+/* Differentiated deterministic employee avatar palettes from the weekly mockup. */
+.nb-week-grid tbody tr:nth-child(4n+2) .nb-avatar,
+.nb-task-list>section:nth-of-type(4n+2) .nb-avatar {background:#eae3ff;color:#5840aa}
+.nb-week-grid tbody tr:nth-child(4n+3) .nb-avatar,
+.nb-task-list>section:nth-of-type(4n+3) .nb-avatar {background:#ffe0e5;color:#a5355a}
+.nb-week-grid tbody tr:nth-child(4n) .nb-avatar,
+.nb-task-list>section:nth-of-type(4n) .nb-avatar {background:#d7f6e9;color:#137d68}
+.nb-week-cell.selected{border-color:var(--brand);background:#edf7ff}
+.nb-tracker[data-view="week"] .nb-person-heading .nb-button:nth-child(2){background:transparent!important;border:0!important;box-shadow:none}
+.nb-tracker[data-view="week"] .nb-person-heading .nb-button:first-child{background:transparent!important;border:0!important;box-shadow:none}
+.nb-tracker>.nb-summary .nb-button{min-height:32px!important;font-size:12px!important;padding:5px 10px!important;margin-left:10px;color:var(--brand)!important}
+.nbdt-redesign.nb-app-root>aside nav button{min-width:0}
+.nbdt-redesign.nb-app-root>aside nav button span{min-width:0;overflow:hidden;text-overflow:ellipsis}

@@ -1,3 +1,7 @@
+# NBDT v0.6 — Visual Reference Refinement
+
+Changes and honest test scope: see `NBDT_v0_6_refinement_report_RU.md`.
+
 # NBDT — локальный веб-проект v0.5 (визуальный редизайн)
 
 Это продолжение предоставленного проекта v0.4, с редизайном по пяти новым исходным PNG. Сохранены его исходная структура, legacy-модули Master Timeline, Cable Hub и Issue Tracker, demo-хранилище и данные при обновлении исходников. **Это не production-релиз.** Для полноценной корпоративной версии необходимы сервер, права доступа и подключение инфраструктуры.
