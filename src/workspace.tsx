@@ -46,23 +46,156 @@ export function SystemEditor({sys,project,isAdmin,onSave,onClose,onDelete}:any){
  const field=(key:string,label:string,options?:string[])=> <label key={key}>{label}{options?<select disabled={!isAdmin} value={draft[key]||''} onChange={e=>setDraft({...draft,[key]:e.target.value})}>{options.map(v=><option key={v}>{v}</option>)}</select>:<input aria-label={label} readOnly={!isAdmin} value={draft[key]||''} onChange={e=>setDraft({...draft,[key]:e.target.value})}/>} {TECH_FIELDS.includes(key)&&<select aria-label={label+' value state'} disabled={!isAdmin} value={draft.valueStates?.[key]||'to_confirm'} onChange={e=>setDraft({...draft,valueStates:{...draft.valueStates,[key]:e.target.value}})}>{['to_confirm','confirmed','example','N/A'].map(v=><option key={v}>{v}</option>)}</select>}</label>;
  return <section className="nb-editor-page"><div className="nb-breadcrumb">Systems / {sys.name} / Edit profile</div><header className="nb-page-header"><div><h1>{isAdmin?'Edit system / profile':'System details'}</h1><p>Changes remain a draft until Save changes.</p></div><B onClick={cancel}>Back to systems</B></header><form className="nb-profile-form" onSubmit={async e=>{e.preventDefault();if(!draft.name.trim()){setError('System name is required');return;}if(draft.documentationUrl&&!safeUrl(draft.documentationUrl)){setError('Documentation must be an HTTPS URL without credentials');return;}if(draft.os!==sys.os&&(sys.deviceRuns||[]).length){setError('Platform changes require a new profile. Existing runs must not be reassigned.');return;}setBusy(true);try{await onSave(draft);}catch(e:any){setError(e.message);}finally{setBusy(false);}}}><div className="nb-form-grid"><fieldset><legend>System identity</legend>{field('name','System name')}<label>Deployment owner<select disabled={!isAdmin} value={draft.assigneeId||''} onChange={e=>setDraft({...draft,assigneeId:e.target.value})}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>{field('description','Short description')}</fieldset><fieldset><legend>Endpoint profile</legend>{field('deviceType','Hardware / model')}{field('deviceCategory','Device category',['PC','Laptop','Tablet','Phone','Kiosk'])}{field('os','Platform family',['Windows','Linux','iOS','iPadOS','Android','macOS','Other'])}{field('osVersion','Approved OS version')}</fieldset><fieldset><legend>Network</legend>{field('network','Connection',['Wired','WiFi','Offline'])}{field('vlan','VLAN')}{field('ipScope','IP scope')}{field('ipReservation','Reservation policy')}{field('valueState','Technical value state',['to_confirm','confirmed','example','N/A'])}</fieldset><fieldset><legend>Identity & management</legend>{field('serviceAccount','Service account name / reference (no passwords)')}{field('userAccount','User account reference')}{field('logonType','Authentication type')}{field('domainOU','Domain / OU (if applicable)')}{field('airWatchTags','MDM / AirWatch tags')}{field('namingConvention','Naming convention')}</fieldset><fieldset><legend>Documentation & applications</legend>{field('documentationUrl','Documentation URL (HTTPS)')}<label>Required applications<textarea readOnly={!isAdmin} value={draft.appList||''} onChange={e=>setDraft({...draft,appList:e.target.value})}/></label><label>Engineering notes<textarea readOnly={!isAdmin} value={draft.documentation||''} onChange={e=>setDraft({...draft,documentation:e.target.value})}/></label></fieldset><fieldset><legend>Lessons Learned</legend><label>Notes<textarea readOnly={!isAdmin} value={draft.lessonsLearned||''} onChange={e=>setDraft({...draft,lessonsLearned:e.target.value})}/></label><p className="nb-muted">Profile changes do not silently publish a new guide version.</p></fieldset></div><p role="alert">{error}</p><div className="nb-toolbar">{isAdmin&&<button disabled={busy} type="submit" className="nb-button nb-primary">{busy?'Saving…':'Save changes'}</button>}<B onClick={cancel}>{isAdmin?'Cancel':'Close'}</B>{isAdmin&&onDelete&&<B onClick={()=>{if(confirm('Delete this system and its device runs? Export a backup first.'))onDelete();}}>Delete system</B>}<span>{dirty?'Unsaved changes':'No unsaved changes'}</span></div></form></section>;
 }
+
 export function Tracker({project,isAdmin,onAuth,onEdit,onTimeline,week,setWeek}:any){
  const [view,setView]=useState(()=>({overview:'Overview',week:'Week',list:'List'} as any)[new URLSearchParams(location.search).get('view')||'overview']||'Overview'),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[collapsed,setCollapsed]=useState<string[]>([]),[detail,setDetail]=useState<any>(null);
- const tasks=project.tasks.filter((t:any)=>!t.isMilestone).map((t:any)=>({...t,status:effectiveStatus(t,project.issues)})),matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
- const at=(id:string,w:number)=>tasks.filter((t:any)=>assignments(t).includes(id)&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));const people=project.members.filter((m:any)=>!person||m.id===person);const weeks=Array.from({length:4},(_,i)=>week+i);const selectedPerson=project.members.find((m:any)=>m.id===selected?.id);const chosen=selected?at(selected.id,selected.week):[];
- const open=(t:any)=>{setDetail(t);};const role=(t:any,id:string)=>t.memberId===id?'Owner':'Helper';
+ const tasks=project.tasks.filter((t:any)=>!t.isMilestone).map((t:any)=>({...t,status:effectiveStatus(t,project.issues)}));
+ const milestones=project.tasks.filter((t:any)=>t.isMilestone).sort((a:any,b:any)=>a.startWeek-b.startWeek||String(a.label).localeCompare(String(b.label)));
+ const matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
+ const at=(id:string,w:number)=>tasks.filter((t:any)=>assignments(t).includes(id)&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));
+ const people=project.members.filter((m:any)=>!person||m.id===person);
+ const weeks=Array.from({length:4},(_,i)=>week+i);
+ const selectedPerson=project.members.find((m:any)=>m.id===selected?.id);
+ const chosen=selected?at(selected.id,selected.week):[];
+ const open=(t:any)=>setDetail(t);
+ const role=(t:any,id:string)=>t.memberId===id?'Owner':'Helper';
  const selectedMonday=new Date(project.startDate+'T12:00:00Z');selectedMonday.setUTCDate(selectedMonday.getUTCDate()+week*7);
  const selectedIsoWeek=isoWeek(selectedMonday.toISOString().slice(0,10));
- const closestScheduledWeek=tasks.length?tasks.map((t:any)=>Math.max(t.startWeek,Math.min(week,t.startWeek+Math.max(1,t.duration)-1))).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
- // Selecting a populated week shows the same right-hand person panel as the reference.
- // Closing it manually leaves it closed until the view/week changes.
- useEffect(()=>{if(view!=='Week'){setSelected(null);setDetail(null);return;}
-   const first=project.members.find((m:any)=>project.tasks.some((t:any)=>!t.isMilestone&&assignments(t).includes(m.id)&&t.startWeek<=week&&t.startWeek+t.duration>week));
-   setSelected(first?{id:first.id,week}:null);setDetail(null);
- },[view,week,project.members,project.tasks]);
- return <section className="nb-tracker" data-view={view.toLowerCase()}><header className="nb-page-header"><div><h1>{view==='Week'?`NBDT Weekly Tracker — Week ${Number(selectedIsoWeek.split('-W')[1])}`:'Weekly Tracker'}</h1><p>{view==='Overview'?`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`:weekRange(project.startDate,week)} · {project.name}</p></div><div className="nb-actions"><B onClick={async()=>{try{const url=new URL(location.href);url.hash='roadmap';url.searchParams.set('week',String(week));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B><B onClick={onTimeline}>Master Timeline</B><B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>{isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}</div></header><div className="nb-toolbar"><div className="nb-segments">{['Overview','Week','List'].map(v=><B key={v} onClick={()=>{setView(v);const url=new URL(location.href);url.searchParams.set('view',v.toLowerCase());window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} aria-pressed={view===v}>{v}</B>)}</div><B disabled={week===0} onClick={()=>setWeek(week-1)} aria-label="Previous week">‹</B><label>Jump to week <input type="week" aria-label="Jump to ISO week" value={isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+week*7);return d.toISOString().slice(0,10);})())} onChange={e=>{const next=weekIndexFromIso(project.startDate,e.target.value);if(next!==null){setWeek(next);setSelected(null);}}}/></label><B disabled={week>=519} onClick={()=>setWeek(week+1)} aria-label="Next week">›</B><select aria-label="Person filter" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select><select aria-label="Status filter" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Blocked','Completed'].map(v=><option key={v}>{v}</option>)}</select><input aria-label="Search tasks or people" placeholder="Search tasks or people" value={query} onChange={e=>setQuery(e.target.value)}/></div><p className="nb-summary">{people.length} people · {new Set(tasks.filter((t:any)=>t.startWeek<=week&&t.startWeek+t.duration>week&&matches(t)).map((t:any)=>t.id)).size} unique tasks in {selectedIsoWeek} · {new Set(tasks.filter((t:any)=>t.status==='Blocked'&&t.startWeek<=week&&t.startWeek+t.duration>week&&matches(t)).map((t:any)=>t.id)).size} blocked {view==='Overview'&&!query&&!person&&!status&&closestScheduledWeek!==null&&!weeks.some(w=>tasks.some((t:any)=>t.startWeek<=w&&t.startWeek+t.duration>w))&&<B onClick={()=>setWeek(closestScheduledWeek)}>View scheduled assignments →</B>}<button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button></p><div className="nb-tracker-content"><div className="nb-tracker-table-wrap">{view==='Overview'?<><div className={'nb-mobile-week-cards '+(showMobileMatrix?'matrix-open':'')} aria-label="Assignments by person">{people.map((m:any)=><section key={m.id} className="nb-mobile-person-card"><header><span className="nb-avatar">{m.name.charAt(0)}</span><span><strong>{m.name}</strong><small>{m.title||'Team member'}</small></span><span className="nb-mobile-person-count">{at(m.id,week).length} assignments</span></header><div className="nb-mobile-week-title">{isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+week*7);return d.toISOString().slice(0,10);})())} · {weekRange(project.startDate,week)}</div>{at(m.id,week).length?at(m.id,week).map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{setSelected({id:m.id,week});setDetail(t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}<button type="button" className="nb-mobile-open-assignments" onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}>View assignments →</button></section>)}</div><table className={'nb-week-grid '+(!showMobileMatrix?'mobile-cards-preferred':'')} aria-label="Weekly assignments matrix"><thead><tr><th>Employee</th>{weeks.map(w=><th key={w}>{isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);return d.toISOString().slice(0,10);})())}<small>{weekRange(project.startDate,w)}</small></th>)}</tr></thead><tbody>{people.map((m:any)=><tr key={m.id} className={weeks.some(w=>at(m.id,w).length)?'nb-has-assignments':'nb-no-assignments'}><th><span className="nb-avatar">{m.name.charAt(0)}</span>{m.name}{m.title&&<small>{m.title}</small>}</th>{weeks.map(w=>{const list=at(m.id,w);return <td key={w} className={list.length?'nb-populated-week':'nb-empty-week'}><button aria-label={`${m.name}: ${list.length} assignments in ${isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);return d.toISOString().slice(0,10);})())}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{setSelected({id:m.id,week:w});setDetail(null);}}><strong>{list.length?list.length+' assignments':'No tasks planned'}</strong>{list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id}><span>{t.label}</span><Badge value={t.status}/></span>)}{list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}</button></td>})}</tr>)}</tbody></table></>:<div className="nb-task-list"><div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>{people.map((m:any)=>{const list=view==='Week'?at(m.id,week):tasks.filter((t:any)=>assignments(t).includes(m.id)&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{setSelected({id:m.id,week});open(t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}</div>}</div>{selected&&<aside className="nb-assignment-panel" aria-label="Person assignments"><div className="nb-section-heading"><h2>{selectedPerson?.name} · {isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+selected.week*7);return d.toISOString().slice(0,10);})()).split('-W')[1]&&'Week '+isoWeek((()=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+selected.week*7);return d.toISOString().slice(0,10);})()).split('-W')[1]}</h2><B aria-label="Close person panel" onClick={()=>{setSelected(null);setDetail(null);}}>✕</B></div><p>Project week {selected.week+1} · {weekRange(project.startDate,selected.week)}</p><p className="nb-person-metrics"><span>{chosen.filter((t:any)=>t.status==='In Progress').length} active</span> · <span>{chosen.filter((t:any)=>t.status==='Planned').length} planned</span> · <span>{chosen.filter((t:any)=>t.status==='Completed').length} done</span> · <span>{chosen.filter((t:any)=>t.status==='Blocked').length} blocked</span></p>{detail?<><B onClick={()=>setDetail(null)}>Back to assignments</B><h3>{detail.label}</h3><Badge value={detail.status}/><p>{role(detail,selected.id)} · Due {dueDate(project.startDate,detail)}</p><p>{detail.description||'No description recorded'}</p><h3>Checklist</h3>{(detail.checklist||[]).map((i:any)=><p key={i.id}>{i.completed?'✓':'○'} {i.label}</p>)}{isAdmin&&<B primary onClick={()=>onEdit(detail)}>Edit task</B>}</>:chosen.map((t:any)=><button className="nb-assignment" key={t.id} onClick={()=>open(t)}><div><strong>{t.label}</strong><Badge value={t.status}/></div><small>{role(t,selected.id)} · Due {dueDate(project.startDate,t)}</small>{t.status==='Blocked'&&t.description&&<p className="nb-blocker-reason">{t.description}</p>}</button>)}{isAdmin&&!detail&&<div className="nb-person-actions"><details className="nb-assignment-tools"><summary>+ Add assignment</summary><p>Select an existing task in this week to add {selectedPerson?.name} as Helper. Review and Save the edit.</p><select aria-label="Choose existing task to help" defaultValue="" onChange={e=>{const task=project.tasks.find((t:any)=>t.id===e.target.value);if(task)onEdit({...task,helperIds:[...(task.helperIds||[]),selected.id]});e.target.value='';}}><option value="">Choose a task…</option>{project.tasks.filter((t:any)=>!t.isMilestone&&t.memberId!==selected.id&&!(t.helperIds||[]).includes(selected.id)&&t.startWeek<=selected.week&&t.startWeek+t.duration>selected.week).map((t:any)=><option key={t.id} value={t.id}>{t.label}</option>)}</select></details><B onClick={()=>onEdit({id:uid(),label:'New task',memberId:selected.id,startWeek:selected.week,duration:1,status:'Planned',description:''})}>Create new task</B></div>}</aside>}</div><footer className="nb-week-footer"><span>ISO weeks</span><div>{Array.from({length:15},(_,i)=>Math.max(0,week-7)+i).filter(i=>i<520).map(i=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+i*7);return <B key={i} aria-pressed={week===i} onClick={()=>setWeek(i)}>{isoWeek(d.toISOString().slice(0,10)).replace('-W',' W')}</B>})}</div></footer></section>;
+ const weekIso=(w:number)=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);return isoWeek(d.toISOString().slice(0,10));};
+ const weekDate=(w:number)=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+w*7);return d.toISOString().slice(0,10);};
+ const milestonesAt=(w:number)=>milestones.filter((m:any)=>m.startWeek===w);
+ const closestScheduledWeek=tasks.length?tasks.map((t:any)=>t.startWeek).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
+ const visibleWeeksHaveTasks=weeks.some(w=>tasks.some((t:any)=>t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t)));
+ const currentWeekTasks=tasks.filter((t:any)=>t.startWeek<=week&&t.startWeek+t.duration>week&&matches(t));
+ const currentWeekTaskCount=new Set(currentWeekTasks.map((t:any)=>t.id)).size;
+ const blockedCount=new Set(currentWeekTasks.filter((t:any)=>t.status==='Blocked').map((t:any)=>t.id)).size;
+ const totalAssignments=currentWeekTasks.length;
+ const totalMilestones=weeks.reduce((n:number,w:number)=>n+milestonesAt(w).length,0);
+ const createMilestone=(w:number)=>onEdit({id:uid(),label:'New milestone',startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
+
+ useEffect(()=>{if(view!=='Week'){setSelected(null);setDetail(null);return;}const first=project.members.find((m:any)=>project.tasks.some((t:any)=>!t.isMilestone&&assignments(t).includes(m.id)&&t.startWeek<=week&&t.startWeek+t.duration>week));setSelected(first?{id:first.id,week}:null);setDetail(null);},[view,week,project.members,project.tasks]);
+
+ return <section className="nb-tracker" data-view={view.toLowerCase()}>
+  <header className="nb-page-header">
+   <div>
+    <h1>Weekly Tracker</h1>
+    <p>{view==='Overview'?`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`:weekRange(project.startDate,week)} · {project.name}</p>
+   </div>
+   <div className="nb-actions">
+    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',selectedIsoWeek);url.searchParams.set('view',view.toLowerCase());await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
+    <B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>
+    {isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}
+   </div>
+  </header>
+
+  <div className="nb-toolbar">
+   <div className="nb-segments">{['Overview','Week','List'].map(v=><B key={v} onClick={()=>{setView(v);const url=new URL(location.href);url.searchParams.set('view',v.toLowerCase());window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} aria-pressed={view===v}>{v}</B>)}</div>
+   <B disabled={week===0} onClick={()=>setWeek(week-1)} aria-label="Previous week">‹</B>
+   <label>Jump to week <input type="week" aria-label="Jump to ISO week" value={selectedIsoWeek} onChange={e=>{const next=weekIndexFromIso(project.startDate,e.target.value);if(next!==null){setWeek(next);setSelected(null);}}}/></label>
+   <B disabled={week>=519} onClick={()=>setWeek(week+1)} aria-label="Next week">›</B>
+   <select aria-label="Person filter" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
+   <select aria-label="Status filter" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Blocked','Completed'].map(v=><option key={v}>{v}</option>)}</select>
+   <input aria-label="Search tasks or people" placeholder="Search tasks or people" value={query} onChange={e=>setQuery(e.target.value)}/>
+  </div>
+
+  <div className="nb-summary">
+   <div className="nb-summary-metrics">
+    <span className="nb-summary-pill"><strong>{people.length}</strong> people</span>
+    <span className="nb-summary-pill"><strong>{currentWeekTaskCount}</strong> unique tasks in {selectedIsoWeek}</span>
+    <span className="nb-summary-pill"><strong>{blockedCount}</strong> blocked</span>
+    <span className="nb-summary-pill"><strong>{totalAssignments}</strong> active assignments shown</span>
+    {view==='Overview'&&<span className="nb-summary-pill"><strong>{totalMilestones}</strong> milestones in view</span>}
+   </div>
+   <div className="nb-summary-actions">
+    {view==='Overview'&&!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(closestScheduledWeek)}>View scheduled assignments →</B>}
+    <button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button>
+   </div>
+  </div>
+
+  <div className="nb-tracker-content">
+   <div className="nb-tracker-table-wrap">
+    {view==='Overview'?<>
+     <div className={'nb-mobile-week-cards '+(showMobileMatrix?'matrix-open':'')} aria-label="Assignments by person">
+      {people.map((m:any)=>{
+       const mobileList=at(m.id,week);
+       const mobileMilestones=milestonesAt(week);
+       return <section key={m.id} className="nb-mobile-person-card">
+        <header>
+         <span className="nb-avatar">{m.name.charAt(0)}</span>
+         <span><strong>{m.name}</strong><small>{m.title||'Team member'}</small></span>
+         <span className="nb-mobile-person-count">{mobileList.length} assignments</span>
+        </header>
+        <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
+        {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>isAdmin?onEdit(ms):void 0}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
+        {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{setSelected({id:m.id,week});setDetail(t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
+        <button type="button" className="nb-mobile-open-assignments" onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}>View assignments →</button>
+       </section>;
+      })}
+     </div>
+     <table className={'nb-week-grid '+(!showMobileMatrix?'mobile-cards-preferred':'')} aria-label="Weekly assignments matrix">
+      <thead>
+       <tr>
+        <th className="nb-employee-head">Employee</th>
+        {weeks.map(w=>{const columnMilestones=milestonesAt(w);return <th key={w}>
+         <div className="nb-week-head">
+          <div className="nb-week-head-title"><strong>{weekIso(w)}</strong><small>{weekRange(project.startDate,w)}</small></div>
+          <div className="nb-week-milestones">
+           {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} className={'nb-milestone-chip '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>):<span className="nb-milestone-empty">No milestone</span>}
+           {isAdmin&&<button type="button" className="nb-milestone-add" onClick={()=>createMilestone(w)}>+ Add milestone</button>}
+          </div>
+         </div>
+        </th>})}
+       </tr>
+      </thead>
+      <tbody>
+       {people.map((m:any)=>{
+        const hasAssignments=weeks.some(w=>at(m.id,w).length);
+        return <tr key={m.id} className={hasAssignments?'nb-has-assignments':'nb-no-assignments'}>
+         <th>
+          <div className="nb-person-cell">
+           <span className="nb-avatar">{m.name.charAt(0)}</span>
+           <div className="nb-person-copy"><strong>{m.name}</strong>{m.title&&<small>{m.title}</small>}</div>
+          </div>
+         </th>
+         {weeks.map(w=>{
+          const list=at(m.id,w);
+          const blocked=list.filter((t:any)=>t.status==='Blocked').length;
+          return <td key={w} className={list.length?'nb-populated-week':'nb-empty-week'}>
+           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{setSelected({id:m.id,week:w});setDetail(null);}}>
+            <div className="nb-week-cell-head">
+             <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
+             {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
+            </div>
+            {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id}><span>{t.label}</span><Badge value={t.status}/></span>)}
+            {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
+           </button>
+          </td>;
+         })}
+        </tr>;
+       })}
+      </tbody>
+     </table>
+    </>:<div className="nb-task-list">
+      <div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>
+      {people.map((m:any)=>{const list=view==='Week'?at(m.id,week):tasks.filter((t:any)=>assignments(t).includes(m.id)&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{setSelected({id:m.id,week});setDetail(null);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{setSelected({id:m.id,week});open(t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
+     </div>}
+   </div>
+
+   {selected&&<aside className="nb-assignment-panel" aria-label="Person assignments">
+    <div className="nb-section-heading"><h2>{selectedPerson?.name} · {weekIso(selected.week).split('-W')[1]&&'Week '+weekIso(selected.week).split('-W')[1]}</h2><B aria-label="Close person panel" onClick={()=>{setSelected(null);setDetail(null);}}>✕</B></div>
+    <p>Project week {selected.week+1} · {weekRange(project.startDate,selected.week)}</p>
+    <p className="nb-person-metrics"><span>{chosen.filter((t:any)=>t.status==='In Progress').length} active</span> · <span>{chosen.filter((t:any)=>t.status==='Planned').length} planned</span> · <span>{chosen.filter((t:any)=>t.status==='Completed').length} done</span> · <span>{chosen.filter((t:any)=>t.status==='Blocked').length} blocked</span></p>
+    {!!milestonesAt(selected.week).length&&!detail&&<div className="nb-panel nb-tracker-milestone-panel"><strong>Milestones this week</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className={'nb-milestone-chip '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
+    {detail?<><B onClick={()=>setDetail(null)}>Back to assignments</B><h3>{detail.label}</h3><Badge value={detail.status}/><p>{role(detail,selected.id)} · Due {dueDate(project.startDate,detail)}</p><p>{detail.description||'No description recorded'}</p><h3>Checklist</h3>{(detail.checklist||[]).map((i:any)=><p key={i.id}>{i.completed?'✓':'○'} {i.label}</p>)}{isAdmin&&<B primary onClick={()=>onEdit(detail)}>Edit task</B>}</>:chosen.map((t:any)=><button className="nb-assignment" key={t.id} onClick={()=>open(t)}><div><strong>{t.label}</strong><Badge value={t.status}/></div><small>{role(t,selected.id)} · Due {dueDate(project.startDate,t)}</small>{t.status==='Blocked'&&t.description&&<p className="nb-blocker-reason">{t.description}</p>}</button>)}
+    {isAdmin&&!detail&&<div className="nb-person-actions"><details className="nb-assignment-tools"><summary>+ Add assignment</summary><p>Select an existing task in this week to add {selectedPerson?.name} as Helper. Review and Save the edit.</p><select aria-label="Choose existing task to help" defaultValue="" onChange={e=>{const task=project.tasks.find((t:any)=>t.id===e.target.value);if(task)onEdit({...task,helperIds:[...(task.helperIds||[]),selected.id]});e.target.value='';}}><option value="">Choose a task…</option>{project.tasks.filter((t:any)=>!t.isMilestone&&t.memberId!==selected.id&&!(t.helperIds||[]).includes(selected.id)&&t.startWeek<=selected.week&&t.startWeek+t.duration>selected.week).map((t:any)=><option key={t.id} value={t.id}>{t.label}</option>)}</select></details><B onClick={()=>onEdit({id:uid(),label:'New task',memberId:selected.id,startWeek:selected.week,duration:1,status:'Planned',description:''})}>Create new task</B>{isAdmin&&<B onClick={()=>createMilestone(selected.week)}>Add milestone</B>}</div>}
+   </aside>}
+  </div>
+
+  <footer className="nb-week-footer"><span>ISO weeks</span><div>{Array.from({length:15},(_,i)=>Math.max(0,week-7)+i).filter(i=>i<520).map(i=>{const d=new Date(project.startDate+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+i*7);return <B key={i} aria-pressed={week===i} onClick={()=>setWeek(i)}>{isoWeek(d.toISOString().slice(0,10)).replace('-W',' W')}</B>})}</div></footer>
+ </section>;
 }
+
 export function Report({project,isAdmin,onSystemChange}:any){
  const [editCyber,setEditCyber]=useState(false),[saveMessage,setSaveMessage]=useState(''),[cyberSaving,setCyberSaving]=useState(false);
  const [query,setQuery]=useState(''),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');const [hidden,setHidden]=useState<string[]>(()=>{try{return JSON.parse(localStorage.getItem('nbdt-report-hidden')||'[]');}catch{return [];}}),[sort,setSort]=useState('name'),[page,setPage]=useState(0);useEffect(()=>{localStorage.setItem('nbdt-report-hidden',JSON.stringify(hidden));},[hidden]);useEffect(()=>setPage(0),[query,scope,owner,cyber,venue,sort]);
