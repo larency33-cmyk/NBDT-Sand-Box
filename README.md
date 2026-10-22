@@ -1,3 +1,7 @@
+# NBDT v0.6.5 — Approved Weekly Tracker Layout
+
+Актуальные изменения и проверки: `NBDT_v0_6_5_release_notes_RU.md`.
+
 # NBDT Web Project v0.6.4 — Overlay Quick Assignment Panel
 
 **Что нового:** `NBDT_v0_6_4_release_notes_RU.md`.

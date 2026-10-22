@@ -1061,3 +1061,104 @@ button,select,input,textarea {font-family:inherit}
 @media(prefers-reduced-motion:reduce){
  .nb-assignment-panel.nb-quick-panel.nb-overlay-panel{animation:none}
 }
+
+/* =======================================================================
+   v0.6.5 — Approved Weekly Tracker reference (22 Oct 2026)
+   Top = milestones only; aligned week/date/day cards replace top dates.
+   ======================================================================= */
+.nb-tracker[data-view="overview"]{--nb-employee-width:220px;--nb-grid-min:1080px}
+.nb-tracker[data-view="overview"] .nb-week-grid{min-width:var(--nb-grid-min)!important;table-layout:fixed;width:100%!important}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:first-child{width:var(--nb-employee-width)!important}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head{
+ min-height:64px!important;height:auto!important;padding:7px 10px!important;gap:0!important;justify-content:center;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-milestones{min-height:32px;max-height:104px;justify-content:center}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-employee-head{padding:15px 16px!important;vertical-align:middle!important}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th{height:64px!important}
+/* No redundant week number, date range or weekday text in the header. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-title{display:none!important}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-current-week-column{background:#e8f3ff!important;box-shadow:inset 0 3px 0 #0066f5}
+
+/* Alternating very subtle blue-gray bands follow the week column from top to bottom. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(2n+1){background:#eaf3fd}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(2n){background:#f0f7ff}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column{background:#e8f3ff!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(2n+1){background:#f2f7fe!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(2n){background:#fbfdff!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell{background:linear-gradient(90deg,#f0f8ff,#f7fbff)!important}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell:not(.selected):hover{background:#e7f2ff!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody th{background:#fff!important}
+
+/* Bottom week cards use exactly the same 5-column track as the matrix above. */
+.nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{
+ position:relative;display:block!important;flex:0 0 auto!important;
+ padding:7px 23px 11px!important;min-height:88px!important;margin:0!important;
+ background:#f3f8fe;border-top:0;overflow:visible;
+}
+.nb-tracker .nb-week-card-scroller{
+ display:block;width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;
+ scrollbar-width:none;scrollbar-color:transparent transparent;
+ overscroll-behavior-x:contain;
+}
+.nb-tracker .nb-week-card-scroller::-webkit-scrollbar{height:0}
+.nb-tracker .nb-week-card-grid{
+ display:grid;grid-template-columns:var(--nb-employee-width,220px) repeat(4,minmax(0,1fr));
+ align-items:stretch;gap:0;width:100%;min-width:var(--nb-grid-min,1080px);
+}
+.nb-tracker .nb-week-navigation-label{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:0 10px 0 7px;min-width:0}
+.nb-tracker .nb-week-navigation-label strong{font-size:13px;font-weight:700;color:#41648d;white-space:nowrap}
+.nb-tracker .nb-week-navigation-label .nb-button{height:40px;min-width:35px!important;min-height:40px!important;padding:4px!important;font-size:23px;font-weight:500;color:#1167c6;background:#fff}
+.nb-tracker .nb-week-wide-card{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+ position:relative;min-width:0;min-height:79px;margin:0 3px;
+ padding:8px 9px 7px;border:1px solid #dce9f7;border-radius:8px;
+ background:#fff;box-shadow:0 1px 4px rgba(19,65,126,.035);
+ text-align:center;color:#132e5b;cursor:pointer;
+}
+.nb-tracker .nb-week-wide-card:nth-of-type(2n){background:#f4f8ff}
+.nb-tracker .nb-week-wide-card:hover{border-color:#9ac8fb;background:#edf5ff}
+.nb-tracker .nb-week-wide-card>strong{font-size:14px;line-height:18px;color:#0d2d62;font-weight:750}
+.nb-tracker .nb-week-wide-date{font-size:12px;line-height:16px;color:#6682a6;font-weight:500;white-space:nowrap}
+.nb-tracker .nb-week-wide-days{
+ display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:center;
+ width:100%;gap:2px;margin-top:3px;max-width:255px;
+}
+.nb-tracker .nb-week-day{
+ display:flex;align-items:center;justify-content:center;min-width:0;
+ min-height:20px;border-radius:5px;color:#4f7097;font-size:10px;line-height:16px;
+ font-weight:600;font-variant-numeric:tabular-nums;
+}
+.nb-tracker .nb-week-day-today{background:#0066f5!important;color:#fff!important;font-weight:800;box-shadow:0 1px 3px rgba(0,102,245,.2)}
+.nb-tracker .nb-week-wide-card.nb-week-wide-selected{
+ background:linear-gradient(180deg,#edf6ff,#deedff)!important;
+ border:1.5px solid #0066f5!important;box-shadow:0 1px 5px rgba(0,102,245,.12);
+}
+.nb-tracker .nb-week-wide-selected>strong{color:#0066f5}
+.nb-tracker .nb-week-wide-card.nb-week-wide-current:not(.nb-week-wide-selected){border-color:#69bed6;box-shadow:inset 0 3px 0 #00a6b8}
+.nb-tracker .nb-week-wide-today-label{
+ position:absolute;top:4px;right:8px;font-size:9px;color:#087d8c;font-weight:700;
+}
+.nb-tracker .nb-week-wide-selected .nb-week-wide-today-label{color:#0863cc}
+.nb-tracker .nb-week-navigation-right{
+ position:absolute;right:29px;bottom:28px;z-index:3;display:flex;align-items:center;gap:5px;
+ background:rgba(250,253,255,.96);border:1px solid #e1eaf4;
+ border-radius:8px;padding:2px;box-shadow:0 1px 4px rgba(12,50,98,.08);
+}
+.nb-tracker .nb-week-navigation-right .nb-button{min-height:34px!important;min-width:34px!important;padding:5px 7px!important;font-size:12px!important}
+.nb-tracker .nb-week-navigation-right .nb-weeks-next{font-size:22px!important}
+.nb-tracker .nb-week-navigation-right .nb-go-today{min-width:49px!important}
+.nb-tracker .nb-week-wide-card:last-child .nb-week-wide-days{padding-right:75px;max-width:290px}
+.nb-tracker .nb-week-wide-card:focus-visible{outline:2px solid #0066f5;outline-offset:-3px}
+
+@media (max-width:900px){
+ .nb-tracker[data-view="overview"]{--nb-grid-min:1080px}
+ .nb-tracker[data-view="overview"] .nb-week-grid{min-width:1080px!important}
+ .nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{padding:8px 16px 12px!important}
+ .nb-tracker .nb-week-navigation-right{right:20px}
+}
+@media (max-width:760px){
+ .nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{min-height:75px!important}
+ .nb-tracker .nb-week-wide-card{min-height:71px}
+ .nb-tracker .nb-week-navigation-right{bottom:23px}
+}
+@media(prefers-reduced-motion:reduce){.nb-tracker .nb-week-card-scroller{scroll-behavior:auto}}

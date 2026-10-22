@@ -27,3 +27,14 @@ export function currentWeekIndex(start,timezone='Europe/Paris',now=new Date()){r
 export function projectDateRange(start,index){const a=projectWeekDate(start,index),b=shiftISODate(a,6);return {from:a,to:b};}
 
 export function projectWeekParam(start,value){if(/^([1-9]\d{0,2})$/.test(String(value||''))){const index=Number(value)-1;return index>=0&&index<520?index:null;}return null;}
+
+/** Day badges are relative to project start, not assumed Mon-Sun. */
+export function projectWeekDays(start,index){
+ const startOfWeek=projectWeekDate(start,index);
+ const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ return Array.from({length:7},(_,offset)=>{
+  const date=shiftISODate(startOfWeek,offset);
+  const weekday=names[new Date(date+'T12:00:00Z').getUTCDay()];
+  return {date,weekday,short:weekday};
+ });
+}

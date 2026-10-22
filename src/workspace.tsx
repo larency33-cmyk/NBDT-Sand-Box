@@ -1,7 +1,7 @@
 import {Migration,download,useUnsaved} from './enhancements';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
-import {projectWeekDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
+import {projectWeekDate,projectWeekDays,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
@@ -80,6 +80,13 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState('');
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
+ const tableScrollRef=useRef<HTMLDivElement|null>(null);
+ const weekFooterScrollRef=useRef<HTMLDivElement|null>(null);
+ const syncWeekScroll=(source:'table'|'footer')=>{
+  const from=source==='table'?tableScrollRef.current:weekFooterScrollRef.current;
+  const to=source==='table'?weekFooterScrollRef.current:tableScrollRef.current;
+  if(from&&to&&Math.abs(from.scrollLeft-to.scrollLeft)>1)to.scrollLeft=from.scrollLeft;
+ };
  const closeQuickPanel=()=>{
   if(quickAdding)return;
   if(addingAssignment&&newAssignment.trim()&&!window.confirm('Discard unsaved assignment?'))return;
@@ -178,7 +185,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   </div>
 
   <div className="nb-tracker-content">
-   <div className="nb-tracker-table-wrap">
+   <div className="nb-tracker-table-wrap" ref={tableScrollRef} onScroll={()=>syncWeekScroll('table')}>
     {view==='Overview'?<>
      <div className={'nb-mobile-week-cards '+(showMobileMatrix?'matrix-open':'')} aria-label="Assignments by person">
       {people.map((m:any)=>{
@@ -207,7 +214,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
            {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} title={isAdmin?'Edit milestone':'Project milestone'} className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span></button>):<span className="nb-milestone-empty">No milestone</span>}
            {isAdmin&&<button type="button" className="nb-milestone-add" aria-label={'Add milestone to '+weekIso(w)} title={'Add milestone to '+weekIso(w)} onClick={()=>createMilestone(w)}>+</button>}
           </div>
-          <div className="nb-week-head-title"><strong>{weekIso(w)}</strong>{currentWeek===w&&<span className="nb-week-today-badge">This week</span>}<small>{weekRange(project.startDate,w)}</small></div>
+
          </div>
         </th>})}
        </tr>
@@ -276,12 +283,33 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     </aside>
    </>,document.body)}
 
-  <footer className="nb-week-footer">
-   <span>Project weeks</span>
-   <B disabled={week<=0} onClick={()=>setWeek(Math.max(0,week-1))} aria-label="Previous week" className="nb-weeks-prev">‹</B>
-   <div className="nb-week-footer-scroll" aria-label="Week navigation">{Array.from({length:11},(_,i)=>Math.max(0,Math.min(509,week-3))+i).filter(i=>i<520).map(i=><B key={i} aria-pressed={week===i} aria-current={currentWeek===i?'date':undefined} className={'nb-week-footer-item '+(i>=week&&i<week+4?'nb-in-visible-range ':'')+(currentWeek===i?'nb-is-today':'')} onClick={()=>setWeek(i)}>{weekIso(i)}</B>)}</div>
-   <B disabled={week>=519} onClick={()=>setWeek(Math.min(519,week+1))} aria-label="Next week" className="nb-weeks-next">›</B>
-   <B disabled={currentWeek<0||currentWeek>=520||currentWeek===week} onClick={()=>setWeek(currentWeek)} className="nb-go-today">Today</B>
+  <footer className="nb-week-footer nb-aligned-week-footer" aria-label="Project weeks navigation">
+   <div className="nb-week-card-scroller" ref={weekFooterScrollRef} onScroll={()=>syncWeekScroll('footer')}>
+    <div className="nb-week-card-grid">
+     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onClick={()=>setWeek(Math.max(0,week-1))} aria-label="Previous week" className="nb-weeks-prev">‹</B></div>
+     {weeks.map(w=>{
+      const days=projectWeekDays(project.startDate,w);
+      const isCurrent=currentWeek===w;
+      return <button type="button" key={w} className={'nb-week-wide-card '+(w===week?'nb-week-wide-selected ':'')+(isCurrent?'nb-week-wide-current ':'')}
+       aria-pressed={w===week} aria-current={isCurrent?'date':undefined}
+       aria-label={`${weekIso(w)}, ${weekRange(project.startDate,w)}${isCurrent?', current week':''}`}
+       onClick={()=>setWeek(w)}>
+       <strong>{weekIso(w)}</strong>
+       <span className="nb-week-wide-date">{weekRange(project.startDate,w)}</span>
+       <span className="nb-week-wide-days" aria-label="Seven days of this project week">
+        {days.map((day:any)=><span key={day.date} className={'nb-week-day '+(day.date===todayDate?'nb-week-day-today':'')}
+         aria-current={day.date===todayDate?'date':undefined} title={`${day.weekday}, ${day.date}`}>
+         {day.short}
+        </span>)}
+       </span>
+      </button>;
+     })}
+    </div>
+   </div>
+   <div className="nb-week-navigation-right">
+    <B disabled={week>=516} onClick={()=>setWeek(Math.min(516,week+1))} aria-label="Next week" className="nb-weeks-next">›</B>
+    <B disabled={currentWeek<0||currentWeek>=520||currentWeek===week} onClick={()=>setWeek(Math.min(currentWeek,516))} className="nb-go-today">Today</B>
+   </div>
   </footer>
  </section>;
 }

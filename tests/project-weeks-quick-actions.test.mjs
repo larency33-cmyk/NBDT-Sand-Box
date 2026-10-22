@@ -50,7 +50,7 @@ test('tracker has only Overview and List, no Week mode, and never shows ISO labe
  assert.ok(view.includes("['Overview','List']"));
  assert.ok(!view.includes("['Overview','Week','List']"));
  assert.ok(view.includes('const weekIso=(w:number)=>`Week ${w+1}`'));
- assert.ok(view.includes('Project weeks</span>'));
+ assert.ok(view.includes('Project weeks</strong>'));
  assert.ok(view.includes('onQuickTaskSave'));
  assert.ok(view.includes('onQuickTaskCreate'));
  assert.ok(view.includes('nb-quick-add-form'));

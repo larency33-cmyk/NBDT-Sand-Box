@@ -54,14 +54,15 @@ test('footer weeks have real left/right arrows and shortcut to current week',()=
  assert.match(ui,/aria-label="Previous week"/);
  assert.match(ui,/aria-label="Next week"/);
  assert.ok(ui.includes('setWeek(Math.max(0,week-1))'));
- assert.ok(ui.includes('setWeek(Math.min(519,week+1))'));
- assert.ok(ui.includes('setWeek(currentWeek)'));
- assert.ok(ui.includes('nb-is-today'));
+ assert.ok(ui.includes('setWeek(Math.min(516,week+1))')); 
+ assert.ok(ui.includes('setWeek(Math.min(currentWeek,516))'));
+ assert.ok(ui.includes('nb-week-day-today')); 
 });
-test('optional milestones precede project week heading and have a quick editor',()=>{
+test('optional milestones are the only top week headings and have a quick editor',()=>{
  const start=ui.indexOf('<thead>',ui.indexOf('export function Tracker('));
  const snippet=ui.slice(start,ui.indexOf('</thead>',start));
- assert.ok(snippet.indexOf('nb-week-milestones') < snippet.indexOf('nb-week-head-title'));
+ assert.ok(snippet.includes('nb-week-milestones'));
+ assert.ok(!snippet.includes('nb-week-head-title')); 
  assert.ok(snippet.includes('nb-milestone-add'));
  assert.ok(snippet.includes('milestoneTone(ms)'));
  assert.ok(css.includes('.nb-ms-critical'));
