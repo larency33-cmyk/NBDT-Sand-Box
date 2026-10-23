@@ -1162,3 +1162,175 @@ button,select,input,textarea {font-family:inherit}
  .nb-tracker .nb-week-navigation-right{bottom:23px}
 }
 @media(prefers-reduced-motion:reduce){.nb-tracker .nb-week-card-scroller{scroll-behavior:auto}}
+
+/* ============================================================================
+   v0.6.6 — APPROVED LIGHT ACCENT HIERARCHY
+   Visual baseline: design_references/approved_weekly_tracker_light_accents.png
+   Carefully scoped to Weekly Tracker. This replaces the heavy/equal blue
+   highlights of v0.6.5 without changing tasks, milestones or storage.
+   ============================================================================ */
+.nb-tracker[data-view="overview"]{
+  --wk-primary:#0968ed;
+  --wk-deep:#092454;
+  --wk-text:#254669;
+  --wk-line:#dae7f5;
+  --wk-muted:#7792b3;
+  --wk-current-bg:#eaf4ff;
+  --wk-current-bg-alt:#e5f2ff;
+  --wk-soft-blue:#f3f8ff;
+  --wk-neutral:#fbfdff;
+  --wk-status-done:#128345;
+  --wk-status-planned:#7188a8;
+  --wk-status-active:#216fe7;
+  --wk-status-blocked:#d36811;
+  background:#f7fbff!important;
+}
+/* Match the reference's 223px sidebar only while the tracker is open. */
+@media (min-width:761px){
+ .nbdt-redesign.nb-app-root:has(.nb-tracker)>aside[data-expanded="true"]{
+  width:223px!important;flex:0 0 223px!important;
+ }
+}
+/* Calm frame: the blue CTA / active tab carry the global emphasis. */
+.nb-tracker>.nb-page-header{
+  background:linear-gradient(105deg,#f9fcff 0%,#f2f8ff 100%)!important;
+  border-bottom-color:#deeaf6;
+}
+.nb-tracker>.nb-page-header h1{color:#0a2353!important;font-weight:770!important;letter-spacing:-.04em!important}
+.nb-tracker>.nb-page-header .nb-actions .nb-button:not(.nb-primary){
+  color:#204f88;border-color:#d8e6f6;background:#fff;box-shadow:0 1px 3px rgba(15,60,120,.025)
+}
+.nb-tracker>.nb-page-header .nb-actions .nb-button:not(.nb-primary):hover{background:#f1f7ff}
+.nb-tracker>.nb-toolbar{background:#fff!important;border-color:#e2edf7!important}
+.nb-tracker .nb-project-start{background:#f7fbff!important}
+.nb-tracker .nb-project-start svg{color:#1574e9}
+.nb-tracker>.nb-summary{background:#f7fbff!important}
+.nb-tracker>.nb-summary .nb-summary-pill{color:#315e95!important}
+.nb-tracker>.nb-summary .nb-summary-pill svg{color:#1e77e7}
+.nb-tracker>.nb-summary .nb-summary-blockers svg{color:#e87446}
+.nb-tracker .nb-current-indicator{color:#0f855f;background:#eafaf3;border-color:#ace9d2}
+/* Subtle, continuous vertical bands make weeks readable without competing
+   with milestones or task statuses. Header/body are kept in exact alignment. */
+.nb-tracker[data-view="overview"] .nb-week-grid{border-color:var(--wk-line)}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th{
+  border-right:1px solid var(--wk-line)!important;
+  border-bottom:1px solid var(--wk-line)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:first-child{background:#eef5fd!important}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child){background:#f1f7fe!important}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(3):not(.nb-current-week-column),
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(5):not(.nb-current-week-column){background:#f6f9fe!important}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column{
+  background:linear-gradient(180deg,#e5f1ff,#ebf5ff)!important;
+  box-shadow:inset 0 3px 0 var(--wk-primary)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody th{
+  background:#fff!important;border-color:var(--wk-line)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td{
+  background:#f7fbff!important;border-color:var(--wk-line)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(3),
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(5){background:#fbfdff!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(4){background:#f3f8fe!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell{
+  background:linear-gradient(180deg,var(--wk-current-bg),var(--wk-current-bg-alt))!important;
+  box-shadow:inset 2px 0 0 #c0ddff,inset -2px 0 0 #c0ddff!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell:not(.selected):hover{
+  background:rgba(19,116,228,.065)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell.selected{
+  border-color:#3b93f3!important;
+  background:rgba(208,234,255,.6)!important;
+  box-shadow:inset 0 0 0 1px rgba(37,129,228,.22)!important;
+}
+/* A milestone is NOT a primary action. Keep normal milestones soft;
+   completed handovers green, critical/review retain semantic hints. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-ms-standard{
+  color:#3b689f!important;
+  background:rgba(225,237,252,.58)!important;
+  border:1px solid #d1e3f7!important;
+  min-height:28px;
+  box-shadow:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip svg{opacity:.8}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-ms-complete{
+  color:#087d56!important;background:#def7ec!important;border-color:#c0ead7!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-ms-critical{
+  color:#af5c1e!important;background:#fff2e6!important;border-color:#f5dfc7!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-ms-review{
+  color:#6d5db2!important;background:#f0eefe!important;border-color:#e1dbfa!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-empty{
+  border-color:#e2ebf6!important;background:rgba(250,252,255,.5)!important;
+  color:#94a9c0!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-add{background:white!important}
+/* Task text stays readable; compact counts and status colors never dominate. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell-head strong{
+  color:#204578!important;font-weight:750!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-mini-task{
+  color:var(--wk-text)!important;border-color:#e0ebf6!important;
+}
+.nb-tracker .nb-status-planned{color:var(--wk-status-planned)!important}
+.nb-tracker .nb-status-in-progress{color:var(--wk-status-active)!important}
+.nb-tracker .nb-status-completed{color:var(--wk-status-done)!important}
+.nb-tracker .nb-status-blocked{color:var(--wk-status-blocked)!important}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-blocked{
+  color:#bd611d!important;background:#ffefda!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-more{color:#087da7!important}
+/* Wide week cards sit exactly beneath their corresponding matrix columns.
+   Preserve the active card as the only strong outlined card. */
+.nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{
+  background:#f7fbff!important;border:0;
+}
+.nb-tracker .nb-week-wide-card{
+  border:1px solid #dfeaf6!important;
+  background:#fff!important;
+  box-shadow:0 1px 3px rgba(11,42,81,.035)!important;
+}
+.nb-tracker .nb-week-wide-card:nth-of-type(2n){background:#f5f9fe!important}
+.nb-tracker .nb-week-wide-card.nb-week-wide-selected{
+  background:linear-gradient(180deg,#edf6ff 0%,#ddecff 100%)!important;
+  border:1.5px solid var(--wk-primary)!important;
+  box-shadow:0 2px 6px rgba(24,102,207,.12)!important;
+}
+.nb-tracker .nb-week-wide-card.nb-week-wide-selected>strong{color:var(--wk-primary)!important}
+.nb-tracker .nb-week-wide-card.nb-week-wide-current:not(.nb-week-wide-selected){
+  border-color:#9fcdfb!important;box-shadow:inset 0 2px 0 #83b7f4!important;
+}
+.nb-tracker .nb-week-day{font-weight:500;color:#6b85a6}
+.nb-tracker .nb-week-day-today{background:var(--wk-primary)!important;color:white!important}
+/* Put right-hand navigation in the reserved space of Week 4, not on top
+   of its weekday labels. Its left edge still tracks the fourth column. */
+.nb-tracker .nb-week-wide-card:last-child{margin-right:94px}
+.nb-tracker .nb-week-wide-card:last-child .nb-week-wide-days{
+  padding-right:0!important;max-width:255px!important;
+}
+.nb-tracker .nb-week-navigation-right{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  bottom:30px!important;right:26px!important;padding:0!important;
+}
+.nb-tracker .nb-week-navigation-right .nb-button{
+  background:#fff!important;border:1px solid #dce8f6!important;
+  color:#366eac!important;box-shadow:0 1px 3px rgba(14,59,110,.05);
+}
+.nb-tracker .nb-week-navigation-right .nb-button:hover:not(:disabled){background:#ecf5ff!important}
+.nb-tracker .nb-week-navigation-label strong{color:#4b6e94!important}
+/* Keep the existing overlay drawer above the grid and outside table flow. */
+.nb-assignment-panel.nb-quick-panel.nb-overlay-panel{
+  box-shadow:0 18px 58px rgba(6,39,75,.23),0 4px 14px rgba(6,39,75,.09)!important;
+}
+@media(max-width:900px){
+ .nb-tracker .nb-week-navigation-right{right:18px!important}
+}
+@media(max-width:760px){
+ .nb-tracker .nb-week-wide-card:last-child{margin-right:6px}
+ .nb-tracker .nb-week-navigation-right{right:16px!important;bottom:10px!important}
+}
