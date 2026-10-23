@@ -22,8 +22,9 @@ test('bottom navigation has exactly four wide week cards aligned to four main we
  assert.ok(v065.includes('grid-template-columns:var(--nb-employee-width,220px) repeat(4,minmax(0,1fr))'));
  assert.ok(v065.includes('--nb-employee-width:220px'));
  assert.ok(v065.includes('thead th:first-child{width:var(--nb-employee-width)!important}'));
- assert.ok(tracker.includes('ref={tableScrollRef} onScroll={()=>syncWeekScroll(\'table\')}'));
- assert.ok(tracker.includes('ref={weekFooterScrollRef} onScroll={()=>syncWeekScroll(\'footer\')}'));
+ assert.ok(tracker.includes('ref={tableScrollRef} onScroll={syncWeekScroll}'));
+ assert.ok(tracker.includes('ref={weekFooterScrollRef}'));
+ assert.ok(!tracker.includes("syncWeekScroll('footer')"));
 });
 test('project week day strip is real calendar arithmetic, not fixed Monday-first labels',()=>{
  assert.deepEqual(projectWeekDays('2026-03-28',0).map(d=>d.short),['Sat','Sun','Mon','Tue','Wed','Thu','Fri']);

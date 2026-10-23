@@ -1334,3 +1334,55 @@ button,select,input,textarea {font-family:inherit}
  .nb-tracker .nb-week-wide-card:last-child{margin-right:6px}
  .nb-tracker .nb-week-navigation-right{right:16px!important;bottom:10px!important}
 }
+
+/* ============================================================================
+   v0.6.7 — WEEK NAVIGATION REGRESSION FIX
+   Native scroll buttons must never appear in place of the project week arrows.
+   The next/previous controls change the displayed four-week window. The
+   bottom cards are passive, one-way scroll mirrors of the task grid only.
+   ============================================================================ */
+.nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{
+  overflow:clip!important;
+  isolation:isolate;
+}
+.nb-tracker[data-view="overview"] .nb-week-card-scroller{
+  overflow-x:hidden!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none!important;
+  overscroll-behavior:none!important;
+  -webkit-overflow-scrolling:auto;
+}
+.nb-tracker[data-view="overview"] .nb-week-card-scroller::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+.nb-tracker .nb-tracker-table-wrap{
+  overscroll-behavior-x:contain;
+}
+/* Chromium/Windows can draw native arrowheads at both ends of its overflow
+   scrollbars. Keep vertical scrolling, but hide native scrollbar buttons. */
+.nb-tracker *::-webkit-scrollbar-button{
+  display:none!important;
+  height:0!important;
+  width:0!important;
+}
+.nb-tracker *::-webkit-scrollbar-corner{background:transparent!important}
+.nb-tracker[data-view="overview"] .nb-week-navigation-right{
+  z-index:5!important;
+  pointer-events:auto;
+}
+.nb-tracker[data-view="overview"] .nb-week-navigation-right .nb-weeks-next,
+.nb-tracker[data-view="overview"] .nb-week-navigation-label .nb-weeks-prev{
+  display:inline-flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  line-height:1!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-navigation-right .nb-weeks-next svg,
+.nb-tracker[data-view="overview"] .nb-week-navigation-label .nb-weeks-prev svg{
+  width:18px;
+  height:18px;
+  display:block;
+  flex:0 0 18px;
+}

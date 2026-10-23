@@ -1,8 +1,8 @@
-# NBDT Web Project v0.6.6 — Approved Light Accent Layout
+# NBDT Web Project v0.6.7 — Fixed Project Week Navigation
 
-Полный исходный код NBDT. Изменения относительно v0.6.5 сосредоточены на **светлой цветовой иерархии Weekly Tracker** и оформлении четырёх проектных недель без изменения данных и функций.
+Полный исходный код NBDT. Эта ревизия исправляет навигацию по проектным неделям по сравнению с v0.6.6: стрелки управляют неделями, без появления лишних кнопок встроенных полос прокрутки. Визуальная палитра и данные v0.6.6 сохранены.
 
-**Что изменено:** `NBDT_v0_6_6_release_notes_RU.md`.
+**Что изменено:** `NBDT_v0_6_7_release_notes_RU.md`.
 
 **Эталон:** `design_references/approved_weekly_tracker_light_accents.png`.
 
@@ -43,4 +43,4 @@ npm run build
 
 ## Проверки
 
-106/106 локальных unit/static-тестов; синтаксис и CSS проверены. Полный Vite build и настоящий browser screenshot regression в среде подготовки не подтверждены из-за недоступного npm install — см. release notes. Исторические отчёты лежат в корне ZIP для преемственности.
+112/112 локальных unit/static-тестов; синтаксис TSX и CSS проверен. Полный Vite build и настоящий browser screenshot regression в среде подготовки не подтверждены из-за недоступного npm install — см. release notes. Исторические отчёты лежат в корне ZIP для преемственности.

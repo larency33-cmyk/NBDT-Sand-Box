@@ -51,11 +51,11 @@ test('weekly tracker has no upper week calendar or Master Timeline',()=>{
  assert.ok(!index.includes('Master Timeline'));
 });
 test('footer weeks have real left/right arrows and shortcut to current week',()=>{
- assert.match(ui,/aria-label="Previous week"/);
- assert.match(ui,/aria-label="Next week"/);
- assert.ok(ui.includes('setWeek(Math.max(0,week-1))'));
- assert.ok(ui.includes('setWeek(Math.min(516,week+1))')); 
- assert.ok(ui.includes('setWeek(Math.min(currentWeek,516))'));
+ assert.match(ui,/aria-label="Previous project week"/);
+ assert.match(ui,/aria-label="Next project week"/);
+ assert.ok(ui.includes('navigateWeek(-1)'));
+ assert.ok(ui.includes('navigateWeek(1)'));
+ assert.ok(ui.includes('setWeek(clampWeekViewport(currentWeek))'));
  assert.ok(ui.includes('nb-week-day-today')); 
 });
 test('optional milestones are the only top week headings and have a quick editor',()=>{

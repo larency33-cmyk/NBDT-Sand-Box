@@ -2,10 +2,11 @@ import {Migration,download,useUnsaved} from './enhancements';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
+import {clampWeekViewport,moveWeekViewport} from './week-navigation.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,ClipboardCheck,BookOpen,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle} from 'lucide-react';
+import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle} from 'lucide-react';
 const fieldIcons:any={'Endpoint':Monitor,'Operating system':AppWindow,'Connection':Plug,'VLAN':Network,'IP scope':Globe,'Reservation':LockKeyhole,'Service account reference':UserRoundKey,'Domain / OU':Workflow,'MDM / AirWatch':ShieldCheck,'Applications':LayoutGrid,'Naming convention':Tag,'Owner':UserRound};
 import {STAGES,LABELS,uid,weekRange,dueDate,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
@@ -82,10 +83,20 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
  const weekFooterScrollRef=useRef<HTMLDivElement|null>(null);
- const syncWeekScroll=(source:'table'|'footer')=>{
-  const from=source==='table'?tableScrollRef.current:weekFooterScrollRef.current;
-  const to=source==='table'?weekFooterScrollRef.current:tableScrollRef.current;
-  if(from&&to&&Math.abs(from.scrollLeft-to.scrollLeft)>1)to.scrollLeft=from.scrollLeft;
+ // One-way scroll mirroring only: the footer is a display of the matrix columns,
+ // never a second independent scroll control that can fight the week arrows.
+ const syncWeekScroll=()=>{
+  const table=tableScrollRef.current,footer=weekFooterScrollRef.current;
+  if(table&&footer&&Math.abs(table.scrollLeft-footer.scrollLeft)>1)footer.scrollLeft=table.scrollLeft;
+ };
+ const navigateWeek=(direction:number)=>{
+  const next=moveWeekViewport(week,direction);
+  if(next===week)return;
+  // The arrows switch the project-week window, not the browser scroll position.
+  // Reset any old horizontal offset so all four cards remain under their columns.
+  if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;
+  if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;
+  setWeek(next);
  };
  const closeQuickPanel=()=>{
   if(quickAdding)return;
@@ -126,7 +137,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
  const at=(id:string,w:number)=>tasks.filter((t:any)=>assignments(t).includes(id)&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));
  const people=project.members.filter((m:any)=>!person||m.id===person);
- const weeks=Array.from({length:4},(_,i)=>week+i).filter(w=>w<520);
+ const weeks=Array.from({length:4},(_,i)=>clampWeekViewport(week)+i);
  const selectedPerson=project.members.find((m:any)=>m.id===selected?.id);
  const chosen=selected?at(selected.id,selected.week):[];
  const open=(t:any)=>setDetail(t);
@@ -185,7 +196,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   </div>
 
   <div className="nb-tracker-content">
-   <div className="nb-tracker-table-wrap" ref={tableScrollRef} onScroll={()=>syncWeekScroll('table')}>
+   <div className="nb-tracker-table-wrap" ref={tableScrollRef} onScroll={syncWeekScroll}>
     {view==='Overview'?<>
      <div className={'nb-mobile-week-cards '+(showMobileMatrix?'matrix-open':'')} aria-label="Assignments by person">
       {people.map((m:any)=>{
@@ -284,9 +295,9 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
    </>,document.body)}
 
   <footer className="nb-week-footer nb-aligned-week-footer" aria-label="Project weeks navigation">
-   <div className="nb-week-card-scroller" ref={weekFooterScrollRef} onScroll={()=>syncWeekScroll('footer')}>
+   <div className="nb-week-card-scroller" ref={weekFooterScrollRef}>
     <div className="nb-week-card-grid">
-     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onClick={()=>setWeek(Math.max(0,week-1))} aria-label="Previous week" className="nb-weeks-prev">‹</B></div>
+     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onClick={()=>navigateWeek(-1)} aria-label="Previous project week" className="nb-weeks-prev"><ChevronLeft size={18} aria-hidden="true"/></B></div>
      {weeks.map(w=>{
       const days=projectWeekDays(project.startDate,w);
       const isCurrent=currentWeek===w;
@@ -307,8 +318,8 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     </div>
    </div>
    <div className="nb-week-navigation-right">
-    <B disabled={week>=516} onClick={()=>setWeek(Math.min(516,week+1))} aria-label="Next week" className="nb-weeks-next">›</B>
-    <B disabled={currentWeek<0||currentWeek>=520||currentWeek===week} onClick={()=>setWeek(Math.min(currentWeek,516))} className="nb-go-today">Today</B>
+    <B disabled={week>=516} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
+    <B disabled={currentWeek<0||currentWeek>=520||clampWeekViewport(currentWeek)===week} onClick={()=>{if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
    </div>
   </footer>
  </section>;
