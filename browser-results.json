@@ -1,0 +1,73 @@
+{
+  "scope": "Isolated new components only, synthetic fixture, no full Vite app or Tailwind compilation",
+  "results": [
+    {
+      "name": "Guide preview cannot record completion without device",
+      "status": "PASS"
+    },
+    {
+      "name": "Device run stages accept only in sequence",
+      "status": "PASS"
+    },
+    {
+      "name": "Reopening Base clears downstream acceptance",
+      "status": "PASS"
+    },
+    {
+      "name": "Viewer cannot change device results",
+      "status": "PASS"
+    },
+    {
+      "name": "Endpoint profile switch isolates device inventory",
+      "status": "PASS"
+    },
+    {
+      "name": "Primary profile wrapper persists a device run",
+      "status": "PASS"
+    },
+    {
+      "name": "Secondary profile editor saves platform details independently",
+      "status": "PASS"
+    },
+    {
+      "name": "Task Owner and Helpers save together",
+      "status": "PASS"
+    },
+    {
+      "name": "Task save failure retains draft and displays error",
+      "status": "PASS"
+    },
+    {
+      "name": "System profile save failure remains visible",
+      "status": "PASS"
+    },
+    {
+      "name": "Tracker shows one task for both Owner and Helper",
+      "status": "PASS"
+    },
+    {
+      "name": "Report columns can be hidden",
+      "status": "PASS"
+    },
+    {
+      "name": "IndexedDB saves and reloads records",
+      "status": "PASS"
+    },
+    {
+      "name": "Cross-tab optimistic conflict rejects overwrite",
+      "status": "PASS"
+    },
+    {
+      "name": "Demo audit records committed writes",
+      "status": "PASS"
+    },
+    {
+      "name": "New components render at required viewport sizes",
+      "status": "PASS"
+    },
+    {
+      "name": "No browser page errors",
+      "status": "PASS"
+    }
+  ]
+}

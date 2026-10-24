@@ -1,0 +1,1 @@
+Syntax and bindings passed as documented; full build unavailable because npm registry was not reachable.

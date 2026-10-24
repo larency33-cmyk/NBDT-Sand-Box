@@ -1,0 +1,608 @@
+
+> nbdt@0.6.5 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: week labels and dates no longer occupy the milestone-only top header
+ok 1 - week labels and dates no longer occupy the milestone-only top header
+  ---
+  duration_ms: 0.628518
+  type: 'test'
+  ...
+# Subtest: bottom navigation has exactly four wide week cards aligned to four main week columns
+ok 2 - bottom navigation has exactly four wide week cards aligned to four main week columns
+  ---
+  duration_ms: 0.179135
+  type: 'test'
+  ...
+# Subtest: project week day strip is real calendar arithmetic, not fixed Monday-first labels
+ok 3 - project week day strip is real calendar arithmetic, not fixed Monday-first labels
+  ---
+  duration_ms: 1.106243
+  type: 'test'
+  ...
+# Subtest: only the actual calendar date is accented in its project week
+ok 4 - only the actual calendar date is accented in its project week
+  ---
+  duration_ms: 0.184943
+  type: 'test'
+  ...
+# Subtest: week bands alternate and the current week remains distinctly accented
+ok 5 - week bands alternate and the current week remains distinctly accented
+  ---
+  duration_ms: 0.237972
+  type: 'test'
+  ...
+# Subtest: overlay quick assignment panel remains a body portal separate from week grid
+ok 6 - overlay quick assignment panel remains a body portal separate from week grid
+  ---
+  duration_ms: 0.10822
+  type: 'test'
+  ...
+# Subtest: separate endpoint profiles are discoverable
+ok 7 - separate endpoint profiles are discoverable
+  ---
+  duration_ms: 1.00306
+  type: 'test'
+  ...
+# Subtest: profile view never leaks another profile inventory
+ok 8 - profile view never leaks another profile inventory
+  ---
+  duration_ms: 0.70394
+  type: 'test'
+  ...
+# Subtest: unknown profile is rejected
+ok 9 - unknown profile is rejected
+  ---
+  duration_ms: 0.380802
+  type: 'test'
+  ...
+# Subtest: merging secondary profile preserves primary inventory and platform
+ok 10 - merging secondary profile preserves primary inventory and platform
+  ---
+  duration_ms: 0.262548
+  type: 'test'
+  ...
+# Subtest: migration needs a reason
+ok 11 - migration needs a reason
+  ---
+  duration_ms: 0.179155
+  type: 'test'
+  ...
+# Subtest: migration resets acceptance and preserves source link
+ok 12 - migration resets acceptance and preserves source link
+  ---
+  duration_ms: 2.548232
+  type: 'test'
+  ...
+# Subtest: deployed run cannot migrate silently
+ok 13 - deployed run cannot migrate silently
+  ---
+  duration_ms: 0.132606
+  type: 'test'
+  ...
+# Subtest: valid Owner and Helper assignments pass
+ok 14 - valid Owner and Helper assignments pass
+  ---
+  duration_ms: 0.181188
+  type: 'test'
+  ...
+# Subtest: Owner cannot be duplicated as Helper
+ok 15 - Owner cannot be duplicated as Helper
+  ---
+  duration_ms: 0.293514
+  type: 'test'
+  ...
+# Subtest: unknown Helper rejected
+ok 16 - unknown Helper rejected
+  ---
+  duration_ms: 0.299793
+  type: 'test'
+  ...
+# Subtest: task duration cannot exceed project
+ok 17 - task duration cannot exceed project
+  ---
+  duration_ms: 0.13562
+  type: 'test'
+  ...
+# Subtest: open linked issue drives effective blocker status
+ok 18 - open linked issue drives effective blocker status
+  ---
+  duration_ms: 0.124403
+  type: 'test'
+  ...
+# Subtest: resolved issue does not block
+ok 19 - resolved issue does not block
+  ---
+  duration_ms: 0.064295
+  type: 'test'
+  ...
+# Subtest: ISO week year is correct across year boundary
+ok 20 - ISO week year is correct across year boundary
+  ---
+  duration_ms: 0.109882
+  type: 'test'
+  ...
+# Subtest: project date uses configured timezone
+ok 21 - project date uses configured timezone
+  ---
+  duration_ms: 12.235923
+  type: 'test'
+  ...
+# Subtest: CSV escapes spreadsheet formula prefixes
+ok 22 - CSV escapes spreadsheet formula prefixes
+  ---
+  duration_ms: 0.215458
+  type: 'test'
+  ...
+# Subtest: import validates duplicate device identities
+ok 23 - import validates duplicate device identities
+  ---
+  duration_ms: 0.303408
+  type: 'test'
+  ...
+# Subtest: N/A needs explicit permission
+ok 24 - N/A needs explicit permission
+  ---
+  duration_ms: 0.161989
+  type: 'test'
+  ...
+# Subtest: N/A needs a reason
+ok 25 - N/A needs a reason
+  ---
+  duration_ms: 0.207266
+  type: 'test'
+  ...
+# Subtest: allowed N/A counts only with reason
+ok 26 - allowed N/A counts only with reason
+  ---
+  duration_ms: 0.222338
+  type: 'test'
+  ...
+# Subtest: evidence-required item blocks acceptance until recorded
+ok 27 - evidence-required item blocks acceptance until recorded
+  ---
+  duration_ms: 0.126266
+  type: 'test'
+  ...
+# Subtest: stale evidence is not completion
+ok 28 - stale evidence is not completion
+  ---
+  duration_ms: 0.078596
+  type: 'test'
+  ...
+# Subtest: system counters aggregate profiles without double counting devices
+ok 29 - system counters aggregate profiles without double counting devices
+  ---
+  duration_ms: 0.233685
+  type: 'test'
+  ...
+# Subtest: archived devices excluded from scope
+ok 30 - archived devices excluded from scope
+  ---
+  duration_ms: 0.076533
+  type: 'test'
+  ...
+# Subtest: primary profile merge commits its runs without dropping other devices
+ok 31 - primary profile merge commits its runs without dropping other devices
+  ---
+  duration_ms: 0.185624
+  type: 'test'
+  ...
+# Subtest: secondary profile does not inherit primary published guide
+ok 32 - secondary profile does not inherit primary published guide
+  ---
+  duration_ms: 0.108941
+  type: 'test'
+  ...
+# Subtest: secondary profile does not inherit primary hardware
+ok 33 - secondary profile does not inherit primary hardware
+  ---
+  duration_ms: 0.104494
+  type: 'test'
+  ...
+# Subtest: iPadOS guide cannot publish Windows firmware or Domain Join steps
+ok 34 - iPadOS guide cannot publish Windows firmware or Domain Join steps
+  ---
+  duration_ms: 0.808634
+  type: 'test'
+  ...
+# Subtest: import rejects two active runs for the same device and profile
+ok 35 - import rejects two active runs for the same device and profile
+  ---
+  duration_ms: 0.139466
+  type: 'test'
+  ...
+# Subtest: import rejects runs pointing to other systems devices
+ok 36 - import rejects runs pointing to other systems devices
+  ---
+  duration_ms: 0.126837
+  type: 'test'
+  ...
+# Subtest: task can schedule beyond the former 28-week limit
+ok 37 - task can schedule beyond the former 28-week limit
+  ---
+  duration_ms: 0.126306
+  type: 'test'
+  ...
+# Subtest: empty guide cannot be published
+ok 38 - empty guide cannot be published
+  ---
+  duration_ms: 0.944385
+  type: 'test'
+  ...
+# Subtest: mobile profile rejects BIOS
+ok 39 - mobile profile rejects BIOS
+  ---
+  duration_ms: 0.446479
+  type: 'test'
+  ...
+# Subtest: explicit applicability is enforced
+ok 40 - explicit applicability is enforced
+  ---
+  duration_ms: 0.195929
+  type: 'test'
+  ...
+# Subtest: empty stage cannot be accepted
+ok 41 - empty stage cannot be accepted
+  ---
+  duration_ms: 0.21698
+  type: 'test'
+  ...
+# Subtest: ready cannot bypass base
+ok 42 - ready cannot bypass base
+  ---
+  duration_ms: 0.231141
+  type: 'test'
+  ...
+# Subtest: future stage checks are blocked
+ok 43 - future stage checks are blocked
+  ---
+  duration_ms: 0.211713
+  type: 'test'
+  ...
+# Subtest: base check alone is not acceptance
+ok 44 - base check alone is not acceptance
+  ---
+  duration_ms: 0.388404
+  type: 'test'
+  ...
+# Subtest: ordered stages can be accepted
+ok 45 - ordered stages can be accepted
+  ---
+  duration_ms: 0.244691
+  type: 'test'
+  ...
+# Subtest: reopening base invalidates later acceptance
+ok 46 - reopening base invalidates later acceptance
+  ---
+  duration_ms: 0.777047
+  type: 'test'
+  ...
+# Subtest: device counts are distinct from legacy quantities
+ok 47 - device counts are distinct from legacy quantities
+  ---
+  duration_ms: 0.436775
+  type: 'test'
+  ...
+# Subtest: forged downstream acceptance does not count
+ok 48 - forged downstream acceptance does not count
+  ---
+  duration_ms: 0.230981
+  type: 'test'
+  ...
+# Subtest: new publication preserves pinned device run
+ok 49 - new publication preserves pinned device run
+  ---
+  duration_ms: 0.125285
+  type: 'test'
+  ...
+# Subtest: run cannot cross profile boundary
+ok 50 - run cannot cross profile boundary
+  ---
+  duration_ms: 0.080099
+  type: 'test'
+  ...
+# Subtest: unsafe links are rejected
+ok 51 - unsafe links are rejected
+  ---
+  duration_ms: 0.116592
+  type: 'test'
+  ...
+# Subtest: HTTPS link is accepted
+ok 52 - HTTPS link is accepted
+  ---
+  duration_ms: 0.073218
+  type: 'test'
+  ...
+# Subtest: owner is not duplicated as helper
+ok 53 - owner is not duplicated as helper
+  ---
+  duration_ms: 0.215118
+  type: 'test'
+  ...
+# Subtest: date-only parsing does not use UTC
+ok 54 - date-only parsing does not use UTC
+  ---
+  duration_ms: 0.125345
+  type: 'test'
+  ...
+# Subtest: derived due date is last day of task range
+ok 55 - derived due date is last day of task range
+  ---
+  duration_ms: 0.291701
+  type: 'test'
+  ...
+# Subtest: explicit due date wins
+ok 56 - explicit due date wins
+  ---
+  duration_ms: 0.065306
+  type: 'test'
+  ...
+# Subtest: week labels include year
+ok 57 - week labels include year
+  ---
+  duration_ms: 12.216494
+  type: 'test'
+  ...
+# Subtest: deep guide link roundtrips profile, device, stage
+ok 58 - deep guide link roundtrips profile, device, stage
+  ---
+  duration_ms: 1.739788
+  type: 'test'
+  ...
+# Subtest: unknown stage safely defaults to base
+ok 59 - unknown stage safely defaults to base
+  ---
+  duration_ms: 0.37896
+  type: 'test'
+  ...
+# Subtest: overview and tracker paths resolve
+ok 60 - overview and tracker paths resolve
+  ---
+  duration_ms: 0.23686
+  type: 'test'
+  ...
+# Subtest: ISO 2026 W53 crosses year; invalid W53 rejected
+ok 61 - ISO 2026 W53 crosses year; invalid W53 rejected
+  ---
+  duration_ms: 0.925616
+  type: 'test'
+  ...
+# Subtest: ISO week index returns null on invalid and negative range
+ok 62 - ISO week index returns null on invalid and negative range
+  ---
+  duration_ms: 0.254536
+  type: 'test'
+  ...
+# Subtest: assignment overlay is a React body portal, outside the matrix flex container
+ok 63 - assignment overlay is a React body portal, outside the matrix flex container
+  ---
+  duration_ms: 1.173633
+  type: 'test'
+  ...
+# Subtest: fixed overlay width is independent of table width, preserving full four-week matrix
+ok 64 - fixed overlay width is independent of table width, preserving full four-week matrix
+  ---
+  duration_ms: 0.314785
+  type: 'test'
+  ...
+# Subtest: overlay supports escape, close button, backdrop, restored focus, and keyboard containment
+ok 65 - overlay supports escape, close button, backdrop, restored focus, and keyboard containment
+  ---
+  duration_ms: 0.159475
+  type: 'test'
+  ...
+# Subtest: small screens present a full-screen, internally scrolling assignment panel
+ok 66 - small screens present a full-screen, internally scrolling assignment panel
+  ---
+  duration_ms: 0.129912
+  type: 'test'
+  ...
+# Subtest: fast task changes and inline assignment creation remain wired to the original save functions
+ok 67 - fast task changes and inline assignment creation remain wired to the original save functions
+  ---
+  duration_ms: 0.137863
+  type: 'test'
+  ...
+# Subtest: 28 March project start means Week 1 is 28 March – 3 April, regardless of ISO weeks
+ok 68 - 28 March project start means Week 1 is 28 March – 3 April, regardless of ISO weeks
+  ---
+  duration_ms: 1.704005
+  type: 'test'
+  ...
+# Subtest: the project-relative current week follows timezone and never uses Monday alignment
+ok 69 - the project-relative current week follows timezone and never uses Monday alignment
+  ---
+  duration_ms: 14.472274
+  type: 'test'
+  ...
+# Subtest: quick status changes update the unique task once and keep owner/helper relationship
+ok 70 - quick status changes update the unique task once and keep owner/helper relationship
+  ---
+  duration_ms: 0.403125
+  type: 'test'
+  ...
+# Subtest: manual Blocked requires a reason, and unresolved linked issues prevent fake Done
+ok 71 - manual Blocked requires a reason, and unresolved linked issues prevent fake Done
+  ---
+  duration_ms: 0.544413
+  type: 'test'
+  ...
+# Subtest: inline Add assignment uses selected person and week with default Planned
+ok 72 - inline Add assignment uses selected person and week with default Planned
+  ---
+  duration_ms: 0.341104
+  type: 'test'
+  ...
+# Subtest: tracker has only Overview and List, no Week mode, and never shows ISO labels in footer
+ok 73 - tracker has only Overview and List, no Week mode, and never shows ISO labels in footer
+  ---
+  duration_ms: 0.223901
+  type: 'test'
+  ...
+# Subtest: NBDT shared design system uses the exact approved brand and sidebar colors
+ok 74 - NBDT shared design system uses the exact approved brand and sidebar colors
+  ---
+  duration_ms: 1.066474
+  type: 'test'
+  ...
+# Subtest: registry uses one set of searchable filters and true filtered six-item paging
+ok 75 - registry uses one set of searchable filters and true filtered six-item paging
+  ---
+  duration_ms: 0.3926
+  type: 'test'
+  ...
+# Subtest: registry documentation never silently goes to a fake SharePoint link
+ok 76 - registry documentation never silently goes to a fake SharePoint link
+  ---
+  duration_ms: 0.243379
+  type: 'test'
+  ...
+# Subtest: guides retain real profile and device selection and guard missing publications
+ok 77 - guides retain real profile and device selection and guard missing publications
+  ---
+  duration_ms: 0.149581
+  type: 'test'
+  ...
+# Subtest: visual guide uses accessible labeled icons and three stages
+ok 78 - visual guide uses accessible labeled icons and three stages
+  ---
+  duration_ms: 0.193326
+  type: 'test'
+  ...
+# Subtest: week tracker has owner/helper drilldown and smartphone by-person cards
+ok 79 - week tracker has owner/helper drilldown and smartphone by-person cards
+  ---
+  duration_ms: 0.233144
+  type: 'test'
+  ...
+# Subtest: report derives readiness from per-device runs, not legacy report aggregates
+ok 80 - report derives readiness from per-device runs, not legacy report aggregates
+  ---
+  duration_ms: 0.17619
+  type: 'test'
+  ...
+# Subtest: touch and responsive rules exist for five screens
+ok 81 - touch and responsive rules exist for five screens
+  ---
+  duration_ms: 0.220455
+  type: 'test'
+  ...
+# Subtest: NBDT v0.6 places report KPIs before readiness filters and CSV/column tools
+ok 82 - NBDT v0.6 places report KPIs before readiness filters and CSV/column tools
+  ---
+  duration_ms: 1.640972
+  type: 'test'
+  ...
+# Subtest: report avoids simulated production percentages and retains explicit no-device data
+ok 83 - report avoids simulated production percentages and retains explicit no-device data
+  ---
+  duration_ms: 0.178744
+  type: 'test'
+  ...
+# Subtest: weekly tracker emits ISO week number without duplicate W and supports direct jump to populated week
+ok 84 - weekly tracker emits ISO week number without duplicate W and supports direct jump to populated week
+  ---
+  duration_ms: 0.151724
+  type: 'test'
+  ...
+# Subtest: weekly matrix annotates empty rows and offers appropriately labelled cells
+ok 85 - weekly matrix annotates empty rows and offers appropriately labelled cells
+  ---
+  duration_ms: 0.266593
+  type: 'test'
+  ...
+# Subtest: weekly panel opens only from a selected person/week cell
+ok 86 - weekly panel opens only from a selected person/week cell
+  ---
+  duration_ms: 0.187096
+  type: 'test'
+  ...
+# Subtest: system cards distinguish legacy steps from genuine device completion
+ok 87 - system cards distinguish legacy steps from genuine device completion
+  ---
+  duration_ms: 0.174027
+  type: 'test'
+  ...
+# Subtest: brand and nav use unified NBDT labels without changing project records
+ok 88 - brand and nav use unified NBDT labels without changing project records
+  ---
+  duration_ms: 0.454351
+  type: 'test'
+  ...
+# Subtest: responsive screen contracts preserve blue palette and grouped configuration
+ok 89 - responsive screen contracts preserve blue palette and grouped configuration
+  ---
+  duration_ms: 0.163692
+  type: 'test'
+  ...
+# Subtest: project start is validated strictly including leap dates
+ok 90 - project start is validated strictly including leap dates
+  ---
+  duration_ms: 0.954168
+  type: 'test'
+  ...
+# Subtest: Friday Jan 30 is the first day of project Week 1, which runs Friday to Thursday
+ok 91 - Friday Jan 30 is the first day of project Week 1, which runs Friday to Thursday
+  ---
+  duration_ms: 12.928225
+  type: 'test'
+  ...
+# Subtest: current week is calculated from project timezone not machine locale
+ok 92 - current week is calculated from project timezone not machine locale
+  ---
+  duration_ms: 0.567468
+  type: 'test'
+  ...
+# Subtest: project weeks span year boundaries without resetting numbering
+ok 93 - project weeks span year boundaries without resetting numbering
+  ---
+  duration_ms: 0.131063
+  type: 'test'
+  ...
+# Subtest: explicit due dates remain preserved when project start moves; generated deadlines follow anchor
+ok 94 - explicit due dates remain preserved when project start moves; generated deadlines follow anchor
+  ---
+  duration_ms: 0.22336
+  type: 'test'
+  ...
+# Subtest: weekly tracker has no upper week calendar or Master Timeline
+ok 95 - weekly tracker has no upper week calendar or Master Timeline
+  ---
+  duration_ms: 0.330588
+  type: 'test'
+  ...
+# Subtest: footer weeks have real left/right arrows and shortcut to current week
+ok 96 - footer weeks have real left/right arrows and shortcut to current week
+  ---
+  duration_ms: 0.312662
+  type: 'test'
+  ...
+# Subtest: optional milestones are the only top week headings and have a quick editor
+ok 97 - optional milestones are the only top week headings and have a quick editor
+  ---
+  duration_ms: 0.226625
+  type: 'test'
+  ...
+# Subtest: current week and avatar alignment use explicit, accessible visual states
+ok 98 - current week and avatar alignment use explicit, accessible visual states
+  ---
+  duration_ms: 1.051111
+  type: 'test'
+  ...
+# Subtest: milestones are first-class project events and backups accept ownerless milestones
+ok 99 - milestones are first-class project events and backups accept ownerless milestones
+  ---
+  duration_ms: 10.072769
+  type: 'test'
+  ...
+1..99
+# tests 99
+# suites 0
+# pass 99
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 242.188442

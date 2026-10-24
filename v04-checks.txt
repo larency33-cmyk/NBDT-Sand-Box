@@ -1,0 +1,9 @@
+NBDT v0.4 · 2026-10-21
+npm test => PASS 56, FAIL 0
+NODE_PATH=<global node modules> node scripts/check-syntax.cjs => 0 TS/TSX syntax errors
+node scripts/check-bindings.cjs => previous check PASS 0 unbound identifiers; limited, not typecheck
+npm install => NOT AVAILABLE (EAI_AGAIN registry.npmjs.org)
+npm run build => NOT RUN (dependencies unavailable)
+npm run lint => NOT RUN (dependencies unavailable)
+Full v0.4 browser visual/end-to-end test => NOT RUN (dependencies unavailable)
+Prior verification/browser-results.json => historical isolated v0.3 scope only

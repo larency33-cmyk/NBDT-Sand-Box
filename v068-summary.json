@@ -1,0 +1,10 @@
+{
+  "version": "0.6.8",
+  "changes": "Removed persistent IndexedDB demo status banner globally; error-only fixed toast",
+  "tests_passed": 115,
+  "tests_failed": 0,
+  "tsx_syntax_errors": 0,
+  "binding_unbound_identifiers": 0,
+  "css_parse": "pass",
+  "vite_build": "not run: dependency packages not installed"
+}

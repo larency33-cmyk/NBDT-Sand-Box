@@ -1,0 +1,6 @@
+index.tsx: 0 syntax errors
+src/workspace.tsx: 0 syntax errors
+src/enhancements.tsx: 0 syntax errors
+vite.config.ts: 0 syntax errors
+{"scope":"Unbound identifiers only, not full lint","errors":0,"unresolvedModules":16}
+redesign.css parsed: 1123 top-level nodes

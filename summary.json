@@ -1,0 +1,31 @@
+{
+  "version": "0.3.0",
+  "scope": "Local demo only. Not production ready.",
+  "unitTests": 47,
+  "unitFailures": 0,
+  "browserChecks": 17,
+  "browserScope": "Isolated new components only, synthetic fixture, no full Vite app or Tailwind compilation",
+  "checks": [
+    {
+      "check": "binding-results.txt",
+      "exitCode": 0
+    },
+    {
+      "check": "syntax-results.txt",
+      "exitCode": 0
+    },
+    {
+      "check": "unit-results.txt",
+      "exitCode": 0
+    },
+    {
+      "check": "browser-log.txt",
+      "exitCode": 0
+    }
+  ],
+  "fullViteBuild": "NOT VERIFIED: dependency installation unavailable",
+  "fullTypeScriptLint": "NOT VERIFIED: unresolved external dependencies",
+  "serverAuthorization": "NOT IMPLEMENTED",
+  "sqlServerBackend": "NOT IMPLEMENTED",
+  "deployedToLiveSite": false
+}
