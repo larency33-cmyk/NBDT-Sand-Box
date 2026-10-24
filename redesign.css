@@ -1393,3 +1393,79 @@ button,select,input,textarea {font-family:inherit}
 .nb-store-error-toast span{flex:1 1 100%;overflow-wrap:anywhere}
 .nb-store-error-toast .nb-button{min-height:36px;padding:5px 12px}
 @media(max-width:600px){.nb-store-error-toast{right:12px;left:12px;bottom:12px;width:auto}}
+
+/* ============================================================================
+   v0.6.9 — WEEK NAVIGATION UX: 3 INDEPENDENT STATES
+   The visible four-week range is NOT the selected week and is NOT today.
+   Only the real current week gets the pale full-column emphasis. A selected
+   noncurrent week receives an outline on the footer card, never a filled
+   column or the same visual treatment as today.
+   ============================================================================ */
+.nb-tracker[data-view="overview"]{
+ --nb-current-week-fill:#eaf4ff;
+ --nb-current-week-fill-soft:#f4f9ff;
+ --nb-week-select-outline:#2177db;
+}
+/* Footer selected: outline only, regardless of first/last visible position. */
+.nb-tracker[data-view="overview"] .nb-week-wide-card.nb-week-wide-selected:not(.nb-week-wide-current){
+ background:#fff!important;
+ border:1.5px solid var(--nb-week-select-outline)!important;
+ box-shadow:0 0 0 1px rgba(33,119,219,.10)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-wide-card.nb-week-wide-selected:not(.nb-week-wide-current)>strong{
+ color:#165eaa!important;
+}
+/* Current week: the only filled blue week card. A thin outline on a selected
+   current week is allowed; this is an overlap of two *different* states. */
+.nb-tracker[data-view="overview"] .nb-week-wide-card.nb-week-wide-current{
+ background:linear-gradient(180deg,var(--nb-current-week-fill-soft),#deeeff)!important;
+ border:1.5px solid #9acaff!important;
+ box-shadow:inset 0 3px 0 #3e91e8!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-wide-card.nb-week-wide-current.nb-week-wide-selected{
+ border-color:var(--nb-week-select-outline)!important;
+ box-shadow:inset 0 3px 0 #3e91e8,0 0 0 1px rgba(33,119,219,.09)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-wide-card.nb-week-wide-current>strong{
+ color:#075db6!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column{
+ background:#eaf4ff!important;
+ box-shadow:inset 0 3px 0 #3e91e8!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell{
+ background:linear-gradient(180deg,#eff7ff,#e7f2ff)!important;
+ box-shadow:inset 2px 0 0 #c3defb,inset -2px 0 0 #c3defb!important;
+}
+/* Selection inside a clicked matrix cell is a focus affordance, not another
+   full-column current-week fill. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell.selected{
+ border:1px solid #83baf2!important;
+ background:rgba(234,244,255,.45)!important;
+ box-shadow:none!important;
+}
+/* Explicit distinction: selected-week task count vs four weeks currently viewed. */
+.nb-tracker>.nb-summary .nb-visible-summary{color:#607b99!important;font-weight:500!important}
+.nb-tracker>.nb-summary .nb-selected-summary{color:#0f61b8!important;font-weight:650!important}
+.nb-tracker .nb-show-selected-week{
+ min-height:30px!important;
+ padding:5px 9px!important;
+ font-size:12px!important;
+ border:1px solid #d4e5f7!important;
+ background:#fff!important;
+ color:#1e6cb6!important;
+}
+/* No native scrollbar controls, and never let footer cards initiate independent
+   scrolling. The matrix owns horizontal scrolling on compact displays. */
+.nb-tracker[data-view="overview"] .nb-week-card-scroller{
+ overflow-x:hidden!important;
+ overflow-y:hidden!important;
+ scrollbar-width:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-card-scroller::-webkit-scrollbar,
+.nb-tracker[data-view="overview"] .nb-week-card-scroller::-webkit-scrollbar-button{
+ display:none!important;width:0!important;height:0!important;
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-tracker .nb-week-wide-card,.nb-tracker .nb-week-cell{transition:none!important}
+}

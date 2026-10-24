@@ -55,5 +55,5 @@ test('tracker has only Overview and List, no Week mode, and never shows ISO labe
  assert.ok(view.includes('onQuickTaskCreate'));
  assert.ok(view.includes('nb-quick-add-form'));
  assert.ok(index.includes('quickSetTaskStatus'));
- assert.ok(index.includes("url.searchParams.set('week',String(w+1))"));
+ assert.ok(index.includes("url.searchParams.set('week',String(start+1))"));
 });

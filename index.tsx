@@ -3,6 +3,7 @@ import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus} from './src/tracker-actions.mjs';
+import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
@@ -2413,7 +2414,7 @@ const App = () => {
     const today = currentWeekIndex(project.startDate, project.timezone || 'Europe/Paris');
     setCurrentStartWeek(Math.max(1,Math.min(520,(pinned ?? today ?? 0)+1)));
   }, [project.id, project.startDate]);
-  const focusedWeekIndex = Math.max(0, Math.min(currentStartWeek - 1, TOTAL_WEEKS - 1));
+  const focusedWeekIndex = clampWeekViewport(currentStartWeek - 1);
   const roadmapWeekWidth = isWeeklyFocus ? 1280 : WEEK_WIDTH;
   const visibleWeekIndexes = useMemo(() => {
     if (isWeeklyFocus) return [focusedWeekIndex];
@@ -3419,7 +3420,7 @@ const App = () => {
         }} onQuickTaskCreate={async(data:any)=>{
           if(!isAdmin)throw Error('Enable Edit mode to add a task.');
           await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
-        }} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{setCurrentStartWeek(w+1);const url=new URL(location.href);url.searchParams.set('week',String(w+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
+        }} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');url.searchParams.delete('selectedWeek');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{const start=clampWeekViewport(w);setCurrentStartWeek(start+1);const url=new URL(location.href);url.searchParams.set('week',String(start+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
             <header className="nb-registry-heading">

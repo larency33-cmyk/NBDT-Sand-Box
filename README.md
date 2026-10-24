@@ -1,3 +1,7 @@
+# NBDT v0.6.9 — Independent Week Navigation UX
+
+See `NBDT_v0_6_9_release_notes_RU.md` for verified changes, validation, and setup.
+
 # NBDT Web Project v0.6.8 — Без верхней полосы статуса
 
 Полный исходный код на основе v0.6.7. Удалена постоянная верхняя полоска `Demo data · IndexedDB · no shared sync` со **всех экранов**. При успешном сохранении индикатор не показывается, высота интерфейса освобождена; при реальной ошибке сохранения появится только небольшой overlay-alert внизу справа. IndexedDB и все данные остались без изменений.

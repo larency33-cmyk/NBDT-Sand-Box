@@ -1,7 +1,7 @@
 import {Migration,download,useUnsaved} from './enhancements';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
-import {projectWeekDate,projectWeekDays,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
+import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
 import {clampWeekViewport,moveWeekViewport} from './week-navigation.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
@@ -75,6 +75,35 @@ function QuickAssignmentRow({task,role,ownerName,personId,isAdmin,onQuickTaskSav
 
 export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,week,setWeek}:any){
  const [view,setView]=useState(()=>({overview:'Overview',list:'List'} as any)[new URLSearchParams(location.search).get('view')||'overview']||'Overview'),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[collapsed,setCollapsed]=useState<string[]>([]),[detail,setDetail]=useState<any>(null);
+ // The left edge of the 4-week viewport is provided as `week` by the app.
+ // Selection is independent. Selecting a week MUST NOT shift the viewport.
+ const [selectedWeek,setSelectedWeek]=useState<number>(()=>{
+  const requested=new URLSearchParams(location.search).get('selectedWeek');
+  const parsed=weekIndexFromIso(project.startDate,requested);
+  const legacyWeek=weekIndexFromIso(project.startDate,new URLSearchParams(location.search).get('week'));
+  return parsed!==null?parsed:(legacyWeek!==null&&legacyWeek>clampWeekViewport(legacyWeek)?legacyWeek:week);
+ });
+ const selectWeek=(w:number)=>{
+  const next=Math.max(0,Math.min(519,Math.trunc(w)));
+  setSelectedWeek(next);
+  const url=new URL(location.href);
+  url.searchParams.set('selectedWeek',String(next+1));
+  window.history.replaceState({nbdt:true},'',url.pathname+url.search);
+ };
+ // Restore selection from share URLs. Changing projects or the calendar anchor
+ // intentionally reselects the actual current project week, without allowing an
+ // old query parameter to pin a now-unrelated week.
+ const anchorRef=useRef({projectId:project.id,startDate:project.startDate});
+ useEffect(()=>{
+  const anchorChanged=anchorRef.current.projectId!==project.id||anchorRef.current.startDate!==project.startDate;
+  anchorRef.current={projectId:project.id,startDate:project.startDate};
+  const requested=anchorChanged?null:new URLSearchParams(location.search).get('selectedWeek');
+  const parsed=weekIndexFromIso(project.startDate,requested);
+  const freshCurrent=currentWeekIndex(project.startDate,project.timezone||'Europe/Paris');
+  const legacyWeek=weekIndexFromIso(project.startDate,new URLSearchParams(location.search).get('week'));
+  const pinnedSelection=legacyWeek!==null&&legacyWeek>clampWeekViewport(legacyWeek)?legacyWeek:week;
+  setSelectedWeek(parsed!==null?parsed:(anchorChanged?Math.max(0,Math.min(519,freshCurrent??0)):pinnedSelection));
+ },[project.id,project.startDate]);
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
@@ -128,7 +157,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  },[selected?.id,selected?.week,addingAssignment,newAssignment,quickAdding]);
 
  useEffect(()=>{const tick=()=>setTodayDate(todayInTimezone(project.timezone||'Europe/Paris'));tick();const timer=window.setInterval(tick,60000);return()=>clearInterval(timer);},[project.timezone]);
- const actualCurrentWeek=currentWeekIndex(project.startDate,project.timezone||'Europe/Paris',new Date(todayDate+'T12:00:00Z'));
+ const actualCurrentWeek=weekIndexFromDate(project.startDate,todayDate);
  const currentWeek=actualCurrentWeek===null?-1:actualCurrentWeek;
  const milestoneTone=(ms:any)=>/freeze|block|critical/i.test(ms.label)?'critical':/qa|testing|review|inspection/i.test(ms.label)?'review':/handover|final|complete|launch/i.test(ms.label)?'complete':'standard';
  const updateStart=async(value:string)=>{if(dateSaving||value===project.startDate)return;if(!validDate(value)){setDateError('Choose a valid date.');return;}if(project.tasks.length&&!window.confirm('Move project planning calendar to '+value+'? The week positions of tasks are preserved, and milestone dates shift with the new week anchor. Explicit task due dates are not changed.'))return;setDateSaving(true);setDateError('');try{await onProjectStartChange(value);}catch(error:any){setDateError(error?.message||'Unable to save project start date.');}finally{setDateSaving(false);}};
@@ -142,13 +171,15 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const chosen=selected?at(selected.id,selected.week):[];
  const open=(t:any)=>setDetail(t);
  const role=(t:any,id:string)=>t.memberId===id?'Owner':'Helper';
- const selectedIsoWeek=`Week ${week+1}`;
+ const selectedIsoWeek=`Week ${selectedWeek+1}`;
  const weekIso=(w:number)=>`Week ${w+1}`;
  const weekDate=(w:number)=>projectWeekDate(project.startDate,w);
  const milestonesAt=(w:number)=>milestones.filter((m:any)=>m.startWeek===w);
  const closestScheduledWeek=tasks.length?tasks.map((t:any)=>t.startWeek).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
  const visibleWeeksHaveTasks=weeks.some(w=>tasks.some((t:any)=>t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t)));
- const currentWeekTasks=tasks.filter((t:any)=>t.startWeek<=week&&t.startWeek+t.duration>week&&matches(t));
+ const currentWeekTasks=tasks.filter((t:any)=>t.startWeek<=selectedWeek&&t.startWeek+t.duration>selectedWeek&&matches(t));
+ const visibleRangeTasks=tasks.filter((t:any)=>t.startWeek<week+4&&t.startWeek+t.duration>week&&matches(t));
+ const visibleRangeCount=new Set(visibleRangeTasks.map((t:any)=>t.id)).size;
  const currentWeekTaskCount=new Set(currentWeekTasks.map((t:any)=>t.id)).size;
  const blockedCount=new Set(currentWeekTasks.filter((t:any)=>t.status==='Blocked').map((t:any)=>t.id)).size;
  const totalAssignments=currentWeekTasks.length;
@@ -166,7 +197,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     <p>{`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`} · {project.name}</p>
    </div>
    <div className="nb-actions">
-    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.set('view',view.toLowerCase());await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
+    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.set('view',view.toLowerCase());url.searchParams.set('selectedWeek',String(selectedWeek+1));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
     <B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>
     {isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}
    </div>
@@ -184,13 +215,15 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   <div className="nb-summary">
    <div className="nb-summary-metrics">
     <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.length} people</span>
-    <span className="nb-summary-pill"><ClipboardCheck size={17} aria-hidden="true"/>{currentWeekTaskCount} unique tasks in {selectedIsoWeek}</span>
-    <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked</span>
-    {totalMilestones>0&&<span className="nb-summary-pill"><Flag size={17} aria-hidden="true"/>{totalMilestones} milestones</span>}
-    {currentWeek===week&&<span className="nb-current-indicator">Current week</span>}
+    <span className="nb-summary-pill nb-selected-summary" title="Selection does not move the visible four-week window"><ClipboardCheck size={17} aria-hidden="true"/>{selectedIsoWeek} selected · {currentWeekTaskCount} unique tasks</span>
+    <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked in selected week</span>
+    <span className="nb-summary-pill nb-visible-summary">Viewing Weeks {week+1}–{Math.min(520,week+4)} · {visibleRangeCount} unique tasks</span>
+    {totalMilestones>0&&<span className="nb-summary-pill"><Flag size={17} aria-hidden="true"/>{totalMilestones} milestones in view</span>}
+    {currentWeek>=week&&currentWeek<week+4&&<span className="nb-current-indicator">Current: Week {currentWeek+1}</span>}
    </div>
    <div className="nb-summary-actions">
-    {!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(closestScheduledWeek)}>View scheduled assignments →</B>}
+    {(selectedWeek<week||selectedWeek>=week+4)&&<B className="nb-show-selected-week" onClick={()=>setWeek(clampWeekViewport(selectedWeek))}>Show selected Week {selectedWeek+1} →</B>}
+    {!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(clampWeekViewport(closestScheduledWeek))}>View scheduled assignments →</B>}
     <button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button>
    </div>
   </div>
@@ -210,8 +243,8 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
         </header>
         <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
         {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
-        {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
-        <button type="button" className="nb-mobile-open-assignments" onClick={()=>{openQuickPanel(m.id,week);}}>View assignments →</button>
+        {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
+        <button type="button" className="nb-mobile-open-assignments" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}>View assignments →</button>
        </section>;
       })}
      </div>
@@ -244,7 +277,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
           const list=at(m.id,w);
           const blocked=list.filter((t:any)=>t.status==='Blocked').length;
           return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')}>
-           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{openQuickPanel(m.id,w);}}>
+           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{selectWeek(w);openQuickPanel(m.id,w);}}>
             <div className="nb-week-cell-head">
              <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
              {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
@@ -260,7 +293,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
      </table>
     </>:<div className="nb-task-list">
       <div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>
-      {people.map((m:any)=>{const list=tasks.filter((t:any)=>assignments(t).includes(m.id)&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{openQuickPanel(m.id,week);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{openQuickPanel(m.id,week,t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
+      {people.map((m:any)=>{const list=tasks.filter((t:any)=>assignments(t).includes(m.id)&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}><span className="nb-avatar">{m.name.charAt(0)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small></div>{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{const taskWeek=Math.max(week,t.startWeek);selectWeek(taskWeek);openQuickPanel(m.id,taskWeek,t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
      </div>}
    </div>
   </div>
@@ -301,10 +334,10 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
      {weeks.map(w=>{
       const days=projectWeekDays(project.startDate,w);
       const isCurrent=currentWeek===w;
-      return <button type="button" key={w} className={'nb-week-wide-card '+(w===week?'nb-week-wide-selected ':'')+(isCurrent?'nb-week-wide-current ':'')}
-       aria-pressed={w===week} aria-current={isCurrent?'date':undefined}
+      return <button type="button" key={w} className={'nb-week-wide-card '+(w===selectedWeek?'nb-week-wide-selected ':'')+(isCurrent?'nb-week-wide-current ':'')}
+       aria-pressed={w===selectedWeek} aria-current={isCurrent?'date':undefined}
        aria-label={`${weekIso(w)}, ${weekRange(project.startDate,w)}${isCurrent?', current week':''}`}
-       onClick={()=>setWeek(w)}>
+       onClick={()=>selectWeek(w)}>
        <strong>{weekIso(w)}</strong>
        <span className="nb-week-wide-date">{weekRange(project.startDate,w)}</span>
        <span className="nb-week-wide-days" aria-label="Seven days of this project week">
@@ -319,7 +352,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
    </div>
    <div className="nb-week-navigation-right">
     <B disabled={week>=516} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
-    <B disabled={currentWeek<0||currentWeek>=520||clampWeekViewport(currentWeek)===week} onClick={()=>{if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
+    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onClick={()=>{if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
    </div>
   </footer>
  </section>;

@@ -40,6 +40,6 @@ test('footer is a single-direction mirror and cannot start competing scroll inte
 });
 test('today button remains usable with navigation arrows and current date logic',()=>{
  assert.match(tracker,/className="nb-go-today"/);
- assert.match(tracker,/currentWeekIndex\(project.startDate/);
+ assert.match(tracker,/weekIndexFromDate\(project.startDate,todayDate\)/);
  assert.match(tracker,/weekFooterScrollRef\.current\.scrollLeft=0/);
 });
