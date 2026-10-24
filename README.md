@@ -1,3 +1,7 @@
+# NBDT v0.6.11 — Native Week Scrollbar Arrows Fix
+
+Последние исправления и ограничения: `NBDT_v0_6_11_release_notes_RU.md`.
+
 # NBDT v0.6.10 — Week Navigation & Search Focus Fix
 
 Последние изменения и ограничения проверки: `NBDT_v0_6_10_release_notes_RU.md`.

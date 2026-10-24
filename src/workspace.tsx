@@ -338,7 +338,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   <footer className="nb-week-footer nb-aligned-week-footer" aria-label="Project weeks navigation">
    <div className="nb-week-card-scroller" ref={weekFooterScrollRef}>
     <div className="nb-week-card-grid">
-     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onClick={()=>navigateWeek(-1)} aria-label="Previous project week" className="nb-weeks-prev"><ChevronLeft size={18} aria-hidden="true"/></B></div>
+     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>navigateWeek(-1)} aria-label="Previous project week" className="nb-weeks-prev"><ChevronLeft size={18} aria-hidden="true"/></B></div>
      {weeks.map(w=>{
       const days=projectWeekDays(project.startDate,w);
       const isCurrent=currentWeek===w;
@@ -359,8 +359,8 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     </div>
    </div>
    <div className="nb-week-navigation-right">
-    <B disabled={week>=516} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
-    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onClick={()=>{resetWeekScroll();selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
+    <B disabled={week>=516} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
+    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>{resetWeekScroll();selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
    </div>
   </footer>
  </section>;
