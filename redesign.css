@@ -1644,6 +1644,10 @@ body:has(.nb-tracker)::-webkit-scrollbar{
   vertical-align:top!important;
   border-bottom:1px solid #d9e6f3!important;
   background:#f1f7fe!important;
+  border-top-left-radius:16px!important;
+  border-top-right-radius:16px!important;
+  overflow:hidden!important;
+  background-clip:padding-box!important;
 }
 .nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(4):not(.nb-current-week-column),
 .nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(2):not(.nb-current-week-column){
@@ -1668,6 +1672,8 @@ body:has(.nb-tracker)::-webkit-scrollbar{
   flex-direction:column!important;
   justify-content:flex-start!important;
   gap:10px!important;
+  border-top-left-radius:16px!important;
+  border-top-right-radius:16px!important;
 }
 .nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-top{
   width:100%;display:flex;align-items:flex-start;justify-content:space-between;
