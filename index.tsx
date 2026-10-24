@@ -7,6 +7,7 @@ import {quickCreateAssignment,quickSetTaskStatus} from './src/tracker-actions.mj
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
+import './weekly-tracker-premium-v021.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 

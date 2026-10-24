@@ -1,0 +1,155 @@
+/* NBDT v0.6.21 — premium weekly milestone headers.
+   Scoped to Weekly Tracker Overview: intentionally does NOT touch the sidebar,
+   other pages, task status colors, or the aligned bottom-week geometry. */
+
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child){
+  --week-bg-a:#eaf3ff;--week-bg-b:#d9eafd;
+  --week-orb:rgba(77,142,224,.11);--week-orb-soft:rgba(77,142,224,.08);
+  --week-accent:#2377df;--week-accent-border:#c4daf2;
+  --week-chip-bg:rgba(255,255,255,.69);--week-chip-border:#bcd5f2;
+  --week-text:#1e4e8c;
+}
+/* A recurring, fixed palette by project week number. Hues do not shift when scrolling.
+   Milestone state colors (completed, review, critical) have separate semantics. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-blue {
+  --week-bg-a:#e1f0ff;--week-bg-b:#d3e7fe;
+  --week-orb:rgba(52,138,245,.13);--week-orb-soft:rgba(52,138,245,.09);
+  --week-accent:#1672d8;--week-accent-border:#aecdF1;
+  --week-chip-border:#aad0fa;--week-text:#1452a0;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-violet {
+  --week-bg-a:#f0edff;--week-bg-b:#e4e9ff;
+  --week-orb:rgba(131,111,223,.13);--week-orb-soft:rgba(131,111,223,.075);
+  --week-accent:#7158d4;--week-accent-border:#d5cefb;
+  --week-chip-border:#d6cdf8;--week-text:#5d47b1;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-orchid {
+  --week-bg-a:#f6eafa;--week-bg-b:#f4e3f8;
+  --week-orb:rgba(194,111,204,.13);--week-orb-soft:rgba(194,111,204,.085);
+  --week-accent:#9d5db9;--week-accent-border:#ebd3f0;
+  --week-chip-border:#e6c9ed;--week-text:#804a9a;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-mint {
+  --week-bg-a:#e6fbf7;--week-bg-b:#d7f5ef;
+  --week-orb:rgba(40,178,161,.12);--week-orb-soft:rgba(40,178,161,.08);
+  --week-accent:#188d8f;--week-accent-border:#bce8dd;
+  --week-chip-border:#aee1d7;--week-text:#176c78;
+}
+
+/* One crisp self-contained header per week; no fade or extra top date. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head {
+  height:116px!important; min-height:116px!important;
+  padding:13px 13px 12px!important;gap:7px!important;
+  display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+  position:relative!important;isolation:isolate!important;overflow:hidden!important;
+  border:1px solid var(--week-accent-border)!important;
+  border-radius:12px!important;
+  background:
+    radial-gradient(circle at 101% -28%,var(--week-orb) 0 80px,transparent 81px),
+    radial-gradient(circle at 96% 125%,var(--week-orb-soft) 0 91px,transparent 92px),
+    linear-gradient(117deg,var(--week-bg-a) 0%,var(--week-bg-b) 100%)!important;
+  box-shadow:0 3px 10px rgba(35,82,145,.065)!important;
+}
+/* Current week is identified by BLUE, not inferred from the hue sequence or viewport position. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
+  border-color:#92bff5!important;
+  background:
+    radial-gradient(circle at 101% -28%,rgba(43,137,250,.16) 0 80px,transparent 81px),
+    radial-gradient(circle at 96% 125%,rgba(38,126,239,.09) 0 91px,transparent 92px),
+    linear-gradient(117deg,#e1efff 0%,#d1e7ff 100%)!important;
+  box-shadow:inset 0 3px 0 #0878f6,0 3px 12px rgba(27,98,176,.11)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head::after{
+  content:none!important;display:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-top{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  min-height:32px!important;max-height:none!important;gap:10px!important;
+  position:relative!important;z-index:1!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-title{
+  display:flex!important;align-items:center!important;min-width:0!important;flex:1!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label{
+  color:#142c52!important;font-weight:780!important;font-size:18px!important;
+  letter-spacing:-.4px!important;line-height:26px!important;
+  text-align:left!important;white-space:nowrap!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label:hover{color:var(--week-accent)!important}
+/* Decorative calendar mark, not another navigation control. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-range-hint{
+  width:33px;min-width:33px;height:33px;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.92);border-radius:9px;
+  background:rgba(255,255,255,.84);color:var(--week-accent);
+  box-shadow:0 2px 7px rgba(39,83,139,.10);
+  pointer-events:none;cursor:default;flex:0 0 auto;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-milestones{
+  position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;
+  width:100%!important;min-height:32px!important;max-height:40px!important;
+  gap:5px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  border:0!important;background:transparent!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip{
+  height:32px!important;min-height:32px!important;min-width:0!important;
+  padding:5px 11px!important;border-radius:7px!important;
+  background:var(--week-chip-bg)!important;color:var(--week-text)!important;
+  border:1px solid var(--week-chip-border)!important;
+  box-shadow:0 1px 3px rgba(30,68,123,.035)!important;
+  font-size:12px!important;font-weight:720!important;
+  display:inline-flex!important;align-items:center!important;gap:8px!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip:not(.nb-ms-complete):not(.nb-ms-critical):not(.nb-ms-review) svg{
+  color:var(--week-accent)!important;opacity:1!important;
+}
+/* Actual milestone states retain their semantic colors, regardless of week hue. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip.nb-ms-complete{
+  background:#e2f7ee!important;border-color:#bde9d7!important;color:#097b55!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip.nb-ms-critical{
+  background:#fff0e8!important;border-color:#ffd7c5!important;color:#ab4a23!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip.nb-ms-review{
+  background:#fff9e5!important;border-color:#f1dfaa!important;color:#846516!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-empty {
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  height:32px!important;min-height:32px!important;flex:1!important;
+  color:#7f91a8!important;font-size:12px!important;font-weight:550!important;
+  border:1px dashed var(--week-chip-border)!important;border-radius:7px!important;
+  background:rgba(255,255,255,.62)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-add{
+  min-height:30px!important;width:30px!important;min-width:30px!important;
+  border:1px solid var(--week-chip-border)!important;border-radius:7px!important;
+  background:rgba(255,255,255,.88)!important;color:var(--week-accent)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-add:hover{
+  background:#fff!important;box-shadow:0 2px 8px rgba(34,83,153,.12)!important;
+}
+/* Subtle card clarity beneath the stronger headers; status pills remain unchanged. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td .nb-week-cell{
+  border-color:#d8e6f4!important;
+  box-shadow:0 2px 8px rgba(28,75,132,.066)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell{
+  border-color:#b9d8f8!important;
+  box-shadow:0 2px 9px rgba(31,97,170,.095)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td .nb-week-cell:hover{
+  box-shadow:0 4px 14px rgba(30,83,143,.13)!important;
+}
+/* Week navigation retains measured grid positioning (do not add column gaps). */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card{
+  box-shadow:0 3px 12px rgba(26,75,133,.075)!important;
+}
+@media (max-width:1000px){
+  .nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head{
+    height:111px!important;min-height:111px!important;padding:11px!important;
+  }
+  .nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label{font-size:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head,
+  .nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip{transition:none!important}
+}

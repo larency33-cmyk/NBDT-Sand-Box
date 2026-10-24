@@ -71,3 +71,7 @@ Old screenshots, historical reports, isolated verification artifacts, the obsole
 - Employee edit-mode controls now sit below names.
 - Employee deletion requires a separate explicit confirmation; owned task history is permanently deleted.
 - Week header fade-out was removed; headers use a solid blue fill.
+
+
+## v0.6.21 — Weekly Tracker header refresh
+Only the Weekly Tracker Overview uses `weekly-tracker-premium-v021.css`. Header colors are stable by project week ID, and current-week emphasis is independent of header color. The sidebar and all other screens retain v0.6.20 styling.

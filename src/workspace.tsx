@@ -4,6 +4,7 @@ import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-m
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
 import {clampWeekViewport,moveWeekViewport} from './week-navigation.mjs';
+import {weekHeaderTone} from './week-palette.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
@@ -350,10 +351,11 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
       <thead>
        <tr>
         <th className="nb-employee-head">Employee</th>
-        {weeks.map(w=>{const columnMilestones=milestonesAt(w);return <th key={w} className={currentWeek===w?'nb-current-week-column':''}>
+        {weeks.map(w=>{const columnMilestones=milestonesAt(w);const tone=weekHeaderTone(w);return <th key={w} className={(currentWeek===w?'nb-current-week-column':'')+' nb-week-tone-'+tone}>
          <div className="nb-week-head">
           <div className="nb-week-head-top">
            <div className="nb-week-head-title"><button type="button" className="nb-week-header-label" aria-label={`Select ${weekIso(w)}`} aria-pressed={selectedWeek===w} onClick={()=>selectWeek(w)} title={`Select ${weekIso(w)}`}>{weekIso(w)}</button></div>
+           <span className="nb-week-range-hint" aria-hidden="true"><CalendarDays size={17}/></span>
           </div>
           <div className="nb-week-milestones">
            {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} title={isAdmin?'Edit milestone':'Project milestone'} className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span></button>):<span className="nb-milestone-empty">No milestone</span>}

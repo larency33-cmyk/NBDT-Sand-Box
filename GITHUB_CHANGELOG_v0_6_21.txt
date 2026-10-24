@@ -1,0 +1,12 @@
+Updated/new files compared to v0.6.20:
+GITHUB_CHANGELOG_v0_6_21.txt
+README.md
+RELEASE_NOTES_v0_6_21_RU.md
+index.tsx
+package.json
+src/week-palette.mjs
+src/workspace.tsx
+tests/week-header-palette-v021.test.mjs
+weekly-tracker-premium-v021.css
+
+Removed: none
