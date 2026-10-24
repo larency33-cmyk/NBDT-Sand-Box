@@ -114,17 +114,25 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const weekFooterScrollRef=useRef<HTMLDivElement|null>(null);
  // One-way scroll mirroring only: the footer is a display of the matrix columns,
  // never a second independent scroll control that can fight the week arrows.
+ // The footer is deliberately NOT a scroll container: two nested native
+ // scrollbars used to show extra system arrows over the Next/Today controls.
+ // On narrow screens mirror the task grid via a visual transform only.
  const syncWeekScroll=()=>{
   const table=tableScrollRef.current,footer=weekFooterScrollRef.current;
-  if(table&&footer&&Math.abs(table.scrollLeft-footer.scrollLeft)>1)footer.scrollLeft=table.scrollLeft;
+  const cards=footer?.querySelector<HTMLElement>('.nb-week-card-grid');
+  if(table&&cards)cards.style.transform=`translate3d(${-table.scrollLeft}px,0,0)`;
+ };
+ const resetWeekScroll=()=>{
+  if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;
+  if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;
+  const cards=weekFooterScrollRef.current?.querySelector<HTMLElement>('.nb-week-card-grid');
+  if(cards)cards.style.transform='translate3d(0px,0,0)';
  };
  const navigateWeek=(direction:number)=>{
   const next=moveWeekViewport(week,direction);
   if(next===week)return;
-  // The arrows switch the project-week window, not the browser scroll position.
-  // Reset any old horizontal offset so all four cards remain under their columns.
-  if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;
-  if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;
+  // Move one project-week viewport; never request browser/scrollbar navigation.
+  resetWeekScroll();
   setWeek(next);
  };
  const closeQuickPanel=()=>{
@@ -352,7 +360,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
    </div>
    <div className="nb-week-navigation-right">
     <B disabled={week>=516} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
-    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onClick={()=>{if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
+    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onClick={()=>{resetWeekScroll();selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
    </div>
   </footer>
  </section>;

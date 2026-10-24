@@ -1,3 +1,7 @@
+# NBDT v0.6.10 — Week Navigation & Search Focus Fix
+
+Последние изменения и ограничения проверки: `NBDT_v0_6_10_release_notes_RU.md`.
+
 # NBDT v0.6.9 — Independent Week Navigation UX
 
 See `NBDT_v0_6_9_release_notes_RU.md` for verified changes, validation, and setup.

@@ -1469,3 +1469,73 @@ button,select,input,textarea {font-family:inherit}
 @media(prefers-reduced-motion:reduce){
  .nb-tracker .nb-week-wide-card,.nb-tracker .nb-week-cell{transition:none!important}
 }
+
+
+/* ============================================================================
+   v0.6.10 — Navigation and search-focus stability
+   Avoid the second scroll container that caused native four-arrow controls to
+   appear behind the Next and Today buttons on Chromium/Windows.
+   ============================================================================ */
+.nb-tracker[data-view="overview"] .nb-week-card-scroller{
+  overflow:clip!important;
+  overflow-x:clip!important;
+  overflow-y:clip!important;
+  scrollbar-width:none!important;
+  overscroll-behavior:none!important;
+  position:relative;
+  contain:paint;
+}
+.nb-tracker[data-view="overview"] .nb-week-card-grid{
+  will-change:transform;
+  transition:none!important;
+}
+/* The real navigation lives above the footer band, outside scrollable content. */
+.nb-tracker[data-view="overview"] .nb-week-navigation-right{
+  z-index:20!important;
+  pointer-events:auto!important;
+  isolation:isolate;
+}
+.nb-tracker[data-view="overview"] .nb-week-navigation-right .nb-button{
+  position:relative;z-index:1;outline-offset:2px;
+  touch-action:manipulation;
+}
+/* Only the content matrix may scroll horizontally on small screens. Its native
+   horizontal bar is hidden; touch/trackpad scrolling remains functional. */
+.nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar:horizontal{
+  height:0!important;display:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar-button,
+.nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar-corner{
+  display:none!important;width:0!important;height:0!important;
+}
+/* One restrained focus ring around the whole search control. The actual
+   input must never draw a second, offset outline inside it. */
+.nb-tracker>.nb-toolbar .nb-search-box{
+  outline:none!important;
+  transition:border-color .12s ease,box-shadow .12s ease;
+}
+.nb-tracker>.nb-toolbar .nb-search-box:focus-within{
+  outline:none!important;
+  outline-offset:0!important;
+  border-color:#8fbce9!important;
+  box-shadow:0 0 0 2px rgba(34,118,214,.12)!important;
+}
+.nb-tracker>.nb-toolbar .nb-search-box input:focus,
+.nb-tracker>.nb-toolbar .nb-search-box input:focus-visible{
+  outline:none!important;outline-offset:0!important;
+  box-shadow:none!important;border:0!important;
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-tracker>.nb-toolbar .nb-search-box{transition:none!important}
+}
+/* Chromium honors scrollbar-width before legacy webkit selectors. Reset that
+   only for this matrix so the horizontal bar can truly be removed without
+   removing its useful vertical scroll thumb. */
+@supports selector(::-webkit-scrollbar){
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap{scrollbar-width:auto!important}
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar{width:8px;height:0}
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar:horizontal{height:0!important;display:none!important}
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar-thumb{border-radius:9px;background:#bfd1e5}
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar-track{background:#f5f9ff}
+ .nb-tracker[data-view="overview"] .nb-tracker-table-wrap::-webkit-scrollbar-button{display:none!important;width:0!important;height:0!important}
+}
