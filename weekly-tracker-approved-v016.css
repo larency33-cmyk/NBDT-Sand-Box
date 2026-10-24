@@ -264,3 +264,127 @@
 .nb-tracker[data-view="overview"] .nb-week-grid tbody td {
   padding-bottom:2px!important;
 }
+
+
+/* v0.6.18 — Uniform weekly assignments, clearer cards, quieter header.
+   These declarations intentionally follow the v0.6.17 overrides. */
+.nb-tracker[data-view="overview"] {
+  --nb-uniform-task-height: 174px;
+  --nb-card-border: #d6e3f1;
+  --nb-card-shadow: 0 2px 7px rgba(24, 71, 127, .075);
+}
+
+/* Week label remains an accessible selector, without any arrow or date in the top header. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head {
+  height:99px!important; min-height:99px!important;
+  padding:11px 12px 10px!important;
+  gap:7px!important;
+  border-color:#d2e2f4!important;
+  background:linear-gradient(180deg,#e4f0ff 0%,#deebfb 100%)!important;
+  box-shadow:0 1px 4px rgba(37,77,126,.05)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid th.nb-current-week-column .nb-week-head {
+  background:linear-gradient(180deg,#dcecff 0%,#d6e9ff 100%)!important;
+  border-color:#b5d4f6!important;
+  box-shadow:inset 0 3px 0 #0876f3, 0 1px 4px rgba(37,77,126,.06)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-top {
+  min-height:21px!important; max-height:24px!important;
+  align-items:center!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head-title {width:100%!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label {
+  appearance:none!important;display:inline-flex!important;align-items:center!important;
+  border:0!important;outline-offset:3px!important;box-shadow:none!important;
+  background:transparent!important;padding:0!important;margin:0!important;
+  color:#18385e!important;font-size:14px!important;line-height:21px!important;
+  font-weight:750!important;cursor:pointer!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label:hover {color:#075cbd!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label:focus-visible {
+  outline:2px solid #207cf1!important;border-radius:3px!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-milestones {min-height:30px!important;}
+
+/* All people rows have the same footprint, including empty rows.
+   Four visible assignments and the +N more line fit within one standard cell. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr {height:180px!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td {padding-bottom:6px!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb-no-assignments .nb-week-cell {
+  height:var(--nb-uniform-task-height)!important;
+  min-height:var(--nb-uniform-task-height)!important;
+  max-height:var(--nb-uniform-task-height)!important;
+  box-sizing:border-box!important;
+  padding:13px 12px 10px!important;
+  gap:3px!important;
+  border:1px solid var(--nb-card-border)!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  box-shadow:var(--nb-card-shadow)!important;
+  overflow:hidden!important;
+  transition:border-color .13s ease,box-shadow .13s ease!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(odd):not(.nb-current-week-cell) .nb-week-cell {background:#fafdff!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(even):not(.nb-current-week-cell) .nb-week-cell {background:#ffffff!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell {
+  background:linear-gradient(180deg,#edf6ff 0%,#e7f2ff 100%)!important;
+  border-color:#c0d9f5!important;
+  box-shadow:0 2px 9px rgba(32,95,159,.09)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell:hover {
+  border-color:#9abde7!important;
+  box-shadow:0 3px 12px rgba(33,85,144,.115)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td .nb-week-cell.selected {
+  border-color:#167af2!important;
+  box-shadow:0 0 0 1px rgba(22,122,242,.35),0 3px 12px rgba(33,85,144,.12)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-mini-task {min-height:22px!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell-head {margin-bottom:4px!important;}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:last-child .nb-week-cell {border-radius:8px!important;}
+
+/* Footer week buttons must look like separate tappable cards, while preserving
+   measured column alignment and contained first/last navigation arrows. */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card {
+  border:1px solid #cbddee!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  box-shadow:0 3px 10px rgba(27,70,119,.085)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell:nth-child(odd) .nb-week-wide-card {background:#fbfdff!important;}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-current {
+  background:linear-gradient(180deg,#edf6ff,#e4f1ff)!important;
+  border-color:#93c2f5!important;
+  box-shadow:0 3px 11px rgba(28,92,159,.11)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-selected {
+  border:2px solid #0876ef!important;
+  box-shadow:0 3px 11px rgba(28,92,159,.12)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card:hover {
+  border-color:#83b6ec!important;
+  box-shadow:0 4px 14px rgba(27,70,119,.125)!important;
+}
+@media(prefers-reduced-motion:reduce) {
+  .nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell {transition:none!important;}
+}
+
+/* v0.6.18 cascade guard: old legacy rules used more specific selectors. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
+  background:linear-gradient(180deg,#daebff 0%,#d5e8fd 100%)!important;
+  border-color:#afd2f7!important;
+  box-shadow:inset 0 3px 0 #0876f3,0 2px 7px rgba(28,88,150,.09)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:not(.nb-current-week-cell) .nb-week-cell {
+  box-shadow:var(--nb-card-shadow)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell {
+  box-shadow:0 2px 9px rgba(32,95,159,.10)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:not(.nb-current-week-cell) .nb-week-cell:hover {
+  box-shadow:0 4px 13px rgba(33,85,144,.13)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell:hover {
+  box-shadow:0 4px 13px rgba(33,85,144,.15)!important;
+}
