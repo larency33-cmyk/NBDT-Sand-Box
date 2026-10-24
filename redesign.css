@@ -1992,3 +1992,66 @@ body:has(.nb-tracker)::-webkit-scrollbar{
 .nb-tracker[data-view="overview"] .nb-week-footer.nb-aligned-week-footer{
   background:#f7fbff!important;
 }
+
+/* v0.6.15 — refine separated week columns: remove double rounding, tighten gaps, clean top seam */
+
+/* reduce horizontal gap between week columns by roughly half */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child),
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td{
+  padding-left:4px!important;
+  padding-right:4px!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:nth-child(2),
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(2){
+  padding-left:6px!important;
+}
+
+/* the structural table cell itself should not show any rounded / highlighted shell */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child),
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column{
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+
+/* keep the rounded shape only on the inner week header card */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head{
+  border-top-left-radius:14px!important;
+  border-top-right-radius:14px!important;
+  border-bottom-left-radius:0!important;
+  border-bottom-right-radius:0!important;
+  margin:0!important;
+  position:relative!important;
+  z-index:1!important;
+}
+
+/* each header card stands alone without a top seam between columns */
+.nb-tracker[data-view="overview"] .nb-week-grid thead tr,
+.nb-tracker[data-view="overview"] .nb-week-grid thead,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child){
+  background:transparent!important;
+}
+
+/* remove the visible vertical seam at the top between neighboring week headers */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) + th:not(:first-child){
+  box-shadow:none!important;
+}
+
+/* body columns remain visually separate but cleaner */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell{
+  border-left:1px solid #dbe7f3!important;
+  border-right:1px solid #dbe7f3!important;
+}
+
+/* remove any residual top divider feeling directly under the rounded header */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:first-child td .nb-week-cell{
+  box-shadow:none!important;
+}
+
+/* current week uses the same single rounded shape with just a clean blue top accent */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head{
+  box-shadow:inset 0 3px 0 var(--nb-approved-blue)!important;
+  border-color:#cddff2!important;
+}
