@@ -1,1 +1,0 @@
-CSS parser: top level rules=608, errors=0
