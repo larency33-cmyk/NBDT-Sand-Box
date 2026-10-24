@@ -1,3 +1,7 @@
+# NBDT v0.6.12 — Approved Weekly Tracker Mockup
+
+Последний утверждённый экран Weekly Tracker перенесён из изображения от 24.10.2026. Подробнее: `NBDT_v0_6_12_release_notes_RU.md`.
+
 # NBDT v0.6.11 — Native Week Scrollbar Arrows Fix
 
 Последние исправления и ограничения: `NBDT_v0_6_11_release_notes_RU.md`.

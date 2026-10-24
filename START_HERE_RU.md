@@ -1,3 +1,5 @@
+NBDT v0.6.12 — макет Weekly Tracker от 24 октября 2026 реализован. См. `NBDT_v0_6_12_release_notes_RU.md`.
+
 NBDT v0.6.11: устранён конфликт нативных полос прокрутки с кнопкой Next и Today.
 См. `NBDT_v0_6_11_release_notes_RU.md`.
 
