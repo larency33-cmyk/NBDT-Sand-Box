@@ -1,6 +1,0 @@
-v0.6.12 unit tests: # pass 138
-# fail 0
-Syntax: 0 errors (index.tsx, src/workspace.tsx, src/enhancements.tsx, vite.config.ts)
-Bindings: 0 unbound identifiers; 16 unresolved external modules (dependencies not installed).
-Full npm/Vite installation: not verified (npm installation timed out in this environment).
-Browser geometry: isolated CSS test, not full app.

@@ -1,8 +1,0 @@
-
-> nbdt@0.5.0 check:syntax
-> node scripts/check-syntax.cjs
-
-index.tsx: 0 syntax errors
-src/workspace.tsx: 0 syntax errors
-src/enhancements.tsx: 0 syntax errors
-vite.config.ts: 0 syntax errors
