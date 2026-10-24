@@ -388,3 +388,58 @@
 .nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell:hover {
   box-shadow:0 4px 13px rgba(33,85,144,.15)!important;
 }
+
+
+/* v0.6.19 — the header's last 15% fades into the board without a bottom line. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head {
+ position:relative!important; isolation:isolate!important; overflow:hidden!important;
+ border-bottom:0!important;
+ border-radius:12px 12px 0 0!important;
+ background:linear-gradient(to bottom,#e6f1ff 0%,#e3efff 82%,rgba(227,239,255,0) 100%)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
+ background:linear-gradient(to bottom,#dcecff 0%,#e5f2ff 82%,rgba(229,242,255,0) 100%)!important;
+}
+/* Cover the fading tail of the vertical borders without masking milestone text. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head::after {
+ content:"";position:absolute;pointer-events:none;z-index:0;
+ left:-1px;right:-1px;bottom:0;height:17%;
+ background:linear-gradient(to bottom,rgba(247,251,255,0),#f7fbff);
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head > * {position:relative;z-index:1}
+/* Preserve an accessible clear header label and milestone interactions. */
+.nb-tracker .nb-person-cell .nb-person-copy {min-width:0;flex:1 1 auto}
+.nb-tracker .nb-member-actions {display:flex;flex:0 0 auto;gap:3px;align-items:center;margin-left:auto}
+.nb-tracker .nb-member-actions button,
+.nb-tracker .nb-member-rename-form button {
+ appearance:none;border:1px solid #d8e6f5;background:#fff;color:#3874bc;border-radius:7px;
+ min-width:28px;min-height:28px;display:inline-flex;align-items:center;justify-content:center;
+ cursor:pointer;padding:5px;
+}
+.nb-tracker .nb-member-actions button:hover,.nb-tracker .nb-member-rename-form button:hover{background:#eaf4ff;border-color:#a9c9ed}
+.nb-tracker .nb-member-actions button[aria-label^="Remove"] {color:#a9464a}
+.nb-tracker .nb-member-actions button[aria-label^="Remove"]:hover {background:#fff0f1;border-color:#f2c3c6}
+.nb-tracker .nb-member-rename-form {display:flex;gap:4px;align-items:center;min-width:0;max-width:100%}
+.nb-tracker .nb-member-rename-form input,.nb-tracker .nb-member-create-form input {
+ min-width:0;flex:1 1 auto;height:34px;border:1px solid #9ec5f2;border-radius:7px;
+ padding:5px 8px;background:#fff;color:#183a64;font-size:13px;
+}
+.nb-tracker .nb-member-create-row{display:flex;align-items:center;min-height:58px;padding:10px 15px 10px calc(var(--nb-employee-width) + 5px);gap:8px}
+.nb-tracker .nb-member-create-trigger {display:flex;align-items:center;gap:8px;color:#126ac8;background:#eef6ff;border:1px dashed #9ccbf4;border-radius:8px;padding:9px 13px;cursor:pointer;font-weight:650}
+.nb-tracker .nb-member-create-trigger:hover{background:#e1f0ff}
+.nb-tracker .nb-member-create-form{display:flex;align-items:center;gap:7px;width:min(520px,100%);max-width:100%}
+.nb-tracker .nb-member-create-form button {border:1px solid #c1d9ef;border-radius:7px;background:#fff;color:#1660ac;padding:7px 10px;cursor:pointer}
+.nb-tracker .nb-member-create-form button[type="submit"]{background:#0969e8;color:#fff;border-color:#0969e8}
+.nb-tracker .nb-member-error{color:#b6323a;font-size:12px;line-height:18px;padding:8px 12px;margin:0}
+.nb-tracker .nb-person-copy strong{overflow-wrap:anywhere}
+.nb-tracker .nb-member-rename-list{padding:7px 12px;max-width:500px}
+@media(max-width:1090px){.nb-tracker .nb-member-create-row{padding-left:15px}}
+
+/* The add-member control belongs under the Employee column, not under Week 1. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb-member-create-table-row {height:auto!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb-member-create-table-row th{padding:12px 10px!important;background:#f8fbff!important;border-bottom:1px solid #e1ebf6!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb-member-create-table-row td{background:transparent!important;border:0!important}
+.nb-tracker .nb-member-create-inline {flex-wrap:wrap;gap:5px}
+.nb-tracker .nb-member-create-inline input{width:100%;flex-basis:100%;}
+.nb-tracker .nb-member-create-inline button {font-size:12px;padding:5px 7px}
+.nb-tracker .nb-member-create-table-row .nb-member-create-trigger{padding:8px;white-space:normal;text-align:left;font-size:12px;line-height:17px}

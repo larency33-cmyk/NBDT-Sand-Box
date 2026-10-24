@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package based on **v0.6.16** (approved Weekly Tracker). The visual layout and application logic are unchanged from v0.6.16; only repository housekeeping and obsolete reference-dependent tests were updated.
+Clean GitHub source package based on **v0.6.17** (approved Weekly Tracker + classic sidebar). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
 
 ## Requirements
 
@@ -42,3 +42,26 @@ The current application stores project data in the **browser's IndexedDB**. Data
 ## Cleanup note
 
 Old screenshots, historical reports, isolated verification artifacts, the obsolete `package-lock.original.json`, and a Windows-only launcher were excluded from this GitHub distribution. They were not required by the app. Test assertions that previously required screenshots now check source-controlled styling instead. No source data or task records were intentionally changed.
+
+## v0.6.17 changes
+
+- Restored the original full-width labeled sidebar on Weekly Tracker, instead of the 82px icon-only navigation introduced by v0.6.16. The built-in Collapse toggle still works.
+- Refined row spacing, status density and gentle column alternation to match the accepted tracker reference.
+- Kept the single ResizeObserver-based measured alignment between week columns and the bottom Week 1–4 cards. The arrows remain inside the first/last cards and Today stays beneath Project weeks.
+- Both ZIPs use paths relative to the GitHub repository root. Unchanged files are omitted from the changed-only ZIP.
+
+## v0.6.18 — Weekly Tracker UI
+
+- Top week headings display only the project-week number. The date range and navigation arrows remain in the footer only; the heading text is still a keyboard-accessible week selector.
+- Every employee × week task card, including empty cards, has a consistent 174px visual height and a lightly outlined, rounded surface with a restrained shadow.
+- Top week header backgrounds are one shade darker; the current week retains its distinct blue accent.
+- Bottom week buttons use clearer outlines/shadows, retain measured alignment with their table columns, and continue to host Previous/Next. Today remains under Project weeks.
+- All changes are limited to the Weekly Tracker; wide classic sidebar and other pages are untouched.
+
+## v0.6.19 — Team management and fading headers
+
+- Week column headers smoothly fade over the bottom 15–17%, with no hard bottom frame; weekly dates remain in the lower navigation.
+- Edit mode shows inline rename (pencil), removal (trash) and **Add team member** directly at the bottom of the Employee column. Changes persist through the project's IndexedDB save queue.
+- Renaming retains the member's ID, linked tasks and system ownership; avatar initials follow the newly entered name, including Unicode names.
+- Removal always requires confirmation. Assigned tasks are preserved (orphaned owners appear under **Unassigned**), helper references to the removed member are cleared, and system ownership becomes unassigned.
+- The Team Lead/member list is still read-only when Edit mode is off. Existing weekly navigation and footer alignment are unchanged.
