@@ -111,6 +111,8 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const [newMemberName,setNewMemberName]=useState('');
  const [memberBusy,setMemberBusy]=useState(false);
  const [memberError,setMemberError]=useState('');
+ const [memberToDelete,setMemberToDelete]=useState<string|null>(null);
+ const memberDialogRef=useRef<HTMLElement|null>(null);
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
@@ -235,14 +237,46 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const startMemberRename=(m:any)=>{setMemberError('');setAddingMember(false);setEditingMemberId(m.id);setMemberDraft(m.name);};
  const saveMemberRename=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberRename(editingMemberId,memberDraft);setEditingMemberId(null);}catch(error:any){setMemberError(error?.message||'Could not rename team member.');}finally{setMemberBusy(false);}};
  const createMember=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberCreate(newMemberName);setAddingMember(false);setNewMemberName('');}catch(error:any){setMemberError(error?.message||'Could not add team member.');}finally{setMemberBusy(false);}};
- const deleteMember=async(m:any)=>{
+ // The trash icon only OPENS confirmation. No destructive write before approval.
+ const deleteMember=(m:any)=>{
   if(memberBusy||!isAdmin||m.id===UNASSIGNED_MEMBER_ID)return;
-  const assigned=project.tasks.filter((t:any)=>!t.isMilestone&&assignments(t).includes(m.id)).length;
-  const note=assigned?` ${assigned} associated task(s) will be preserved. Tasks without an owner will appear under Unassigned.`:' No tasks will be deleted.';
-  if(!window.confirm(`Remove ${m.name} from this project?${note} System ownership will be cleared if applicable.`))return;
-  setMemberBusy(true);setMemberError('');try{await onMemberDelete(m.id);if(person===m.id)setPerson('');if(selected?.id===m.id)closeQuickPanel();if(editingMemberId===m.id)setEditingMemberId(null);}catch(error:any){setMemberError(error?.message||'Could not remove team member.');}finally{setMemberBusy(false);}
+  setMemberError('');setMemberToDelete(m.id);
  };
- useEffect(()=>{if(!isAdmin){setEditingMemberId(null);setAddingMember(false);setMemberError('');}},[isAdmin]);
+ const memberPendingDeletion=project.members.find((m:any)=>m.id===memberToDelete);
+ const pendingOwnedTasks=memberPendingDeletion?project.tasks.filter((t:any)=>!t.isMilestone&&t.memberId===memberToDelete):[];
+ const pendingHelperTasks=memberPendingDeletion?project.tasks.filter((t:any)=>!t.isMilestone&&t.memberId!==memberToDelete&&(t.helperIds||[]).includes(memberToDelete)):[];
+ const pendingOwnedSystems=memberPendingDeletion?project.systems.filter((sys:any)=>sys.assigneeId===memberToDelete):[];
+ const confirmMemberDelete=async()=>{
+  const id=memberToDelete;
+  if(memberBusy||!isAdmin||!id||!project.members.some((m:any)=>m.id===id))return;
+  setMemberBusy(true);setMemberError('');
+  try{
+   await onMemberDelete(id);
+   setMemberToDelete(null);
+   if(person===id)setPerson('');
+   if(selected?.id===id)closeQuickPanel();
+   if(editingMemberId===id)setEditingMemberId(null);
+  }catch(error:any){setMemberError(error?.message||'Could not delete this employee. Nothing was removed.');}
+  finally{setMemberBusy(false);}
+ };
+ // Keep Escape available and focus on the safer Cancel button first.
+ useEffect(()=>{
+  if(!memberToDelete)return;
+  const onKeyDown=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'&&!memberBusy){event.preventDefault();setMemberToDelete(null);return;}
+   if(event.key==='Tab'&&memberDialogRef.current){
+    const buttons=Array.from(memberDialogRef.current.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    if(!buttons.length)return;
+    const first=buttons[0],last=buttons[buttons.length-1];
+    if(event.shiftKey&&(document.activeElement===first||!memberDialogRef.current.contains(document.activeElement))){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&(document.activeElement===last||!memberDialogRef.current.contains(document.activeElement))){event.preventDefault();first.focus();}
+   }
+  };
+  window.addEventListener('keydown',onKeyDown);
+  return()=>window.removeEventListener('keydown',onKeyDown);
+ },[memberToDelete,memberBusy]);
+
+ useEffect(()=>{if(!isAdmin){setEditingMemberId(null);setAddingMember(false);setMemberToDelete(null);setMemberError('');}},[isAdmin]);
 
  useEffect(()=>{setSelected(null);setDetail(null);},[week,view,project.id]);
  useEffect(()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');},[selected?.id,selected?.week]);
@@ -337,6 +371,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
          <th>
           <div className="nb-person-cell">
            <span className="nb-avatar">{memberInitial(m.name)}</span>
+           <div className="nb-person-meta">
            <div className="nb-person-copy">
             {editingMemberId===m.id&&isAdmin?
              <form className="nb-member-rename-form" onSubmit={saveMemberRename}>
@@ -350,6 +385,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
             <button type="button" title={`Rename ${m.name}`} aria-label={`Rename ${m.name}`} disabled={memberBusy} onClick={()=>startMemberRename(m)}><Pencil size={15}/></button>
             <button type="button" title={`Remove ${m.name}`} aria-label={`Remove ${m.name}`} disabled={memberBusy} onClick={()=>deleteMember(m)}><Trash2 size={15}/></button>
            </div>}
+           </div>
           </div>
          </th>
          {weeks.map(w=>{
@@ -417,6 +453,26 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     </div>:selected.id===UNASSIGNED_MEMBER_ID?<p className="nb-quick-view-note">Unassigned tasks are preserved. Use More to assign them to a team member.</p>:<p className="nb-quick-view-note">Enable Edit mode to change statuses or add assignments.</p>}
     </aside>
    </>,document.body)}
+
+  {memberPendingDeletion&&isAdmin&&createPortal(
+   <div className="nb-member-delete-scrim" onMouseDown={e=>{if(e.target===e.currentTarget&&!memberBusy)setMemberToDelete(null);}}>
+    <section ref={memberDialogRef} className="nb-member-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="nb-member-delete-title" aria-describedby="nb-member-delete-description">
+     <div className="nb-member-delete-symbol" aria-hidden="true"><AlertCircle size={23}/></div>
+     <h2 id="nb-member-delete-title">Permanently delete {memberPendingDeletion.name}?</h2>
+     <p id="nb-member-delete-description"><strong>Warning: this action cannot be undone.</strong> Deleting this employee will permanently remove their task history from this project.</p>
+     <ul className="nb-member-delete-impact">
+      <li><strong>{pendingOwnedTasks.length}</strong> owned task(s) and their history will be deleted.</li>
+      <li><strong>{pendingHelperTasks.length}</strong> helper assignment(s) on other tasks will be removed; those tasks will remain.</li>
+      <li><strong>{pendingOwnedSystems.length}</strong> system ownership link(s) will be cleared; the systems will remain.</li>
+     </ul>
+     <p className="nb-member-delete-backup">Export a backup before continuing if you may need the deleted task history.</p>
+     {memberError&&<p className="nb-member-delete-error" role="alert">{memberError}</p>}
+     <div className="nb-member-delete-buttons">
+      <button type="button" autoFocus className="nb-button nb-member-delete-cancel" disabled={memberBusy} onClick={()=>{setMemberToDelete(null);setMemberError('');}}>Cancel — keep employee</button>
+      <button type="button" className="nb-button nb-member-delete-confirm" disabled={memberBusy} onClick={()=>{void confirmMemberDelete();}}>{memberBusy?'Deleting…':'Yes, permanently delete'}</button>
+     </div>
+    </section>
+   </div>,document.body)}
 
   <footer className="nb-week-footer nb-aligned-week-footer nb-approved-week-footer" aria-label="Project weeks navigation">
    <div className="nb-week-card-scroller" ref={weekFooterScrollRef}>

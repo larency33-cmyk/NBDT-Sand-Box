@@ -23,12 +23,13 @@ export function removeMember(project,id) {
  if(!project.members.some(m=>m.id===id)) throw new Error('Team member no longer exists.');
  return {...project,
   members:project.members.filter(m=>m.id!==id),
-  // Preserve history rather than deleting tasks. Former owners appear under Unassigned.
-  tasks:project.tasks.map(t=>({...t,
-   memberId:t.memberId===id?'':t.memberId,
-   helperIds:(t.helperIds||[]).filter(helper=>helper!==id)
+  // Deliberately destructive ONLY after the dedicated confirmation screen.
+  // Remove the employee's owned tasks and their history across all weeks;
+  // don't delete other employees' tasks when this person was merely a helper.
+  tasks:project.tasks.filter(t=>t.memberId!==id).map(t=>({
+   ...t,helperIds:(t.helperIds||[]).filter(helper=>helper!==id)
   })),
-  // A removed member cannot continue owning a system.
+  // Preserve system records, but clear ownership by a deleted employee.
   systems:(project.systems||[]).map(s=>s.assigneeId===id?{...s,assigneeId:''}:s)
  };
 }

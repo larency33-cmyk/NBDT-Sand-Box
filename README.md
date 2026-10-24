@@ -65,3 +65,9 @@ Old screenshots, historical reports, isolated verification artifacts, the obsole
 - Renaming retains the member's ID, linked tasks and system ownership; avatar initials follow the newly entered name, including Unicode names.
 - Removal always requires confirmation. Assigned tasks are preserved (orphaned owners appear under **Unassigned**), helper references to the removed member are cleared, and system ownership becomes unassigned.
 - The Team Lead/member list is still read-only when Edit mode is off. Existing weekly navigation and footer alignment are unchanged.
+
+
+## v0.6.20
+- Employee edit-mode controls now sit below names.
+- Employee deletion requires a separate explicit confirmation; owned task history is permanently deleted.
+- Week header fade-out was removed; headers use a solid blue fill.

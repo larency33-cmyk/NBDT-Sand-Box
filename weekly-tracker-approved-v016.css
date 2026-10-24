@@ -390,23 +390,19 @@
 }
 
 
-/* v0.6.19 — the header's last 15% fades into the board without a bottom line. */
+/* v0.6.20 — solid week headers. Fade-out is intentionally disabled. */
 .nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head {
- position:relative!important; isolation:isolate!important; overflow:hidden!important;
- border-bottom:0!important;
+ position:relative!important; overflow:hidden!important;
+ border-bottom:1px solid #d5e3f3!important;
  border-radius:12px 12px 0 0!important;
- background:linear-gradient(to bottom,#e6f1ff 0%,#e3efff 82%,rgba(227,239,255,0) 100%)!important;
+ background:#e3efff!important;
 }
 .nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
- background:linear-gradient(to bottom,#dcecff 0%,#e5f2ff 82%,rgba(229,242,255,0) 100%)!important;
+ background:#dcecff!important;
+ border-color:#b5d4f6!important;
+ box-shadow:inset 0 3px 0 #0876f3,0 2px 7px rgba(28,88,150,.09)!important;
 }
-/* Cover the fading tail of the vertical borders without masking milestone text. */
-.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head::after {
- content:"";position:absolute;pointer-events:none;z-index:0;
- left:-1px;right:-1px;bottom:0;height:17%;
- background:linear-gradient(to bottom,rgba(247,251,255,0),#f7fbff);
-}
-.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head > * {position:relative;z-index:1}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head::after {content:none!important;display:none!important}
 /* Preserve an accessible clear header label and milestone interactions. */
 .nb-tracker .nb-person-cell .nb-person-copy {min-width:0;flex:1 1 auto}
 .nb-tracker .nb-member-actions {display:flex;flex:0 0 auto;gap:3px;align-items:center;margin-left:auto}
@@ -443,3 +439,57 @@
 .nb-tracker .nb-member-create-inline input{width:100%;flex-basis:100%;}
 .nb-tracker .nb-member-create-inline button {font-size:12px;padding:5px 7px}
 .nb-tracker .nb-member-create-table-row .nb-member-create-trigger{padding:8px;white-space:normal;text-align:left;font-size:12px;line-height:17px}
+
+/* v0.6.20 — Person action buttons live UNDER the name in the Employee rail. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-cell {
+ display:flex!important;align-items:center!important;gap:12px!important;
+ min-width:0!important;width:100%!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta {
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ gap:7px!important;flex:1 1 auto!important;min-width:0!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-person-copy {
+ flex:0 1 auto!important;width:100%!important;min-width:0!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-person-copy strong {
+ display:block!important;white-space:normal!important;overflow-wrap:break-word!important;line-height:1.25!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-member-actions {
+ margin:0!important;display:flex!important;justify-content:flex-start!important;
+ align-self:flex-start!important;gap:7px!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-member-actions button {
+ width:29px!important;height:29px!important;
+}
+/* On mobile, actions take a fresh row instead of squeezing the employee name. */
+.nb-tracker .nb-mobile-person-card header .nb-member-actions {
+ flex-basis:100%!important; margin:4px 0 0 55px!important;justify-content:flex-start!important;
+}
+
+.nb-member-delete-scrim {
+ position:fixed;inset:0;z-index:10050;background:rgba(8,28,54,.52);
+ display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.nb-member-delete-dialog {
+ width:min(100%,490px);max-height:calc(100vh - 40px);overflow-y:auto;
+ border-radius:17px;border:1px solid #d9e5f1;background:white;
+ padding:26px;box-shadow:0 22px 80px rgba(6,27,55,.32);color:#193453;
+}
+.nb-member-delete-symbol {display:inline-flex;align-items:center;justify-content:center;
+ width:44px;height:44px;border-radius:12px;background:#fff1e8;color:#bd511d;margin-bottom:12px}
+.nb-member-delete-dialog h2 {font-size:21px;line-height:1.25;font-weight:750;margin:0 0 10px;color:#132f52}
+.nb-member-delete-dialog p {font-size:14px;line-height:1.5;margin:0 0 12px}
+.nb-member-delete-impact {padding:12px 15px 12px 33px;margin:16px 0;
+ background:#fff8f2;border:1px solid #ffe1cd;border-radius:10px;font-size:13px;line-height:1.65}
+.nb-member-delete-impact strong {color:#ae481c}
+.nb-member-delete-dialog .nb-member-delete-backup {color:#6e7e91;font-size:12px;margin-bottom:15px}
+.nb-member-delete-error {color:#b53236;font-weight:600}
+.nb-member-delete-buttons {display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.nb-member-delete-buttons .nb-button {min-height:40px;padding:9px 15px;border-radius:8px;font-weight:650}
+.nb-member-delete-cancel {background:white;border:1px solid #c8d9e9;color:#274c73}
+.nb-member-delete-confirm {background:#c43738;color:white;border:1px solid #c43738}
+.nb-member-delete-confirm:hover:not(:disabled) {background:#a92b2d}
+.nb-member-delete-confirm:disabled,.nb-member-delete-cancel:disabled {opacity:.55;cursor:not-allowed}
+.nb-member-delete-buttons button:focus-visible {outline:3px solid #80b9f9;outline-offset:2px}
+@media(max-width:500px){.nb-member-delete-dialog{padding:18px}.nb-member-delete-buttons{flex-direction:column}.nb-member-delete-buttons .nb-button{width:100%}}

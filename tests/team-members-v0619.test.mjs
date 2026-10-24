@@ -31,18 +31,17 @@ test('invalid names, duplicate names and missing person are blocked',()=>{
  assert.throws(()=>renameMember(fixture(),'nobody','Hi'),/no longer exists/);
  assert.throws(()=>addMember(fixture(),UNASSIGNED_MEMBER_ID,'test'),/Invalid/);
 });
-test('remove member preserves tasks, clears only deleted membership and system ownership',()=>{
+test('confirmed member removal deletes owned task history, unlinks helper tasks, and clears system ownership',()=>{
  const old=fixture(),after=removeMember(old,'m0');
  assert.deepEqual(after.members,[{id:'m1',name:'JORGE'}]);
- assert.equal(after.tasks.length,2);
- assert.deepEqual(after.tasks[0],{...old.tasks[0],memberId:'',helperIds:['m1']});
- assert.deepEqual(after.tasks[1],{...old.tasks[1],helperIds:[]});
+ assert.equal(after.tasks.length,1);
+ assert.deepEqual(after.tasks[0],{...old.tasks[1],helperIds:[]});
  assert.equal(after.systems[0].assigneeId,'');
  assert.equal(after.systems[1].assigneeId,'m1');
  assert.equal(old.tasks[0].memberId,'m0');
 });
 
-test('UI gives edit-only pencil and remove actions, inline create under employee and 15-percent header fade',()=>{
+test('UI offers inline actions, explicit destructive confirmation and solid headers',()=>{
  const src=readFileSync(new URL('../src/workspace.tsx',import.meta.url),'utf8');
  const style=readFileSync(new URL('../weekly-tracker-approved-v016.css',import.meta.url),'utf8');
  assert.match(src,/isAdmin&&m\.id!==UNASSIGNED_MEMBER_ID/);
@@ -50,10 +49,16 @@ test('UI gives edit-only pencil and remove actions, inline create under employee
  assert.match(src,/onClick=\{\(\)=>deleteMember\(m\)\}/);
  assert.match(src,/nb-member-create-table-row/);
  assert.match(src,/onMemberCreate\(newMemberName\)/);
- assert.match(src,/onMemberDelete\(m\.id\)/);
+ assert.match(src,/onMemberDelete\(id\)/);
  assert.match(src,/memberInitial\(m\.name\)/);
- assert.match(style,/height:17%/);
- assert.match(style,/border-bottom:0!important/);
+ assert.match(style,/v0\.6\.20 — solid week headers/);
+ assert.match(style,/background:#e3efff!important/);
+ assert.match(style,/content:none!important/);
+ assert.match(style,/nb-person-meta \.nb-member-actions/);
+ assert.match(src,/role="alertdialog"/);
+ assert.match(src,/Yes, permanently delete/);
+ assert.match(src,/Cancel — keep employee/);
+ assert.match(src,/onMemberDelete\(id\)/);
 });
 
 test('main application gates write callbacks behind Edit mode and queued IndexedDB commit',()=>{
