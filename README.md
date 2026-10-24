@@ -1,3 +1,7 @@
+# NBDT v0.6.16 — финальный утверждённый макет Weekly Tracker
+
+Подробности и проверенная геометрия: `NBDT_v0_6_16_release_notes_RU.md`.
+
 # NBDT v0.6.12 — Approved Weekly Tracker Mockup
 
 Последний утверждённый экран Weekly Tracker перенесён из изображения от 24.10.2026. Подробнее: `NBDT_v0_6_12_release_notes_RU.md`.
@@ -60,3 +64,15 @@ npm run build
 ## Проверки
 
 Локальные unit/static-тесты и три новые проверки баннера; синтаксис TSX и CSS проверен. Полный Vite build и настоящий browser screenshot regression в среде подготовки не подтверждены из-за недоступного npm install — см. release notes. Исторические отчёты лежат в корне ZIP для преемственности.
+
+
+## Latest local package
+- Current prepared build: v0.6.13 (rounded week headers).
+
+
+## Latest local package
+- Current prepared build: v0.6.14 (separated rounded week columns).
+
+
+## Latest local package
+- Current prepared build: v0.6.15 (week columns refined).

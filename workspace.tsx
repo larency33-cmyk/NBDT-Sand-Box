@@ -112,6 +112,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
  const weekFooterScrollRef=useRef<HTMLDivElement|null>(null);
+ const weekFooterGridRef=useRef<HTMLDivElement|null>(null);
  // One-way scroll mirroring only: the footer is a display of the matrix columns,
  // never a second independent scroll control that can fight the week arrows.
  // The footer is deliberately NOT a scroll container: two nested native
@@ -122,6 +123,33 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   const cards=footer?.querySelector<HTMLElement>('.nb-week-card-grid');
   if(table&&cards)cards.style.transform=`translate3d(${-table.scrollLeft}px,0,0)`;
  };
+ // Match footer tracks to the actual rendered table columns, not estimates.
+ // Borders, resized sidebars and fractional browser pixels can otherwise produce
+ // visible drift in later week cards. A single resize measurement is authoritative.
+ useEffect(()=>{
+  if(view!=='Overview')return;
+  const table=tableScrollRef.current?.querySelector<HTMLTableElement>('.nb-week-grid');
+  const footerGrid=weekFooterGridRef.current;
+  if(!table||!footerGrid)return;
+  const update=()=>{
+   const headers=Array.from(table.querySelectorAll<HTMLTableCellElement>('thead tr > th'));
+   if(headers.length!==5)return;
+   const tracks=headers.map(cell=>cell.getBoundingClientRect().width);
+   if(tracks.some(value=>value<1))return; // Hidden mobile matrix: keep the fallback grid.
+   footerGrid.style.setProperty('grid-template-columns',tracks.map(value=>`${value}px`).join(' '),'important');
+   footerGrid.style.setProperty('width',`${tracks.reduce((total,value)=>total+value,0)}px`,'important');
+   // One scroll owner: the matrix. Footer follows without a native scrollbar.
+   const left=tableScrollRef.current?.scrollLeft||0;
+   footerGrid.style.transform=`translate3d(${-left}px,0,0)`;
+  };
+  update();
+  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(update);
+  observer?.observe(table);
+  const headers=table.querySelectorAll('thead th');
+  headers.forEach(header=>observer?.observe(header));
+  window.addEventListener('resize',update);
+  return()=>{observer?.disconnect();window.removeEventListener('resize',update);};
+ },[view,project.id,showMobileMatrix]);
  const resetWeekScroll=()=>{
   if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;
   if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;
@@ -339,32 +367,41 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     </aside>
    </>,document.body)}
 
-  <footer className="nb-week-footer nb-aligned-week-footer" aria-label="Project weeks navigation">
+  <footer className="nb-week-footer nb-aligned-week-footer nb-approved-week-footer" aria-label="Project weeks navigation">
    <div className="nb-week-card-scroller" ref={weekFooterScrollRef}>
-    <div className="nb-week-card-grid">
-     <div className="nb-week-navigation-label"><strong>Project weeks</strong><B disabled={week<=0} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>navigateWeek(-1)} aria-label="Previous project week" className="nb-weeks-prev"><ChevronLeft size={18} aria-hidden="true"/></B></div>
-     {weeks.map(w=>{
+    <div className="nb-week-card-grid" ref={weekFooterGridRef}>
+     <div className="nb-week-navigation-label nb-week-navigation-home">
+      <strong>Project weeks</strong>
+      <B className="nb-go-today nb-today-action" onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>{
+       if(currentWeek>=0&&currentWeek<520){resetWeekScroll();selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}
+      }} aria-label="Jump to current project week" disabled={currentWeek<0||currentWeek>=520}>
+       <CalendarDays size={17} aria-hidden="true"/> Today
+      </B>
+     </div>
+     {weeks.map((w,index)=>{
       const days=projectWeekDays(project.startDate,w);
       const isCurrent=currentWeek===w;
-      return <button type="button" key={w} className={'nb-week-wide-card '+(w===selectedWeek?'nb-week-wide-selected ':'')+(isCurrent?'nb-week-wide-current ':'')}
-       aria-pressed={w===selectedWeek} aria-current={isCurrent?'date':undefined}
-       aria-label={`${weekIso(w)}, ${weekRange(project.startDate,w)}${isCurrent?', current week':''}`}
-       onClick={()=>selectWeek(w)}>
-       <strong>{weekIso(w)}</strong>
-       <span className="nb-week-wide-date">{weekRange(project.startDate,w)}</span>
-       <span className="nb-week-wide-days" aria-label="Seven days of this project week">
-        {days.map((day:any)=><span key={day.date} className={'nb-week-day '+(day.date===todayDate?'nb-week-day-today':'')}
-         aria-current={day.date===todayDate?'date':undefined} title={`${day.weekday}, ${day.date}`}>
-         {day.short}
-        </span>)}
-       </span>
-      </button>;
+      return <div key={w} className={'nb-week-nav-shell '+(index===0?'nb-week-nav-first ':'')+(index===3?'nb-week-nav-last ':'')}>
+       <button type="button" className={'nb-week-wide-card '+(w===selectedWeek?'nb-week-wide-selected ':'')+(isCurrent?'nb-week-wide-current ':'')}
+        aria-pressed={w===selectedWeek} aria-current={isCurrent?'date':undefined}
+        aria-label={`${weekIso(w)}, ${weekRange(project.startDate,w)}${isCurrent?', current week':''}`}
+        onClick={()=>selectWeek(w)}>
+        <strong>{weekIso(w)}</strong>
+        <span className="nb-week-wide-date">{weekRange(project.startDate,w)}</span>
+        <span className="nb-week-wide-days" aria-label="Seven days of this project week">
+         {days.map((day:any)=><span key={day.date} className={'nb-week-day '+(day.date===todayDate?'nb-week-day-today':'')}
+          aria-current={day.date===todayDate?'date':undefined} title={`${day.weekday}, ${day.date}`}>
+          {day.short}
+         </span>)}
+        </span>
+       </button>
+       {index===0&&<B disabled={week<=0} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()}
+        onClick={()=>navigateWeek(-1)} aria-label="Previous project week" className="nb-week-arrow nb-weeks-prev"><ChevronLeft size={21} aria-hidden="true"/></B>}
+       {index===3&&<B disabled={week>=516} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()}
+        onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-week-arrow nb-weeks-next"><ChevronRight size={21} aria-hidden="true"/></B>}
+      </div>;
      })}
     </div>
-   </div>
-   <div className="nb-week-navigation-right">
-    <B disabled={week>=516} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>navigateWeek(1)} aria-label="Next project week" className="nb-weeks-next"><ChevronRight size={18} aria-hidden="true"/></B>
-    <B disabled={currentWeek<0||currentWeek>=520||(clampWeekViewport(currentWeek)===week&&selectedWeek===currentWeek)} onMouseDown={(event:React.MouseEvent)=>event.preventDefault()} onClick={()=>{resetWeekScroll();selectWeek(currentWeek);setWeek(clampWeekViewport(currentWeek));}} className="nb-go-today">Today</B>
    </div>
   </footer>
  </section>;
