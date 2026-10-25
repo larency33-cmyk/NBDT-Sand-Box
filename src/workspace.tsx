@@ -57,7 +57,7 @@ export function SystemEditor({sys,project,isAdmin,onSave,onClose,onDelete}:any){
 function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskSave,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onRequireEdit}:any){
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
  const [menuOpen,setMenuOpen]=useState(false),[editing,setEditing]=useState(false);
- const [draft,setDraft]=useState<any>({label:task.label,description:task.description||'',memberId:task.memberId||'',systemId:task.systemId||'',duration:task.duration||1,dueDate:task.dueDate||''});
+ const [draft,setDraft]=useState({label:task.label});
  const menuRef=useRef<HTMLDivElement|null>(null);
  useEffect(()=>{if(!menuOpen)return;const close=(event:MouseEvent)=>{if(menuRef.current&&!menuRef.current.contains(event.target as Node))setMenuOpen(false);};const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);}};document.addEventListener('pointerdown',close as any);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',close as any);document.removeEventListener('keydown',key);};},[menuOpen]);
  const commit=async(callback:()=>Promise<any>)=>{if(saving)return;setSaving(true);setError('');try{await callback();setMenuOpen(false);setEditing(false);}catch(e:any){setError(e?.message||'Could not save changes.');}finally{setSaving(false);}};
@@ -71,24 +71,16 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
     {<div className="nb-task-action-anchor" ref={menuRef}>
      <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><MoreVertical size={20} aria-hidden="true"/></button>
      {menuOpen&&<div className="nb-task-action-menu" role="menu" aria-label={'Actions for '+task.label}>
-      <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label,description:task.description||'',memberId:task.memberId||'',systemId:task.systemId||'',duration:task.duration||1,dueDate:task.dueDate||''});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
-      <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek));}}><ChevronRight size={15}/> Move to next week</button>
+      <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
+      <button role="menuitem" type="button" disabled={saving||sourceWeek===0} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'previous'));}}><ChevronLeft size={15}/> Move to previous week</button>
+      <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'next'));}}><ChevronRight size={15}/> Move to next week</button>
       <button role="menuitem" type="button" className="nb-task-delete-action" disabled={saving} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}if(window.confirm(`Delete “${task.label}” permanently?\n\nThis removes this task and its history from all scheduled weeks. This cannot be undone.`))void commit(()=>onQuickTaskDelete(task.id));}}><Trash2 size={15}/> Delete</button>
      {!isAdmin&&<p className="nb-task-action-view-note">Enable Edit mode to make changes.</p>}
      </div>}
     </div>}
    </div>
-   {editing&&isAdmin?<form className="nb-inline-task-editor" aria-label={'Edit '+task.label} onSubmit={e=>{e.preventDefault();void commit(()=>onQuickTaskEdit(task.id,draft));}}>
-    <label>Task title<input required maxLength={160} autoFocus value={draft.label} disabled={saving} onChange={e=>setDraft({...draft,label:e.target.value})}/></label>
-    <label>Description<textarea rows={2} value={draft.description} disabled={saving} onChange={e=>setDraft({...draft,description:e.target.value})}/></label>
-    <div className="nb-inline-task-columns">
-     <label>Owner<select value={draft.memberId} disabled={saving} onChange={e=>setDraft({...draft,memberId:e.target.value})}>{project.members.map((m:any)=><option value={m.id} key={m.id}>{m.name}</option>)}</select></label>
-     <label>System<select value={draft.systemId} disabled={saving} onChange={e=>setDraft({...draft,systemId:e.target.value})}><option value="">Not linked</option>{project.systems.map((s:any)=><option value={s.id} key={s.id}>{s.name}</option>)}</select></label>
-    </div>
-    <div className="nb-inline-task-columns">
-     <label>Duration (weeks)<input type="number" min="1" max={520-task.startWeek} value={draft.duration} disabled={saving} onChange={e=>setDraft({...draft,duration:Number(e.target.value)})}/></label>
-     <label>Due date<input type="date" value={draft.dueDate} disabled={saving} onChange={e=>setDraft({...draft,dueDate:e.target.value})}/></label>
-    </div>
+   {editing&&isAdmin?<form className="nb-inline-task-editor" aria-label={'Edit '+task.label} onSubmit={e=>{e.preventDefault();void commit(()=>onQuickTaskEdit(task.id,{label:draft.label}));}}>
+    <label>Task title<input required maxLength={160} autoFocus value={draft.label} disabled={saving} onChange={e=>setDraft({label:e.target.value})}/></label>
     <div className="nb-inline-task-buttons"><button type="submit" disabled={saving||!draft.label.trim()}>{saving?'Saving…':'Save changes'}</button><button type="button" disabled={saving} onClick={()=>setEditing(false)}>Cancel</button></div>
    </form>:<div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status
     <select aria-label={'Status for '+task.label} value={showBlocker?'Blocked':actualStatus} disabled={!isAdmin||saving} onChange={e=>{const status=e.target.value;if(status==='Blocked'&&!(task.blockReason||'').trim()){setShowBlocker(true);return;}void save(status,task.blockReason||'');}}>
@@ -477,7 +469,7 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
     {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
-     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number)=>{await onQuickTaskMove(id,source);setQuickNotice(`Moved to Week ${source+2}`);}}/>)}
+     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number,direction:'next'|'previous')=>{await onQuickTaskMove(id,source,direction);setQuickNotice(`Moved to Week ${source+(direction==='previous'?0:2)}`);}}/>)}
     </div>
     {isAdmin&&selected.id!==UNASSIGNED_MEMBER_ID?<div className="nb-quick-add-area">
      {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>

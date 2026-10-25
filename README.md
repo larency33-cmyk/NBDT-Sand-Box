@@ -89,3 +89,6 @@ Weekly Tracker now uses Overview only. The List switch and implementation were r
 
 ## Update v0.6.24
 Weekly Tracker task actions now live in the assignment drawer: Edit, Move to next week, Delete. The separate TaskEditor page has been removed. Week drawer headers share the same fixed project-week color palette as the matrix. See `RELEASE_NOTES_v0_6_24_RU.md`.
+
+## Update v0.6.25
+Drawer task menu now supports Move to previous week (disabled on Week 1). Inline Edit changes **Task title only**; all other task fields are preserved.

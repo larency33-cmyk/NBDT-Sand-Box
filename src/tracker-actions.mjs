@@ -69,6 +69,27 @@ export function quickMoveTaskToNextWeek(project,taskId,selectedWeek,newId,contin
  if(afterLength>0)preserved.push({...task,id:continuationId,startWeek:afterStart,duration:afterLength,version:1});
  return {...project,tasks:[...project.tasks.filter(t=>t.id!==taskId),...preserved,moved]};
 }
+/** Move a single week assignment backward without erasing unrelated weeks of
+ *  legacy multi-week tasks. A previous-week occurrence is replaced, not doubled.
+ *  Project Week 1 has no predecessor.
+ */
+export function quickMoveTaskToPreviousWeek(project,taskId,selectedWeek,newId,continuationId){
+ const task=project.tasks.find(t=>t.id===taskId&&!t.isMilestone);
+ if(!task)throw Error('Task no longer exists.');
+ if(!Number.isInteger(selectedWeek)||selectedWeek<task.startWeek||selectedWeek>=task.startWeek+task.duration)throw Error('Task is not scheduled for this week.');
+ if(selectedWeek===0)throw Error('Week 1 has no previous project week.');
+ if(!newId||!continuationId||newId===continuationId||project.tasks.some(t=>t.id===newId||t.id===continuationId))throw Error('New task IDs must be unique.');
+ const targetWeek=selectedWeek-1;
+ const priorLength=Math.max(0,targetWeek-task.startWeek);
+ const afterStart=selectedWeek+1;
+ const afterLength=Math.max(0,task.startWeek+task.duration-afterStart);
+ const history={sourceTaskId:task.id,sourceWeek:selectedWeek+1,movedAt:new Date().toISOString(),direction:'previous'};
+ const moved={...task,id:newId,startWeek:targetWeek,duration:1,dueDate:'',status:task.status==='Completed'?'Planned':task.status,blockReason:task.status==='Completed'?'':(task.blockReason||''),completedAt:undefined,blockerIds:task.status==='Completed'?[]:(task.blockerIds||[]),checklist:(task.checklist||[]).map(item=>({...item,completed:false})),moveHistory:[...(task.moveHistory||[]),history],version:1};
+ const preserved=[];
+ if(priorLength>0)preserved.push({...task,duration:priorLength,version:(task.version||0)+1});
+ if(afterLength>0)preserved.push({...task,id:continuationId,startWeek:afterStart,duration:afterLength,version:1});
+ return {...project,tasks:[...project.tasks.filter(t=>t.id!==taskId),...preserved,moved]};
+}
 export function quickSaveMilestone(project,values,id){
  const label=String(values.label||'').trim();
  if(!label||label.length>160)throw Error('Milestone name must be 1–160 characters.');

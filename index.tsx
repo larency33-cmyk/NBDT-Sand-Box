@@ -3,7 +3,7 @@ import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhanceme
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
-import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickSaveMilestone} from './src/tracker-actions.mjs';
+import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
@@ -3426,9 +3426,13 @@ const App = () => {
         }} onQuickTaskDelete={async(taskId:string)=>{
           if(!isAdmin)throw Error('Enable Edit mode to delete a task.');
           await handleAction(prev=>quickDeleteTask(prev,taskId));
-        }} onQuickTaskMove={async(taskId:string,sourceWeek:number)=>{
+        }} onQuickTaskMove={async(taskId:string,sourceWeek:number,direction:'next'|'previous')=>{
           if(!isAdmin)throw Error('Enable Edit mode to move a task.');
-          await handleAction(prev=>quickMoveTaskToNextWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
+          if(direction==='previous'){
+            await handleAction(prev=>quickMoveTaskToPreviousWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
+          }else{
+            await handleAction(prev=>quickMoveTaskToNextWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
+          }
         }} onMilestoneSave={async(values:any,id:string)=>{
           if(!isAdmin)throw Error('Enable Edit mode to change milestones.');
           await handleAction(prev=>quickSaveMilestone(prev,values,id));
