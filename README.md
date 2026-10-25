@@ -86,3 +86,6 @@ Only the Weekly Tracker Overview uses `weekly-tracker-premium-v021.css`. Header 
 
 ## v0.6.23
 Weekly Tracker now uses Overview only. The List switch and implementation were removed, duplicate header date text is gone, upper week labels align left, and the sidebar and project-week navigation are preserved.
+
+## Update v0.6.24
+Weekly Tracker task actions now live in the assignment drawer: Edit, Move to next week, Delete. The separate TaskEditor page has been removed. Week drawer headers share the same fixed project-week color palette as the matrix. See `RELEASE_NOTES_v0_6_24_RU.md`.

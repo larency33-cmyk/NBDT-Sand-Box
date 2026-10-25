@@ -22,7 +22,8 @@ test('existing status save, blocked reason and advanced edit remain accessible',
  assert.match(drawer,/onQuickTaskSave\(task\.id/);
  assert.match(drawer,/value=\{showBlocker\?'Blocked':actualStatus\}/);
  assert.match(drawer,/Reason for blocking/);
- assert.match(drawer,/onClick=\{onEdit\}/);
+ assert.match(drawer,/Move to next week/);
+ assert.match(drawer,/onQuickTaskEdit\(task.id,draft\)/);
 });
 test('drawer includes four status cards, milestones, quick add and authentication-safe edit entry',()=>{
  assert.match(panel,/nb-drawer-stats/);

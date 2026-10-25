@@ -1,15 +1,16 @@
 import {renameMember,addMember,removeMember} from './src/members.mjs';
-import {ProfileGuide as SystemGuide,TaskEditor,DataTools,StoreStatus} from './src/enhancements';
+import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
-import {quickCreateAssignment,quickSetTaskStatus} from './src/tracker-actions.mjs';
+import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickSaveMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
 import './weekly-tracker-premium-v021.css';
 import './weekly-tracker-drawer-v022.css';
 import './weekly-tracker-overview-v023.css';
+import './weekly-tracker-task-actions-v024.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -3419,7 +3420,19 @@ const App = () => {
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onEdit={setDraftTask} onQuickTaskSave={async(taskId:string,changes:any)=>{
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onQuickTaskEdit={async(taskId:string,changes:any)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to edit a task.');
+          await handleAction(prev=>quickEditTask(prev,taskId,changes));
+        }} onQuickTaskDelete={async(taskId:string)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to delete a task.');
+          await handleAction(prev=>quickDeleteTask(prev,taskId));
+        }} onQuickTaskMove={async(taskId:string,sourceWeek:number)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to move a task.');
+          await handleAction(prev=>quickMoveTaskToNextWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
+        }} onMilestoneSave={async(values:any,id:string)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to change milestones.');
+          await handleAction(prev=>quickSaveMilestone(prev,values,id));
+        }} onQuickTaskSave={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Enable Edit mode to change a task.');
           await handleAction(prev=>quickSetTaskStatus(prev,taskId,changes));
         }} onQuickTaskCreate={async(data:any)=>{
@@ -4054,7 +4067,7 @@ const App = () => {
         )}
 
         {/* --- Dialogs & Modals --- */}
-        {draftTask && <TaskEditor key={draftTask.id} task={draftTask} project={project} isAdmin={isAdmin} onClose={()=>setDraftTask(null)} onSave={saveTask} onDelete={async()=>{if(isAdmin){await handleAction(p=>({...p,tasks:p.tasks.filter(t=>t.id!==draftTask.id)}));setDraftTask(null);}}}/>}
+
         {draftSystem && <SystemEditor key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={(next:SystemInfo)=>{if(isAdmin)return saveSystem(next);throw Error('Edit mode is required');}} onDelete={()=>{if(isAdmin){handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==draftSystem.id)}));setDraftSystem(null);}}}/>}
         {showAdminAuthModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">

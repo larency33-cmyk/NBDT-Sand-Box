@@ -1,0 +1,62 @@
+/* NBDT v0.6.24 — drawer only. No sidebar or other-page styling. */
+/* Week tones are the very same blue/violet/orchid/mint hues used by the matrix. */
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-blue {
+  --drawer-bg-a:#e1f0ff;--drawer-bg-b:#d3e7fe;--drawer-orb:rgba(52,138,245,.13);--drawer-edge:#aecdf1;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-violet {
+  --drawer-bg-a:#f0edff;--drawer-bg-b:#e4e9ff;--drawer-orb:rgba(131,111,223,.13);--drawer-edge:#d5cefb;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-orchid {
+  --drawer-bg-a:#f6eafa;--drawer-bg-b:#f4e3f8;--drawer-orb:rgba(194,111,204,.13);--drawer-edge:#ebd3f0;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-mint {
+  --drawer-bg-a:#e6fbf7;--drawer-bg-b:#d7f5ef;--drawer-orb:rgba(40,178,161,.12);--drawer-edge:#bce8dd;
+}
+.nb-project-week-drawer .nb-quick-panel-heading[class*="nb-week-tone-"] {
+  background:radial-gradient(circle at 99% -30%,var(--drawer-orb) 0 128px,transparent 129px),linear-gradient(118deg,var(--drawer-bg-a),var(--drawer-bg-b))!important;
+  border-bottom:1px solid var(--drawer-edge)!important;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-drawer-current-week {box-shadow:inset 0 3px 0 #0878f6!important;}
+/* Action menu floats inside the card, never pushes task status controls sideways. */
+.nb-project-week-drawer .nb-drawer-task {position:relative;overflow:visible!important;}
+.nb-project-week-drawer .nb-drawer-task.nb-menu-open {z-index:30;}
+.nb-project-week-drawer .nb-task-action-anchor {position:relative;flex:none;z-index:2;}
+.nb-project-week-drawer .nb-task-action-menu {
+  position:absolute;z-index:50;right:0;top:calc(100% + 5px);
+  width:196px;padding:5px;display:flex;flex-direction:column;gap:2px;
+  background:#fff;border:1px solid #cbdff5;border-radius:10px;
+  box-shadow:0 12px 32px rgba(21,53,102,.2),0 2px 8px rgba(21,53,102,.07);
+}
+.nb-project-week-drawer .nb-task-action-menu button {
+  display:flex;align-items:center;gap:10px;text-align:left;width:100%;
+  padding:9px 10px;min-height:38px;background:transparent;border:0;
+  border-radius:7px;color:#154372;font-weight:650;font-size:12px;cursor:pointer;
+}
+.nb-project-week-drawer .nb-task-action-menu button:hover:not(:disabled),
+.nb-project-week-drawer .nb-task-action-menu button:focus-visible {background:#edf5ff;outline:2px solid transparent;}
+.nb-project-week-drawer .nb-task-action-menu .nb-task-delete-action {color:#b93d35;border-top:1px solid #e5edf6;border-radius:0 0 7px 7px;}
+.nb-project-week-drawer .nb-task-action-menu .nb-task-delete-action:hover {background:#fff0ee!important;}
+.nb-project-week-drawer .nb-task-action-menu button:disabled {opacity:.45;cursor:not-allowed;}
+/* Inline edit replaces the former separate full-page TaskEditor route. */
+.nb-project-week-drawer .nb-inline-task-editor {display:flex;flex-direction:column;gap:9px;padding-top:5px;min-width:0;}
+.nb-project-week-drawer .nb-inline-task-editor label {min-width:0;display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:680;color:#597799;}
+.nb-project-week-drawer .nb-inline-task-editor input,
+.nb-project-week-drawer .nb-inline-task-editor textarea,
+.nb-project-week-drawer .nb-inline-task-editor select {
+  display:block;box-sizing:border-box;width:100%;min-width:0;min-height:34px;
+  padding:7px 9px;border:1px solid #cddff3;border-radius:8px;
+  background:#fff;color:#163961;font-size:12px;font-weight:500;
+}
+.nb-project-week-drawer .nb-inline-task-editor textarea {resize:vertical;line-height:1.4;}
+.nb-project-week-drawer .nb-inline-task-columns {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.nb-project-week-drawer .nb-inline-task-buttons {display:flex;gap:8px;}
+.nb-project-week-drawer .nb-inline-task-buttons button {border:1px solid #cfe0f4;border-radius:8px;background:#fff;color:#295b91;min-height:35px;padding:7px 10px;font-size:12px;font-weight:700;}
+.nb-project-week-drawer .nb-inline-task-buttons button[type="submit"] {background:#076cf0;color:white;border-color:#076cf0;}
+.nb-project-week-drawer .nb-inline-task-buttons button:disabled {opacity:.55;}
+@media(max-width:480px){.nb-project-week-drawer .nb-inline-task-columns {grid-template-columns:minmax(0,1fr);}}
+
+.nb-project-week-drawer .nb-quick-success {padding:8px 12px;margin:0 15px 9px;border:1px solid #b7e5d0;border-radius:8px;background:#eaf8f1;color:#10774f;font-size:12px;font-weight:700;}
+/* Keep the last task's action menu visible without shrinking or shifting the drawer. */
+.nb-project-week-drawer .nb-quick-list>.nb-drawer-task:last-child .nb-task-action-menu {top:auto;bottom:calc(100% + 6px);}
+
+.nb-project-week-drawer .nb-task-action-view-note {font-size:11px;line-height:1.4;color:#728ba8;margin:4px 8px 5px;}

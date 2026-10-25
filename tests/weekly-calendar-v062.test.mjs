@@ -58,12 +58,14 @@ test('footer weeks have real left/right arrows and shortcut to current week',()=
  assert.ok(ui.includes('setWeek(clampWeekViewport(currentWeek))'));
  assert.ok(ui.includes('nb-week-day-today')); 
 });
-test('approved weekly header has week/date and milestone controls with quick edit',()=>{
+test('approved weekly header keeps week number and milestone controls but not a redundant date/arrow',()=>{
  const start=ui.indexOf('<thead>',ui.indexOf('export function Tracker('));
  const snippet=ui.slice(start,ui.indexOf('</thead>',start));
  assert.ok(snippet.includes('nb-week-milestones'));
  assert.ok(snippet.includes('nb-week-head-title'));
- assert.ok(snippet.includes('nb-week-head-select'));
+ assert.ok(snippet.includes('nb-week-header-label'));
+ assert.ok(!snippet.includes('nb-week-head-select'));
+ assert.ok(!snippet.includes('weekRange(project.startDate,w)')); 
  assert.ok(snippet.indexOf('nb-week-head-title')<snippet.indexOf('nb-week-milestones')); 
  assert.ok(snippet.includes('nb-milestone-add'));
  assert.ok(snippet.includes('milestoneTone(ms)'));
@@ -86,8 +88,9 @@ test('milestones are first-class project events and backups accept ownerless mil
  assert.deepEqual(validateTask(milestone,members),[]);
  const incoming={members,systems:[],tasks:[milestone]};
  assert.deepEqual(validateImport({},incoming),[]);
- const editor=readFileSync(new URL('../src/enhancements.tsx',import.meta.url),'utf8');
- assert.ok(editor.includes('aria-label="Milestone editor"'));
- assert.ok(editor.includes("memberId:'milestones'"));
- assert.ok(editor.includes('weekIndexFromDate(project.startDate,value)'));
+ const actions=await import('../src/tracker-actions.mjs');
+ const created=actions.quickSaveMilestone({...incoming,tasks:[]},milestone,'m1');
+ assert.equal(created.tasks[0].isMilestone,true);
+ assert.equal(created.tasks[0].memberId,'milestones');
+ assert.equal(created.tasks[0].label,'Network Freeze');
 });

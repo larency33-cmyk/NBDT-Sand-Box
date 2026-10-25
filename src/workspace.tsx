@@ -53,37 +53,57 @@ export function SystemEditor({sys,project,isAdmin,onSave,onClose,onDelete}:any){
 }
 
 /** Fast status controls save the shared Task ID, not one local assignment copy. */
-function QuickAssignmentRow({task,number,isAdmin,onQuickTaskSave,onEdit}:any){
+/** Actions stay in this drawer. No standalone Edit task screen. */
+function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskSave,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onRequireEdit}:any){
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
- const save=async(status:string,reason='')=>{
-  if(!isAdmin||saving)return;
-  setSaving(true);setError('');
-  try{await onQuickTaskSave(task.id,{status,...(status==='Blocked'?{blockReason:reason}:{} )});setShowBlocker(false);}
-  catch(e:any){setError(e?.message||'Save failed. No changes were applied.');}
-  finally{setSaving(false);}
- };
+ const [menuOpen,setMenuOpen]=useState(false),[editing,setEditing]=useState(false);
+ const [draft,setDraft]=useState<any>({label:task.label,description:task.description||'',memberId:task.memberId||'',systemId:task.systemId||'',duration:task.duration||1,dueDate:task.dueDate||''});
+ const menuRef=useRef<HTMLDivElement|null>(null);
+ useEffect(()=>{if(!menuOpen)return;const close=(event:MouseEvent)=>{if(menuRef.current&&!menuRef.current.contains(event.target as Node))setMenuOpen(false);};const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);}};document.addEventListener('pointerdown',close as any);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',close as any);document.removeEventListener('keydown',key);};},[menuOpen]);
+ const commit=async(callback:()=>Promise<any>)=>{if(saving)return;setSaving(true);setError('');try{await callback();setMenuOpen(false);setEditing(false);}catch(e:any){setError(e?.message||'Could not save changes.');}finally{setSaving(false);}};
+ const save=async(status:string,reason='')=>{if(!isAdmin||saving)return;await commit(async()=>{await onQuickTaskSave(task.id,{status,...(status==='Blocked'?{blockReason:reason}:{})});setShowBlocker(false);});};
  const actualStatus=task.status||'Planned';
- return <article className={'nb-quick-task-card nb-drawer-task nb-drawer-task-'+String(actualStatus).toLowerCase().replace(' ','-')}>
+ return <article className={'nb-quick-task-card nb-drawer-task nb-drawer-task-'+String(actualStatus).toLowerCase().replace(' ','-')+(menuOpen?' nb-menu-open':'')}>
   <div className="nb-drawer-task-index" aria-hidden="true">{String(number).padStart(2,'0')}</div>
   <div className="nb-drawer-task-content">
    <div className="nb-quick-task-header">
     <strong>{task.label}</strong>
-    {isAdmin&&<button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Edit assignment details" onClick={onEdit}><MoreVertical size={20} aria-hidden="true"/></button>}
+    {<div className="nb-task-action-anchor" ref={menuRef}>
+     <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><MoreVertical size={20} aria-hidden="true"/></button>
+     {menuOpen&&<div className="nb-task-action-menu" role="menu" aria-label={'Actions for '+task.label}>
+      <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label,description:task.description||'',memberId:task.memberId||'',systemId:task.systemId||'',duration:task.duration||1,dueDate:task.dueDate||''});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
+      <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek));}}><ChevronRight size={15}/> Move to next week</button>
+      <button role="menuitem" type="button" className="nb-task-delete-action" disabled={saving} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}if(window.confirm(`Delete “${task.label}” permanently?\n\nThis removes this task and its history from all scheduled weeks. This cannot be undone.`))void commit(()=>onQuickTaskDelete(task.id));}}><Trash2 size={15}/> Delete</button>
+     {!isAdmin&&<p className="nb-task-action-view-note">Enable Edit mode to make changes.</p>}
+     </div>}
+    </div>}
    </div>
-   <div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status
+   {editing&&isAdmin?<form className="nb-inline-task-editor" aria-label={'Edit '+task.label} onSubmit={e=>{e.preventDefault();void commit(()=>onQuickTaskEdit(task.id,draft));}}>
+    <label>Task title<input required maxLength={160} autoFocus value={draft.label} disabled={saving} onChange={e=>setDraft({...draft,label:e.target.value})}/></label>
+    <label>Description<textarea rows={2} value={draft.description} disabled={saving} onChange={e=>setDraft({...draft,description:e.target.value})}/></label>
+    <div className="nb-inline-task-columns">
+     <label>Owner<select value={draft.memberId} disabled={saving} onChange={e=>setDraft({...draft,memberId:e.target.value})}>{project.members.map((m:any)=><option value={m.id} key={m.id}>{m.name}</option>)}</select></label>
+     <label>System<select value={draft.systemId} disabled={saving} onChange={e=>setDraft({...draft,systemId:e.target.value})}><option value="">Not linked</option>{project.systems.map((s:any)=><option value={s.id} key={s.id}>{s.name}</option>)}</select></label>
+    </div>
+    <div className="nb-inline-task-columns">
+     <label>Duration (weeks)<input type="number" min="1" max={520-task.startWeek} value={draft.duration} disabled={saving} onChange={e=>setDraft({...draft,duration:Number(e.target.value)})}/></label>
+     <label>Due date<input type="date" value={draft.dueDate} disabled={saving} onChange={e=>setDraft({...draft,dueDate:e.target.value})}/></label>
+    </div>
+    <div className="nb-inline-task-buttons"><button type="submit" disabled={saving||!draft.label.trim()}>{saving?'Saving…':'Save changes'}</button><button type="button" disabled={saving} onClick={()=>setEditing(false)}>Cancel</button></div>
+   </form>:<div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status
     <select aria-label={'Status for '+task.label} value={showBlocker?'Blocked':actualStatus} disabled={!isAdmin||saving} onChange={e=>{const status=e.target.value;if(status==='Blocked'&&!(task.blockReason||'').trim()){setShowBlocker(true);return;}void save(status,task.blockReason||'');}}>
      <option value="Planned">Planned</option><option value="In Progress">Active</option><option value="Completed">Done</option><option value="Blocked">Blocked</option>
     </select>
-   </label></div>
-  {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
-  {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
-  {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
-  {error&&<p role="alert" className="nb-quick-error">{error}</p>}
+   </label></div>}
+   {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
+   {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
+   {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
+   {error&&<p role="alert" className="nb-quick-error">{error}</p>}
   </div>
  </article>;
 }
 
-export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
+export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -132,7 +152,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
- const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState('');
+ const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
@@ -190,11 +210,11 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const closeQuickPanel=()=>{
   if(quickAdding)return;
   if(addingAssignment&&newAssignment.trim()&&!window.confirm('Discard unsaved assignment?'))return;
-  setSelected(null);setDetail(null);setAddingAssignment(false);setNewAssignment('');setQuickError('');
+  setSelected(null);setDetail(null);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');
  };
  const openQuickPanel=(personId:string,w:number,task:any=null)=>{
   if(!selected&&document.activeElement instanceof HTMLElement)panelTriggerRef.current=document.activeElement;
-  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');
+  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');
  };
  // The overlay must not resize the matrix; preserve focus and keyboard access.
  useEffect(()=>{
@@ -247,7 +267,8 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const blockedCount=new Set(currentWeekTasks.filter((t:any)=>t.status==='Blocked').map((t:any)=>t.id)).size;
  const totalAssignments=currentWeekTasks.length;
  const totalMilestones=weeks.reduce((n:number,w:number)=>n+milestonesAt(w).length,0);
- const createMilestone=(w:number)=>onEdit({id:uid(),label:'New milestone',startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
+ const editMilestone=(ms:any)=>{if(!isAdmin)return;const label=window.prompt('Milestone name',ms.label||'New milestone');if(label===null)return;const value=label.trim();if(!value)return void window.alert('Milestone name is required.');void onMilestoneSave({...ms,label:value},ms.id).catch((e:any)=>window.alert(e?.message||'Could not save milestone.'));};
+ const createMilestone=(w:number)=>editMilestone({id:uid(),label:'New milestone',startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
  const startMemberRename=(m:any)=>{setMemberError('');setAddingMember(false);setEditingMemberId(m.id);setMemberDraft(m.name);};
  const saveMemberRename=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberRename(editingMemberId,memberDraft);setEditingMemberId(null);}catch(error:any){setMemberError(error?.message||'Could not rename team member.');}finally{setMemberBusy(false);}};
  const createMember=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberCreate(newMemberName);setAddingMember(false);setNewMemberName('');}catch(error:any){setMemberError(error?.message||'Could not add team member.');}finally{setMemberBusy(false);}};
@@ -293,7 +314,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  useEffect(()=>{if(!isAdmin){setEditingMemberId(null);setAddingMember(false);setMemberToDelete(null);setMemberError('');}},[isAdmin]);
 
  useEffect(()=>{setSelected(null);setDetail(null);},[week,project.id]);
- useEffect(()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');},[selected?.id,selected?.week]);
+ // openQuickPanel/closeQuickPanel own the quick-add lifecycle; do not reset an add opened from the toolbar.
 
  return <section className="nb-tracker" data-view="overview">
   <header className="nb-page-header">
@@ -304,7 +325,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
    <div className="nb-actions">
     <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.delete('view');url.searchParams.set('selectedWeek',String(selectedWeek+1));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
     <B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>
-    {isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}
+    {isAdmin&&<B primary onClick={()=>{const member=project.members.find((m:any)=>m.id===person)||project.members[0];if(!member)return;openQuickPanel(member.id,selectedWeek);setAddingAssignment(true);}}>Add task</B>}
    </div>
   </header>
 
@@ -349,7 +370,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
         </header>
         {isAdmin&&editingMemberId===m.id&&<form className="nb-member-rename-form" onSubmit={saveMemberRename}><input autoFocus required maxLength={80} value={memberDraft} aria-label={`New name for ${m.name}`} onChange={e=>setMemberDraft(e.target.value)}/><button type="submit">Save</button><button type="button" onClick={()=>setEditingMemberId(null)}>Cancel</button></form>}
         <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
-        {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
+        {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin)editMilestone(ms);}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
         {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
         <button type="button" className="nb-mobile-open-assignments" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}>View assignments →</button>
        </section>;
@@ -370,7 +391,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
            <span className="nb-week-range-hint" aria-hidden="true"><CalendarDays size={17}/></span>
           </div>
           <div className="nb-week-milestones">
-           {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} title={isAdmin?'Edit milestone':'Project milestone'} className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')} onClick={()=>isAdmin?onEdit(ms):void 0}><Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span></button>):<span className="nb-milestone-empty">No milestone</span>}
+           {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} title={isAdmin?'Edit milestone':'Project milestone'} className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')} onClick={()=>isAdmin?editMilestone(ms):void 0}><Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span></button>):<span className="nb-milestone-empty">No milestone</span>}
            {isAdmin&&<button type="button" className="nb-milestone-add" aria-label={'Add milestone to '+weekIso(w)} title={'Add milestone to '+weekIso(w)} onClick={()=>createMilestone(w)}>+</button>}
           </div>
 
@@ -436,7 +457,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
    {selected&&createPortal(<>
     <div className="nb-quick-overlay-backdrop" aria-hidden="true" onClick={closeQuickPanel}/>
     <aside ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Person assignments" className="nb-assignment-panel nb-quick-panel nb-overlay-panel nb-project-week-drawer">
-    <header className="nb-quick-panel-heading">
+    <header className={"nb-quick-panel-heading nb-week-tone-"+weekHeaderTone(selected.week)+(currentWeek===selected.week?" nb-drawer-current-week":"")}>
       <div className="nb-quick-person"><span className="nb-avatar">{memberInitial(selectedPerson?.name)}</span><div><h2>{selectedPerson?.name}</h2><p>{weekIso(selected.week)} · {weekRange(project.startDate,selected.week)}</p></div></div>
       <B aria-label="Close person panel" onClick={closeQuickPanel}><X size={22} aria-hidden="true"/></B>
     </header>
@@ -449,13 +470,14 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
     <section className="nb-drawer-milestone-section" aria-label="Milestones for selected week">
      <div className="nb-drawer-section-heading"><Flag size={17} aria-hidden="true"/><strong>Milestones</strong><span>{milestonesAt(selected.week).length}</span></div>
      <div className="nb-drawer-milestone-list">
-      {milestonesAt(selected.week).length?milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-drawer-milestone-item" title={isAdmin?'Edit milestone':ms.label} onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><Flag size={16} aria-hidden="true"/><span>{ms.label}</span></button>):<p className="nb-drawer-milestone-empty">No milestones for this week</p>}
+      {milestonesAt(selected.week).length?milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-drawer-milestone-item" title={isAdmin?'Edit milestone':ms.label} onClick={()=>{if(isAdmin)editMilestone(ms);}}><Flag size={16} aria-hidden="true"/><span>{ms.label}</span></button>):<p className="nb-drawer-milestone-empty">No milestones for this week</p>}
      </div>
     </section>
     <div className="nb-drawer-section-heading nb-drawer-assignments-heading"><strong>Assignments</strong><span>{chosen.length}</span></div>
+    {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
-     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>{closeQuickPanel();onEdit(project.tasks.find((item:any)=>item.id===t.id)||t);}} />)}
+     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number)=>{await onQuickTaskMove(id,source);setQuickNotice(`Moved to Week ${source+2}`);}}/>)}
     </div>
     {isAdmin&&selected.id!==UNASSIGNED_MEMBER_ID?<div className="nb-quick-add-area">
      {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
