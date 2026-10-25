@@ -16,7 +16,8 @@ test('Reference readiness panel wraps filters, table and pagination',()=>{
   assert.ok(report.indexOf('nb-report-readiness-panel')<report.indexOf('nb-readiness-heading'));
   assert.ok(report.indexOf('nb-readiness-heading')<report.indexOf('nb-report-filters'));
   assert.ok(report.indexOf('nb-report-filters')<report.indexOf('nb-report-table'));
-  assert.ok(report.indexOf('</section><details className="nb-panel">')>report.indexOf('nb-report-table'));
+  assert.ok(report.indexOf('nb-report-pagination')>report.indexOf('nb-report-table'));
+  assert.doesNotMatch(report,/Legacy report|configReportRows/);
 });
 test('Dashboard uses real readiness counts, no invented mockup values',()=>{
   assert.match(report,/counts\(s\)\[key\]/);

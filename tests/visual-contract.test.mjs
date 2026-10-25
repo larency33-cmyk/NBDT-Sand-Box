@@ -24,7 +24,8 @@ test('week tracker has owner/helper drilldown and smartphone by-person cards',()
  for(const token of ['nb-week-grid','nb-mobile-week-cards','nb-quick-metrics','nb-quick-add-form','Helper','Show matrix'])assert.ok(ui.includes(token),token);
 });
 test('report derives readiness from per-device runs, not legacy report aggregates',()=>{
- assert.ok(ui.includes('counts(s)'));assert.ok(ui.includes('Legacy report · preserved separately'));assert.ok(ui.includes('Device readiness from accepted, version-pinned checklists'));
+ assert.ok(ui.includes('counts(s)'));assert.ok(!ui.includes('Legacy report · preserved separately'));assert.ok(ui.includes('Deployment overview'));
+ assert.ok(ui.includes('counts(s)'));
 });
 test('touch and responsive rules exist for five screens',()=>{
  for(const token of ['@media(max-width:700px)','@media(max-width:600px)','@media(max-width:360px)','--sidebar-full:240px','.nb-report .nb-kpi','.nb-registry-grid','.nb-technical-grid','.nb-assignment-panel'])assert.ok(css.includes(token),token);

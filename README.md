@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package, **v0.6.26** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
+Clean GitHub source package, **v0.6.30** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
 
 ## Requirements
 
@@ -101,3 +101,11 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 - Bottom navigation preserves its existing measured column alignment.
 - Only visual styles changed; no sidebar, task data or workflow changes.
 - See `RELEASE_NOTES_v0_6_26_RU.md` for verification notes.
+
+## v0.6.30 — Approved Configuration Report reconstruction
+
+- Configuration Report now follows the approved premium-blue reference structure: four KPIs, System readiness, filters, progress table and page navigation.
+- Obsolete legacy aggregate reports and their UI/import/export pipeline have been removed. When old project data is loaded, the retired `configReportRows` field is omitted from the current in-memory model; the browser storage is updated on the next regular save.
+- Export data writes the current System Registry device-readiness counts and metadata. Import report updates existing systems' **Owner** and **Cyber** metadata only (admin mode, validated matching, confirmation required). It does not import aggregate completion numbers.
+- The original sidebar and Weekly Tracker remain unchanged.
+- See `RELEASE_NOTES_v0_6_30_RU.md`.

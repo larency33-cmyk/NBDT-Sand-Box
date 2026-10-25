@@ -1,3 +1,5 @@
+import {prepareReportMetadataImport} from './src/report-import.mjs';
+import {counts as reportDeviceCounts} from './src/model.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
@@ -14,6 +16,7 @@ import './weekly-tracker-task-actions-v024.css';
 import './weekly-tracker-corporate-v026.css';
 import './weekly-tracker-viewport-v027.css';
 import './configuration-report-reference-v029.css';
+import './configuration-report-exact-v030.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -252,22 +255,6 @@ interface UserProject {
   engineers?: string;
 }
 
-interface ConfigReportRow {
-  id: string;
-  bc: 'green' | 'orange' | 'red' | 'none';
-  rd: 'green' | 'orange' | 'red' | 'none';
-  system: string;
-  qti: number;
-  venue: string;
-  device: string;
-  bcDone: number;
-  rdDone: number;
-  aw: 'green' | 'orange' | 'red' | 'none';
-  cyber: 'Approved' | 'Review' | 'Blocked' | 'N/A';
-  assignee: string;
-  active?: boolean;
-}
-
 interface ProjectData {
   timezone?: string;
   version?: number;
@@ -277,7 +264,6 @@ interface ProjectData {
   members: NDBTMember[];
   systems: SystemInfo[];
   issues: Issue[];
-  configReportRows?: ConfigReportRow[];
   startDate: string;
   updatedAt: number;
 }
@@ -311,18 +297,6 @@ const DEFAULT_CHECKSHEET: CheckSheetData = {
 };
 
 // --- Initial Data ---
-const INITIAL_CONFIG_REPORT_ROWS: ConfigReportRow[] = [
-  { id: '1', bc: 'green', rd: 'green', system: 'POS', qti: 237, venue: 'Venue 1', device: 'NINO III', bcDone: 147, rdDone: 130, aw: 'green', cyber: 'Review', assignee: 'Marin' },
-  { id: '2', bc: 'green', rd: 'orange', system: 'SystemName', qti: 3, venue: 'Venue 2', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Melin' },
-  { id: '3', bc: 'green', rd: 'red', system: 'SystemName', qti: 3, venue: 'Venue 3', device: 'Device Name', bcDone: 0, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Mars', active: true },
-  { id: '4', bc: 'green', rd: 'orange', system: 'SystemName', qti: 3, venue: 'Venue 4', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Natte' },
-  { id: '5', bc: 'green', rd: 'orange', system: 'SystemName', qti: 3, venue: 'Venue 5', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Jaren' },
-  { id: '6', bc: 'green', rd: 'orange', system: 'SystemName', qti: 3, venue: 'Venue 8', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Mather' },
-  { id: '7', bc: 'green', rd: 'orange', system: 'SystemName', qti: 3, venue: 'Venue 4', device: 'Device Name', bcDone: 2, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Junin' },
-  { id: '8', bc: 'green', rd: 'red', system: 'SystemName', qti: 3, venue: 'Venue 5', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Marin' },
-  { id: '9', bc: 'green', rd: 'red', system: 'SystemName', qti: 3, venue: 'Venue 4', device: 'Device Name', bcDone: 1, rdDone: 1, aw: 'green', cyber: 'Review', assignee: 'Maria' },
-];
-
 const INITIAL_MEMBERS: NDBTMember[] = [
   { id: 'm0', name: 'TEAM LEAD', isLead: true, isTeamLead: true },
   { id: 'm1', name: 'HOMESH', isLead: true },
@@ -518,15 +492,15 @@ const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, curr
 };
 
 const ensureProjectData = (data: any): ProjectData => {
+  const {configReportRows: obsoleteAggregateRows, ...currentData} = data;
   return {
-    ...data,
+    ...currentData,
     id: data.id || 'default',
     name: data.name || 'New Project',
     tasks: data.tasks || [],
     members: data.members || INITIAL_MEMBERS,
     systems: data.systems || INITIAL_SYSTEMS,
     issues: data.issues || INITIAL_ISSUES,
-    configReportRows: data.configReportRows || INITIAL_CONFIG_REPORT_ROWS,
     startDate: data.startDate || '2026-01-05',
     updatedAt: data.updatedAt || 0
   };
@@ -923,647 +897,6 @@ const EmptyState = ({ icon: Icon, title, description }: { icon: any; title: stri
     <p className="mt-2 max-w-md text-xs font-medium leading-relaxed text-slate-500">{description}</p>
   </div>
 );
-
-const CircularProgress = ({percentage,label,color,total=0,completed=0,icon:Icon}: {percentage:number;label:string;color:string;glowColor:string;total?:number;completed?:number;icon:any}) => {
-  const pct = Number.isFinite(percentage) ? Math.max(0,Math.min(100,percentage)) : 0;
-  return <div className="nb-kpi"><div className="nb-kpi-icon" style={{color}}><Icon size={23}/></div><div><h3>{label}</h3><strong>{Math.round(pct)}%</strong><p>{completed.toLocaleString()} / {total.toLocaleString()} {label==='Cyber Approved'?'applicable systems':'devices'}</p></div><div className="nb-kpi-ring" role="img" aria-label={`${label}: ${Math.round(pct)} percent`} style={{background:`conic-gradient(${color} ${pct}%, #e4edf8 0)`}}><span/></div></div>;
-};
-
-const StatusDot = ({ status, onClick }: { status: 'green' | 'orange' | 'red' | 'none', onClick?: () => void }) => {
-  const colors = {
-    green: 'bg-emerald-500',
-    orange: 'bg-amber-500',
-    red: 'bg-rose-500',
-    none: 'bg-slate-800'
-  };
-  return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "w-3 h-3 rounded-full transition-all duration-300 hover:scale-125 active:scale-95", 
-        colors[status]
-      )} 
-    />
-  );
-};
-
-const TableProgressBar = ({ done, total, color, onDoneChange }: { done: number, total: number, color: string, onDoneChange?: (val: number) => void }) => {
-  const percentage = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  
-  return (
-    <div className="flex flex-col gap-2 min-w-[160px] group/progress">
-      <div className="flex justify-between items-end px-0.5 mb-1">
-        <div className="flex flex-col">
-          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">PROGRESS</span>
-          <div className="flex items-center gap-1">
-            <input 
-              type="number" 
-              value={done} 
-              readOnly={!onDoneChange}
-              onChange={(e) => onDoneChange?.(parseInt(e.target.value) || 0)}
-              className={cn(
-                "bg-slate-800/40 border border-slate-700/50 rounded px-1.5 py-0.5 text-[10px] font-black text-white w-12 outline-none transition-colors",
-                onDoneChange ? "focus:border-indigo-500/50 cursor-text" : "cursor-default"
-              )}
-            />
-            <span className="text-[10px] font-bold text-slate-600">/ {total}</span>
-          </div>
-        </div>
-        <span className="text-[11px] font-black text-slate-300 tabular-nums leading-none">{percentage}%</span>
-      </div>
-      <div className="relative h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden border border-slate-800/30">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className={cn("h-full rounded-full", color)}
-        />
-      </div>
-    </div>
-  );
-};
-
-
-interface ConfigurationReportProps {
-  isAdmin: boolean;
-  members: NDBTMember[];
-  projectId: string;
-  projectName: string;
-  rows: ConfigReportRow[];
-  onRowsChange: (rows: ConfigReportRow[]) => void;
-}
-
-const ConfigurationReport = ({ isAdmin, members, projectId, projectName, rows, onRowsChange }: ConfigurationReportProps) => {
-  const [columnFilters, setColumnFilters] = useState<Partial<Record<keyof ConfigReportRow, string>>>({});
-  const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    setColumnFilters({});
-    setSearch('');
-  }, [projectId]);
-
-  const updateRow = (id: string, field: keyof ConfigReportRow, value: any) => {
-    if (!isAdmin) return;
-    onRowsChange(rows.map(row => row.id === id ? { ...row, [field]: value } : row));
-  };
-
-  const cycleStatus = (id: string, field: 'bc' | 'rd' | 'aw') => {
-    if (!isAdmin) return;
-    const statuses: ('green' | 'orange' | 'red' | 'none')[] = ['green', 'orange', 'red', 'none'];
-    onRowsChange(rows.map(row => {
-      if (row.id === id) {
-        const currentIdx = statuses.indexOf(row[field]);
-        const nextIdx = (currentIdx + 1) % statuses.length;
-        return { ...row, [field]: statuses[nextIdx] };
-      }
-      return row;
-    }));
-  };
-
-  const cycleCyber = (id: string) => {
-    if (!isAdmin) return;
-    const statuses: ('Approved' | 'Review' | 'Blocked' | 'N/A')[] = ['Approved', 'Review', 'Blocked', 'N/A'];
-    onRowsChange(rows.map(row => {
-      if (row.id === id) {
-        const currentIdx = statuses.indexOf(row.cyber);
-        const nextIdx = (currentIdx + 1) % statuses.length;
-        return { ...row, cyber: statuses[nextIdx] };
-      }
-      return row;
-    }));
-  };
-
-  const addNewRow = () => {
-    if (!isAdmin) return;
-    const newRow: ConfigReportRow = {
-      id: Date.now().toString(),
-      bc: 'none',
-      rd: 'none',
-      system: 'New System',
-      qti: 1,
-      venue: 'Venue',
-      device: 'Device',
-      bcDone: 0,
-      rdDone: 0,
-      aw: 'none',
-      cyber: 'Review',
-      assignee: 'Unassigned'
-    };
-    onRowsChange([newRow, ...rows]);
-  };
-
-  const deleteRow = (id: string) => {
-    onRowsChange(rows.filter(r => r.id !== id));
-  };
-
-  // KPI Calculations
-  const kpis = useMemo(() => {
-    const totalDevices = rows.reduce((acc, r) => acc + (r.qti || 0), 0) || 1;
-    const bcTotalDone = rows.reduce((acc, r) => acc + (r.bcDone || 0), 0);
-    const rdTotalDone = rows.reduce((acc, r) => acc + (r.rdDone || 0), 0);
-    
-    // Cyber is still based on row count as it's a status, excluding N/A
-    const cyberRows = rows.filter(r => r.cyber !== 'N/A');
-    const totalCyberRows = cyberRows.length || 1;
-    const cyberDone = cyberRows.filter(r => r.cyber === 'Approved').length;
-
-    return {
-      bc: { percentage: (bcTotalDone / totalDevices) * 100, completed: bcTotalDone, total: totalDevices },
-      rd: { percentage: (rdTotalDone / totalDevices) * 100, completed: rdTotalDone, total: totalDevices },
-      cyber: { percentage: (cyberDone / totalCyberRows) * 100, completed: cyberDone, total: cyberRows.length }
-    };
-  }, [rows]);
-
-  const [sortConfig, setSortConfig] = useState<{ field: keyof ConfigReportRow, direction: 'asc' | 'desc' } | null>(null);
-
-  const filteredRows = useMemo(() => {
-    return rows.filter(row => {
-      const matchesSearch = row.system.toLowerCase().includes(search.toLowerCase()) || 
-                           row.venue.toLowerCase().includes(search.toLowerCase()) ||
-                           row.assignee.toLowerCase().includes(search.toLowerCase());
-      
-      const matchesColumnFilters = Object.entries(columnFilters).every(([field, value]) => {
-        const filterValue = value as string;
-        if (!filterValue) return true;
-        const val = row[field as keyof ConfigReportRow];
-        const rowValue = val !== undefined && val !== null ? String(val).toLowerCase() : '';
-        return rowValue.includes(filterValue.toLowerCase());
-      });
-
-      return matchesSearch && matchesColumnFilters;
-    });
-  }, [rows, search, columnFilters]);
-
-  const sortedRows = useMemo(() => {
-    let result = [...filteredRows];
-    if (sortConfig) {
-      result.sort((a, b) => {
-        const aVal = a[sortConfig.field];
-        const bVal = b[sortConfig.field];
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        }
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          return sortConfig.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-        }
-        return 0;
-      });
-    }
-    return result;
-  }, [filteredRows, sortConfig]);
-
-  const handleReorder = (newOrder: ConfigReportRow[]) => {
-    const updated = [...rows];
-    const indices = sortedRows.map(sr => rows.findIndex(r => r.id === sr.id));
-    indices.forEach((originalIdx, i) => {
-      if (originalIdx !== -1) {
-        updated[originalIdx] = newOrder[i];
-      }
-    });
-    onRowsChange(updated);
-  };
-
-  const updateColumnFilter = (field: keyof ConfigReportRow, value: string) => {
-    setColumnFilters(prev => ({ ...prev, [field]: value }));
-  };
-
-  const [openFilter, setOpenFilter] = useState<keyof ConfigReportRow | null>(null);
-
-  const ColumnFilterSelect = ({ field, label, options, align = 'left', isSortable = false, hideOptions = false }: { field: keyof ConfigReportRow, label: string, options?: string[], align?: 'left' | 'center', isSortable?: boolean, hideOptions?: boolean }) => {
-    const uniqueValues = useMemo(() => {
-      if (hideOptions) return [];
-      if (options) return options;
-      const values = rows.map(r => String(r[field])).filter(Boolean);
-      return Array.from(new Set(values)).sort();
-    }, [rows, field, options, hideOptions]);
-
-    const isActive = !!columnFilters[field] || sortConfig?.field === field;
-
-    return (
-      <div className={clsx("relative group/header flex items-center gap-1", align === 'center' ? 'justify-center' : 'justify-start')}>
-        <span className={clsx("transition-colors", isActive ? "text-indigo-400" : "text-slate-500")}>
-          {label}
-        </span>
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpenFilter(openFilter === field ? null : field);
-          }}
-          className={clsx(
-            "p-1 rounded-md transition-all hover:bg-slate-800/50",
-            openFilter === field ? "text-indigo-400 bg-slate-800/80" : "text-slate-600 group-hover/header:text-slate-400",
-            isActive && "text-indigo-400"
-          )}
-        >
-          <ChevronDown size={10} className={clsx("transition-transform duration-200", openFilter === field && "rotate-180")} />
-        </button>
-
-        <AnimatePresence>
-          {openFilter === field && (
-            <>
-              <div 
-                className="fixed inset-0 z-30" 
-                onClick={() => setOpenFilter(null)}
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className={clsx(
-                  "absolute top-full mt-2 z-40 min-w-[140px] bg-[#0f172a] border border-slate-800/60 rounded-xl shadow-2xl p-1 backdrop-blur-xl",
-                  align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0'
-                )}
-              >
-                <div 
-                  className="px-3 py-2 text-[9px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-800/40 mb-1"
-                >
-                  {isSortable ? 'Sort/Filter' : 'Filter'} {label}
-                </div>
-                
-                {isSortable && (
-                  <div className="p-1 space-y-1">
-                    <button
-                      onClick={() => {
-                        setSortConfig({ field, direction: 'asc' });
-                        setOpenFilter(null);
-                      }}
-                      className={clsx(
-                        "w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-colors flex items-center gap-2",
-                        sortConfig?.field === field && sortConfig.direction === 'asc' ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:bg-slate-800/50"
-                      )}
-                    >
-                      <ArrowUp size={10} /> Sort Ascending
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSortConfig({ field, direction: 'desc' });
-                        setOpenFilter(null);
-                      }}
-                      className={clsx(
-                        "w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-colors flex items-center gap-2",
-                        sortConfig?.field === field && sortConfig.direction === 'desc' ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:bg-slate-800/50"
-                      )}
-                    >
-                      <ArrowDown size={10} /> Sort Descending
-                    </button>
-                    {sortConfig?.field === field && (
-                      <button
-                        onClick={() => {
-                          setSortConfig(null);
-                          setOpenFilter(null);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tight text-red-400 hover:bg-red-500/10 transition-colors"
-                      >
-                        Clear Sort
-                      </button>
-                    )}
-                    {!hideOptions && <div className="h-px bg-slate-800/40 my-1" />}
-                  </div>
-                )}
-
-                {!hideOptions && (
-                  <>
-                    <button
-                      onClick={() => {
-                        updateColumnFilter(field, '');
-                        setOpenFilter(null);
-                      }}
-                      className={clsx(
-                        "w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-colors",
-                        !columnFilters[field] ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:bg-slate-800/50"
-                      )}
-                    >
-                      ALL
-                    </button>
-                    {uniqueValues.map(val => (
-                      <button
-                        key={val}
-                        onClick={() => {
-                          updateColumnFilter(field, val);
-                          setOpenFilter(null);
-                        }}
-                        className={clsx(
-                          "w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-tight transition-colors",
-                          columnFilters[field] === val ? "bg-indigo-500/10 text-indigo-400" : "text-slate-400 hover:bg-slate-800/50"
-                        )}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </>
-                )}
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  return (
-    <div className="flex-1 flex flex-col bg-[#020617] overflow-hidden relative">
-      {/* Scrollable Container */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {/* KPIs Section - Scrolls away */}
-        <div className="p-12 pb-6 flex flex-col gap-10 bg-[#020617]">
-          <div className="flex gap-8">
-            <div className="flex-1">
-              <CircularProgress 
-                percentage={kpis.bc.percentage} 
-                label="Base Configuration" 
-                color="#06b6d4" 
-                glowColor="#06b6d4" 
-                total={kpis.bc.total}
-                completed={kpis.bc.completed}
-                icon={Settings}
-              />
-            </div>
-            <div className="flex-1">
-              <CircularProgress 
-                percentage={kpis.rd.percentage} 
-                label="Ready for Deployment" 
-                color="#6366f1" 
-                glowColor="#6366f1" 
-                total={kpis.rd.total}
-                completed={kpis.rd.completed}
-                icon={Rocket}
-              />
-            </div>
-            <div className="flex-1">
-              <CircularProgress 
-                percentage={kpis.cyber.percentage} 
-                label="Cyber Approved" 
-                color="#10b981" 
-                glowColor="#10b981" 
-                total={kpis.cyber.total}
-                completed={kpis.cyber.completed}
-                icon={ShieldCheck}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Sticky Controls Container */}
-        <div className="sticky top-0 z-30 bg-[#020617] shadow-2xl border-b border-slate-800/40 h-[110px] flex items-center">
-          {/* Table Controls */}
-          <div className="flex items-center justify-between px-16 w-full">
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col">
-                <div className="text-[9px] font-black text-indigo-500/60 uppercase tracking-[0.3em] mb-0.5">Project Context</div>
-                <div className="text-sm font-black text-slate-200 uppercase tracking-widest">{projectName}</div>
-              </div>
-              <div className="h-8 w-px bg-slate-800/40" />
-              <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-indigo-400 transition-colors" size={16} />
-                <input 
-                  type="text" 
-                  placeholder="SEARCH SYSTEMS..." 
-                  className="bg-[#0f172a]/40 border border-slate-800/50 rounded-2xl pl-12 pr-6 py-3 text-xs font-bold text-slate-300 outline-none focus:border-indigo-500/40 transition-all w-80 placeholder:text-slate-700 uppercase tracking-widest"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-              </div>
-              {Object.keys(columnFilters).length > 0 || sortConfig ? (
-                <button 
-                  onClick={() => {
-                    setColumnFilters({});
-                    setSortConfig(null);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-500/20 hover:bg-indigo-500/20 transition-all"
-                >
-                  Clear All Filters <X size={12} />
-                </button>
-              ) : null}
-              {isAdmin && (
-                <button 
-                  onClick={addNewRow}
-                  className="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-slate-950 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
-                >
-                  <Plus size={16} strokeWidth={3} /> Add System
-                </button>
-              )}
-            </div>
-            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-              Showing {sortedRows.length} of {rows.length} Systems
-            </div>
-          </div>
-        </div>
-
-        {/* Table Section */}
-        <div className="px-12 pb-12 pt-6">
-          <div className="bg-[#0f172a]/20 rounded-[2.5rem] border border-slate-800/40 backdrop-blur-xl shadow-2xl">
-            <table className="w-full text-left border-separate border-spacing-0">
-              <thead>
-                <tr>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 pl-6 w-[60px] border-b border-slate-800/60"></th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="bc" label="BC" options={['green', 'orange', 'red', 'none']} align="center" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="rd" label="RD" options={['green', 'orange', 'red', 'none']} align="center" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="system" label="SystemName" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="qti" label="QTI" align="center" isSortable hideOptions />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="venue" label="Venue" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="device" label="Device Name" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="bcDone" label="BC Complete" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="rdDone" label="RD Complete" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="aw" label="AW" options={['green', 'orange', 'red', 'none']} align="center" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="cyber" label="Cyber" options={['Approved', 'Review', 'Blocked']} />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800/60">
-                    <ColumnFilterSelect field="assignee" label="Assignee" />
-                  </th>
-                  <th className="sticky top-[110px] z-20 bg-[#0f172a] p-4 pr-6 w-[60px] border-b border-slate-800/60"></th>
-                </tr>
-              </thead>
-              <Reorder.Group axis="y" values={sortedRows} onReorder={handleReorder} as="tbody">
-                <AnimatePresence>
-                  {sortedRows.map((row) => (
-                    <Reorder.Item 
-                      key={row.id}
-                      value={row}
-                      as="tr"
-                      layout
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                      className={cn(
-                        "group border-b border-slate-800/30 hover:bg-indigo-500/5 transition-all relative",
-                        row.active && "bg-indigo-500/10 after:absolute after:inset-0 after:border-2 after:border-indigo-500/40 after:rounded-xl after:pointer-events-none"
-                      )}
-                    >
-                      <td className="p-4 pl-6 w-[60px]">
-                        <GripVertical size={14} className="text-slate-700 group-hover:text-slate-500 transition-colors cursor-grab active:cursor-grabbing" />
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex justify-center">
-                          <StatusDot status={row.bc} onClick={() => cycleStatus(row.id, 'bc')} />
-                        </div>
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex justify-center">
-                          <StatusDot status={row.rd} onClick={() => cycleStatus(row.id, 'rd')} />
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <input 
-                          type="text" 
-                          value={row.system} 
-                          readOnly={!isAdmin}
-                          onChange={(e) => updateRow(row.id, 'system', e.target.value)}
-                          className={cn(
-                            "bg-transparent border-none outline-none text-xs font-bold text-slate-300 tracking-tight w-full transition-colors",
-                            isAdmin ? "focus:text-indigo-400 cursor-text" : "cursor-default"
-                          )}
-                        />
-                      </td>
-                      <td className="p-4 text-center">
-                        <input 
-                          type="number" 
-                          value={row.qti} 
-                          readOnly={!isAdmin}
-                          onChange={(e) => updateRow(row.id, 'qti', parseInt(e.target.value) || 0)}
-                          className={cn(
-                            "bg-transparent border-none outline-none text-xs font-black text-slate-400 tabular-nums w-12 text-center transition-colors",
-                            isAdmin ? "focus:text-indigo-400 cursor-text" : "cursor-default"
-                          )}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <input 
-                          type="text" 
-                          value={row.venue} 
-                          readOnly={!isAdmin}
-                          onChange={(e) => updateRow(row.id, 'venue', e.target.value)}
-                          className={cn(
-                            "bg-transparent border-none outline-none text-xs font-bold text-slate-400 tracking-tight w-full transition-colors",
-                            isAdmin ? "focus:text-indigo-400 cursor-text" : "cursor-default"
-                          )}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <input 
-                          type="text" 
-                          value={row.device} 
-                          readOnly={!isAdmin}
-                          onChange={(e) => updateRow(row.id, 'device', e.target.value)}
-                          className={cn(
-                            "bg-transparent border-none outline-none text-xs font-bold text-slate-400 tracking-tight w-full transition-colors",
-                            isAdmin ? "focus:text-indigo-400 cursor-text" : "cursor-default"
-                          )}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <TableProgressBar 
-                          done={row.bcDone} 
-                          total={row.qti}
-                          color="bg-cyan-500" 
-                          onDoneChange={isAdmin ? (val) => updateRow(row.id, 'bcDone', val) : undefined}
-                        />
-                      </td>
-                      <td className="p-4">
-                        <TableProgressBar 
-                          done={row.rdDone} 
-                          total={row.qti}
-                          color="bg-indigo-500" 
-                          onDoneChange={isAdmin ? (val) => updateRow(row.id, 'rdDone', val) : undefined}
-                        />
-                      </td>
-                      <td className="p-4 text-center">
-                        <div className="flex justify-center">
-                          <StatusDot status={row.aw} onClick={() => cycleStatus(row.id, 'aw')} />
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <button 
-                          onClick={() => cycleCyber(row.id)}
-                          disabled={!isAdmin}
-                          className={cn(
-                            "w-full px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-center border transition-all",
-                            isAdmin && "hover:scale-105 active:scale-95",
-                            row.cyber === 'Approved' && "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-                            row.cyber === 'Review' && "bg-amber-500/10 text-amber-400 border-amber-500/20",
-                            row.cyber === 'Blocked' && "bg-rose-500/10 text-rose-400 border-rose-500/20",
-                            row.cyber === 'N/A' && "bg-slate-500/10 text-slate-400 border-slate-500/20",
-                          )}
-                        >
-                          {row.cyber}
-                        </button>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center shrink-0">
-                            <User size={12} className="text-slate-500" />
-                          </div>
-                          {isAdmin ? (
-                            <div className="relative flex-1 group/select">
-                              <select
-                                value={members.find(m => m.name === row.assignee)?.id || ''}
-                                onChange={(e) => {
-                                  const member = members.find(m => m.id === e.target.value);
-                                  if (member) {
-                                    onRowsChange(rows.map(r => r.id === row.id ? { 
-                                      ...r, 
-                                      assignee: member.name
-                                    } : r));
-                                  }
-                                }}
-                                className="bg-transparent border-none outline-none text-xs font-bold text-slate-300 tracking-tight w-full cursor-pointer focus:text-indigo-400 appearance-none pr-4"
-                              >
-                                <option value="" disabled className="bg-slate-900">Select Assignee</option>
-                                {members.map(m => (
-                                  <option key={m.id} value={m.id} className="bg-slate-900 text-white">
-                                    {m.name}
-                                  </option>
-                                ))}
-                              </select>
-                              <ChevronDown size={10} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none group-hover/select:text-indigo-400 transition-colors" />
-                            </div>
-                          ) : (
-                            <span className="text-xs font-bold text-slate-300 tracking-tight">
-                              {row.assignee}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 pr-6 w-[60px]">
-                        {isAdmin && (
-                          <button 
-                            onClick={() => deleteRow(row.id)}
-                            className="p-2 text-slate-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </td>
-                    </Reorder.Item>
-                  ))}
-                </AnimatePresence>
-              </Reorder.Group>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // --- App Component ---
 
@@ -2251,7 +1584,6 @@ const App = () => {
       assignmentMembers: INITIAL_MEMBERS,
       systems: INITIAL_SYSTEMS,
       issues: INITIAL_ISSUES,
-      configReportRows: INITIAL_CONFIG_REPORT_ROWS,
       startDate: '2026-01-05',
       updatedAt: 0
     };
@@ -2599,8 +1931,7 @@ const App = () => {
           members: INITIAL_MEMBERS,
           systems: INITIAL_SYSTEMS,
           issues: INITIAL_ISSUES,
-          configReportRows: INITIAL_CONFIG_REPORT_ROWS,
-          startDate: '2026-01-05',
+              startDate: '2026-01-05',
           updatedAt: 0
         };
         setProject(skeleton);
@@ -2765,57 +2096,62 @@ const App = () => {
     const operation=async()=>{const previous=projectRef.current;const next={...updater(previous),version:(previous.version||0)+1};await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));projectRef.current=next;setProject(next);return next;};
     const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
+  // Live device-readiness export: never export retired aggregate/demo records.
   const exportConfigReport = () => {
-    const rows = project.configReportRows || INITIAL_CONFIG_REPORT_ROWS;
-    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const rows = project.systems.map((system) => {
+      const summary = reportDeviceCounts(system);
+      const venues = [...new Set((system.devices || []).map((d:any) => d.venue).filter(Boolean))];
+      const owner = project.members.find(m => m.id === system.assigneeId);
+      return {
+        System: system.name,
+        Qty: summary.total,
+        Venue: venues.join(', '),
+        'Base config.': summary.base,
+        'Ready to deploy': summary.ready,
+        Deployed: summary.deployed,
+        AW: system.airWatchTags || system.airWatch || system.mdm || '',
+        Cyber: system.cyberStatus || 'Unknown',
+        Owner: owner?.name || 'Unassigned'
+      };
+    });
+    const worksheet = XLSX.utils.json_to_sheet(rows, {header:['System','Qty','Venue','Base config.','Ready to deploy','Deployed','AW','Cyber','Owner']});
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Configuration Report");
-    XLSX.writeFile(workbook, `${project.name}_Configuration_Report.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'System readiness');
+    XLSX.writeFile(workbook, `${project.name}_System_Readiness.xlsx`);
   };
 
-  const importConfigReport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isAdmin) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
-
-        if (jsonData.length > 0) {
-          const processedData: ConfigReportRow[] = jsonData.map((row, index) => ({
-            id: row.id?.toString() || `imported-${Date.now()}-${index}`,
-            bc: (['green', 'orange', 'red', 'none'].includes(row.bc) ? row.bc : 'none') as any,
-            rd: (['green', 'orange', 'red', 'none'].includes(row.rd) ? row.rd : 'none') as any,
-            system: row.system?.toString() || 'Unnamed System',
-            qti: Number(row.qti) || 0,
-            venue: row.venue?.toString() || '',
-            device: row.device?.toString() || '',
-            bcDone: Number(row.bcDone) || 0,
-            rdDone: Number(row.rdDone) || 0,
-            aw: (['green', 'orange', 'red', 'none'].includes(row.aw) ? row.aw : 'none') as any,
-            cyber: (['Approved', 'Review', 'Blocked', 'N/A'].includes(row.cyber) ? row.cyber : 'Review') as any,
-            assignee: row.assignee?.toString() || 'Unassigned',
-            active: row.active === true || row.active === 'true'
-          }));
-
-          handleAction(prev => ({ ...prev, configReportRows: processedData }));
-        }
-      } catch (err) {
-        console.error("Import Error:", err);
-        alert("Failed to import report. Please check the file format.");
-      }
-    };
-    reader.readAsArrayBuffer(file);
-    // Reset input
-    if (e.target) e.target.value = '';
+  // Import only matching system Owner/Cyber metadata. Completion must always come
+  // from verified per-device checklist runs, never from a spreadsheet aggregate.
+  const importConfigReport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file=e.target.files?.[0];
+    e.target.value='';
+    if (!file || !isAdmin) return;
+    if (file.size > 5*1024*1024) {alert('Maximum file size: 5 MB');return;}
+    try {
+      const data = new Uint8Array(await file.arrayBuffer());
+      const workbook = XLSX.read(data, {type:'array'});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const incoming = XLSX.utils.sheet_to_json<Record<string,unknown>>(sheet, {defval:''});
+      const prepared = prepareReportMetadataImport(project,incoming);
+      if (!prepared.length) {alert('No Owner or Cyber changes found for existing systems.');return;}
+      if (!confirm(`Import ${prepared.length} system metadata update(s)? Only Owner and Cyber can change. Device completion figures will NOT be imported.`))return;
+      await handleAction(prev=>({
+        ...prev,
+        systems:prev.systems.map(sys=>{
+          const change=prepared.find(c=>c.id===sys.id);
+          if(!change)return sys;
+          const cyberChanged=change.cyberStatus!==undefined && change.cyberStatus!==sys.cyberStatus;
+          return {...sys,
+            ...(change.assigneeId!==undefined?{assigneeId:change.assigneeId}:{}),
+            ...(change.cyberStatus!==undefined?{cyberStatus:change.cyberStatus}:{}),
+            ...(cyberChanged?{cyberHistory:[...(sys.cyberHistory||[]),{status:change.cyberStatus,reason:'Imported from report file (manual metadata)',actor:'local-demo-import',at:new Date().toISOString()}]}:{})
+          };
+        })
+      }));
+    } catch(error:any) {
+      alert('Import cancelled: '+String(error?.message||'Invalid report file'));
+    }
   };
-
   const updateMemberName = (id: string, name: string) => {
     handleAction(prev => ({
       ...prev,
@@ -3900,10 +3236,10 @@ const App = () => {
 
         {activeTab === 'config-report' && (
           <div className="nb-report-shell flex-1 flex flex-col overflow-auto animate-fadeIn">
-            <header className="nb-report-legacy-actions px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
+            <header className="nb-report-top-actions px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
               <div>
                 <h1 className="text-3xl font-bold tracking-tighter text-white">Configuration Report</h1>
-                <p className="text-slate-500 text-sm font-medium">Local device readiness and legacy aggregates</p>
+                <p className="text-slate-500 text-sm font-medium">Deployment overview</p>
               </div>
               <div className="flex items-center gap-4">
                 <input 
@@ -3917,7 +3253,7 @@ const App = () => {
                   onClick={exportConfigReport}
                   className="flex items-center gap-3 px-6 py-3 bg-slate-900/40 border border-slate-800 text-slate-400 rounded-2xl transition-all hover:bg-slate-800 hover:text-white uppercase tracking-widest text-[11px] font-black"
                 >
-                  <Download size={16} /> Export Legacy Data
+                  <Download size={16} /> Export data
                 </button>
                 <button 
                   disabled={!isAdmin} onClick={() => fileInputRef.current?.click()}
@@ -3953,15 +3289,6 @@ const App = () => {
               </div>
             </header>
             <Report project={project} isAdmin={isAdmin} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}}/>
-            <details className="nb-panel nb-legacy"><summary>Legacy aggregate editor and import/export (not device readiness)</summary><p>Original aggregate data. These values do not count as device acceptance.</p>
-            <ConfigurationReport 
-              isAdmin={isAdmin} 
-              members={project.members} 
-              projectId={project.id} 
-              projectName={project.name}
-              rows={project.configReportRows || INITIAL_CONFIG_REPORT_ROWS}
-              onRowsChange={(newRows) => handleAction(prev => ({ ...prev, configReportRows: newRows }))}
-            /></details>
           </div>
         )}
 
