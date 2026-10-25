@@ -49,16 +49,17 @@ test('aggregate edit validates realistic integer bounds and permits the screensh
  assert.throws(()=>validateAggregateMetrics({total:9,base:10,ready:1,deployed:1}),/between 0 and quantity/);
  assert.throws(()=>validateAggregateMetrics({total:9.2,base:1,ready:1,deployed:1}),/integer/);
 });
-test('report supports add edit delete, confirmation and backing persistence',()=>{
+test('report supports inline add edit delete, confirmation and backing persistence',()=>{
  assert.match(component,/onSystemCreate\(next\)/);
  assert.match(component,/onSystemChange\(next\)/);
- assert.match(component,/window\.confirm/);
- assert.match(component,/onSystemDelete\(original\.id\)/);
+ assert.match(component,/confirmDeleteId/);
+ assert.match(component,/onSystemDelete\(sys\.id\)/);
  assert.match(component,/validateAggregateMetrics/);
  assert.match(index,/onSystemCreate=/);
  assert.match(index,/onSystemDelete=/);
  assert.match(index,/commitRecord/);
  assert.match(component,/Reference demo:/);
+ assert.doesNotMatch(component,/nb-report-editor-backdrop/);
  assert.match(index,/configuration-report-editable-v032\.css/);
  assert.doesNotMatch(css,/\.nb-sidebar|\.nb-week-grid/);
 });

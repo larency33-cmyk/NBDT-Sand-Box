@@ -20,6 +20,7 @@ import './configuration-report-reference-v029.css';
 import './configuration-report-exact-v030.css';
 import './configuration-report-approved-v031.css';
 import './configuration-report-editable-v032.css';
+import './configuration-report-inline-v033.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 

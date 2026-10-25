@@ -11,12 +11,13 @@ test('Reference CSS is loaded last without touching sidebar or Weekly Tracker',(
   assert.match(css,/\.nb-report-shell \.nb-report/);
   assert.doesNotMatch(css,/\.nb-sidebar|\.nb-week-grid|\.nb-week-cell/);
 });
-test('Reference readiness panel wraps filters, table and pagination',()=>{
+test('Reference readiness panel wraps filters and a continuous table',()=>{
   assert.match(report,/nb-report-readiness-panel/);
   assert.ok(report.indexOf('nb-report-readiness-panel')<report.indexOf('nb-readiness-heading'));
   assert.ok(report.indexOf('nb-readiness-heading')<report.indexOf('nb-report-filters'));
   assert.ok(report.indexOf('nb-report-filters')<report.indexOf('nb-report-table'));
-  assert.ok(report.indexOf('nb-report-pagination')>report.indexOf('nb-report-table'));
+  assert.ok(report.indexOf('nb-report-continuous-footer')>report.indexOf('nb-report-table'));
+  assert.doesNotMatch(report,/Math\.ceil\(systems\.length\/6\)/);
   assert.doesNotMatch(report,/Legacy report|configReportRows/);
 });
 test('Dashboard uses computed progress and identifies sample benchmark totals',()=>{
@@ -25,11 +26,11 @@ test('Dashboard uses computed progress and identifies sample benchmark totals',(
   assert.match(report,/Reference demo:/);
   assert.match(report,/--report-kpi-accent/);
 });
-test('Table includes grounded Venue and AW values, and 6-row paging',()=>{
+test('Table includes grounded Venue and AW values, without six-row paging',()=>{
   assert.match(report,/Venue','Base','Ready','Deployed','AW','Cyber','Owner/);
   assert.match(report,/displayVenue/);
   assert.match(report,/displayAw/);
-  assert.match(report,/Math\.ceil\(systems\.length\/6\)/);
+  assert.match(report,/const rows=systems/);
   assert.match(report,/Search systems or devices/);
 });
 test('Report aligns to the top instead of being vertically centered',()=>{

@@ -1,0 +1,20 @@
+{
+  "base_version": "0.6.32",
+  "version": "0.6.33",
+  "modified_or_added": [
+    "RELEASE_NOTES_v0_6_33_RU.md",
+    "configuration-report-editable-v032.css",
+    "configuration-report-inline-v033.css",
+    "index.tsx",
+    "package.json",
+    "src/workspace.tsx",
+    "tests/configuration-report-approved-v031.test.mjs",
+    "tests/configuration-report-editable-v032.test.mjs",
+    "tests/configuration-report-exact-v030.test.mjs",
+    "tests/configuration-report-inline-v033.test.mjs",
+    "tests/configuration-report-reference-v029.test.mjs",
+    "tests/visual-v06.test.mjs"
+  ],
+  "removed": [],
+  "description": "Continuous system table with inline add/edit/delete and single progress count per stage"
+}

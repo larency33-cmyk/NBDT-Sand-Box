@@ -32,35 +32,4 @@
 .nb-report-shell .nb-report-reference-v032 .nb-report-table th:nth-child(5),
 .nb-report-shell .nb-report-reference-v032 .nb-report-table th:nth-child(6){width:14.2%!important}
 .nb-report-shell .nb-report-reference-v032 .nb-kpi .nb-kpi-icon{flex-shrink:0}
-.nb-report-editor-backdrop{position:fixed;inset:0;z-index:11000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,25,53,.56);backdrop-filter:blur(4px)}
-.nb-report-editor-dialog{width:min(690px,100%);max-height:min(94vh,900px);overflow:auto;border:1px solid #c7dcf5;border-radius:19px;background:#fff;box-shadow:0 22px 70px rgba(0,26,67,.28);color:#102b58;font-family:inherit}
-.nb-report-editor-dialog>header{display:flex;align-items:center;justify-content:space-between;padding:21px 25px;background:linear-gradient(110deg,#e9f4ff,#f9fcff);border-bottom:1px solid #d6e5f5}
-.nb-report-editor-dialog h2{font-size:24px;font-weight:800;margin:0;line-height:1.25;color:#092658}
-.nb-report-editor-dialog header p{color:#6983a7;font-size:13px;margin:5px 0 0}
-.nb-report-editor-dialog header button{width:34px;height:34px;border:1px solid #d6e5f5;border-radius:9px;display:grid;place-items:center;background:#fff;color:#18466e;cursor:pointer}
-.nb-report-editor-dialog form{padding:23px 25px}
-.nb-report-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.nb-report-editor-fields label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#52719a}
-.nb-report-editor-fields .wide{grid-column:1/-1}
-.nb-report-editor-fields input,.nb-report-editor-fields select{height:39px;max-width:100%;padding:8px 11px;border:1px solid #cfdff2;border-radius:8px;background:#fff;color:#183a69;font:inherit;font-size:14px;font-weight:500}
-.nb-report-editor-fields input:focus-visible,.nb-report-editor-fields select:focus-visible{outline:2px solid #559efb;outline-offset:1px}
-.nb-report-editor-hint{margin:16px 0;font-size:11px;line-height:1.5;color:#7b90af}
-.nb-report-form-error{padding:10px;border-radius:7px;background:#fff2f1;color:#bc332c;font-size:12px}
-.nb-report-editor-dialog form footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:15px;border-top:1px solid #e0eaf7}
-.nb-report-editor-dialog form footer>div{display:flex;gap:10px}
-.nb-report-editor-dialog form footer button{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;background:#fff;border:1px solid #d1e0f2;border-radius:8px;font-size:13px;font-weight:650;color:#22518b;cursor:pointer}
-.nb-report-editor-dialog form footer .nb-report-save{background:#006ef0;color:#fff;border-color:#006ef0}
-.nb-report-editor-dialog form footer .nb-report-delete-system{border-color:#f1c3c1;color:#b93832;background:#fff7f7}
-.nb-report-editor-dialog form footer button:disabled{opacity:.55;cursor:wait}
-@media(max-width:1350px){
- .nb-report-shell .nb-report-reference-v032 .nb-readiness-heading{gap:10px!important}
- .nb-report-shell .nb-report-reference-v032 .nb-report-manage-actions{width:100%;justify-content:flex-end}
-}
-@media(max-width:720px){
- .nb-report-editor-backdrop{padding:10px}
- .nb-report-editor-fields{grid-template-columns:1fr}
- .nb-report-editor-fields .wide{grid-column:1}
- .nb-report-editor-dialog form footer{flex-wrap:wrap}
-}
-.nb-report-cyber-reason{display:flex;flex-direction:column;gap:6px;margin-top:14px;font-size:12px;font-weight:700;color:#52719a}
-.nb-report-cyber-reason input{height:39px;padding:8px 11px;border:1px solid #cfdff2;border-radius:8px;font-size:13px;color:#183a69}
+/* Modal-based report editor removed in v0.6.33; editing is table-inline. */

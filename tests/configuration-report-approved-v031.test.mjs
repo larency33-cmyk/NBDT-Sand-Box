@@ -18,12 +18,12 @@ test('Reference sizing: 4 KPI cards, large heading, integrated readiness card an
  assert.match(css,/height:65px!important/);
  assert.match(css,/nb-stage-ready progress::-webkit-progress-value/);
 });
-test('Reference search, sorting and page controls are usable',()=>{
+test('Reference search and sorting remain usable after removing page controls',()=>{
  assert.match(report,/className="nb-report-search"/);
  assert.match(report,/aria-sort=/);
  assert.match(report,/changeSort\(key\)/);
- assert.match(report,/nb-report-pagination/);
- assert.match(report,/aria-label="Report pages"/);
+ assert.match(report,/nb-report-continuous/);
+ assert.doesNotMatch(report,/aria-label="Report pages"/);
 });
 test('Top actions match mockup: export/import; report supports explicitly gated system management',()=>{
  const top=app.slice(app.indexOf('activeTab === \'config-report\' && ('),app.indexOf('draftIssue && ('));
@@ -36,7 +36,7 @@ test('Top actions match mockup: export/import; report supports explicitly gated 
 });
 test('The six reference systems use live aggregation, with an explicitly labelled illustrative baseline',()=>{
  assert.match(report,/reportCounts\(project,counts\)/);
- assert.match(report,/systems\.slice\(actualPage\*6/);
+ assert.match(report,/const rows=systems/);
  assert.match(report,/counts\(s\)/);
  assert.match(report,/Reference demo:/);
 });

@@ -540,11 +540,11 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
 export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
  const [query,setQuery]=useState(''),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
  const [hidden,setHidden]=useState<string[]>(()=>{try{return JSON.parse(localStorage.getItem('nbdt-report-hidden')||'[]');}catch{return [];}});
- const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc'),[page,setPage]=useState(0);
+ const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc');
  const [editor,setEditor]=useState<any>(null),[saving,setSaving]=useState(false),[saveMessage,setSaveMessage]=useState(''),[formError,setFormError]=useState('');
+ const [confirmDeleteId,setConfirmDeleteId]=useState<string|null>(null);
  const [cyberReason,setCyberReason]=useState('');
  useEffect(()=>{localStorage.setItem('nbdt-report-hidden',JSON.stringify(hidden));},[hidden]);
- useEffect(()=>setPage(0),[query,scope,owner,cyber,venue,sort,sortDirection]);
  const reportSummary=reportCounts(project,counts);
  const allColumns=['System','Qty','Venue','Base','Ready','Deployed','AW','Cyber','Owner'];
  const memberName=(sys:any)=>sys.reportOwnerName||project.members.find((m:any)=>m.id===sys.assigneeId)?.name||'Unassigned';
@@ -561,8 +561,9 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   if(cyber&&(s.cyberStatus||'Unknown')!==cyber)return false;
   return scope==='All'||(scope==='Not started'?total.base===0:total.base>0&&total.deployed<total.total);
  }).sort(compare);
- const maxPage=Math.max(0,Math.ceil(systems.length/6)-1),actualPage=Math.min(page,maxPage);
- const rows=systems.slice(actualPage*6,actualPage*6+6);
+ const rows=systems;
+ const isCreating=!!editor&&!project.systems.some((s:any)=>s.id===editor.id);
+ const visibleCount=allColumns.filter(c=>!hidden.includes(c)).length+1;
  const allVenues=[...new Set(project.systems.map((s:any)=>displayVenue(s)).filter((s:string)=>s!=='—'))].sort();
  const allOwners=[...new Set(project.systems.map(memberName))].sort();
  const kpis=[
@@ -571,11 +572,12 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   ['Deployed','deployed',reportSummary.deployed,reportSummary.total,Layers3],
   ['Cyber Approved','cyber',reportSummary.cyberApproved,reportSummary.cyberApplicable,ShieldCheck],
  ] as any[];
- const progress=(n:number,t:number)=> t>0?<span className="nb-report-progress"><span className="nb-progress-label"><small>{n} / {t}</small><strong>{Math.round(n/t*100)}%{n===t?' ✓':''}</strong></span><progress max={t} value={n} aria-label={`${n} out of ${t} completed`}/></span>:<span className="nb-muted">—<small>No device inventory</small></span>;
- const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}setFormError('');setSaveMessage('');setCyberReason('');setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Unknown'});};
- const saveEditor=async(e:any)=>{e.preventDefault();if(!editor||saving)return;setFormError('');
+ const progress=(n:number,t:number)=> t>0?<span className="nb-report-progress"><span className="nb-progress-label"><small>{n.toLocaleString('en-US')}</small><strong>{Math.round(n/t*100)}%{n===t?' ✓':''}</strong></span><progress max={t} value={n} aria-label={`${n} out of ${t} completed`}/></span>:<span className="nb-muted">—<small>No device inventory</small></span>;
+ const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}if(!sys){setQuery('');setScope('All');setOwner('');setCyber('');setVenue('');setSort('reference');setSortDirection('asc');}setFormError('');setSaveMessage('');setCyberReason('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Unknown'});};
+ const saveEditor=async(e?:any)=>{e?.preventDefault?.();if(!editor||saving)return;setFormError('');
   try{
    if(!editor.name?.trim())throw Error('System name is required.');
+   if(['total','base','ready','deployed'].some(key=>editor.reportMetrics?.[key]===''))throw Error('Enter quantity and completed counts for all stages.');
    if(project.systems.some((s:any)=>s.id!==editor.id&&s.name.trim().toLowerCase()===editor.name.trim().toLowerCase()))throw Error('This system name already exists.');
    const metrics=validateAggregateMetrics(editor.reportMetrics);
    const original=project.systems.find((s:any)=>s.id===editor.id);
@@ -588,20 +590,43 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
    setSaving(true);
    if(original)await onSystemChange(next);else await onSystemCreate(next);
    if(!original){setQuery(next.name);setScope('All');setOwner('');setCyber('');setVenue('');}
-   setEditor(null);setSaveMessage(`System “${next.name}” saved.`);
+   setEditor(null);setConfirmDeleteId(null);setSaveMessage(`System “${next.name}” saved.`);
   }catch(error:any){setFormError(error?.message||'Unable to save system.');}finally{setSaving(false);}
  };
- const deleteEditor=async()=>{if(!editor||!isAdmin||saving)return;const original=project.systems.find((s:any)=>s.id===editor.id);if(!original){setEditor(null);return;}const inventory=(original.devices||[]).length;
-  if(!window.confirm(`Delete “${original.name}”?\n\nThis permanently removes this system${inventory?`, its ${inventory} registered device(s) and their checklist histories`:''} and its linked issues. This cannot be undone.`))return;
-  try{setSaving(true);await onSystemDelete(original.id);setEditor(null);setSaveMessage('System deleted.');}catch(error:any){setFormError(error?.message||'Unable to delete system.');}finally{setSaving(false);}
+ const deleteEditor=async(sys:any)=>{if(!isAdmin||saving||confirmDeleteId!==sys.id)return;
+  try{setSaving(true);setFormError('');await onSystemDelete(sys.id);setConfirmDeleteId(null);setEditor(null);setSaveMessage(`System “${sys.name}” deleted.`);}catch(error:any){setFormError(error?.message||'Unable to delete system.');}finally{setSaving(false);}
  };
+ const cancelEditor=()=>{setEditor(null);setFormError('');setCyberReason('');};
+ const editableRegistered=(sys:any)=>!!(sys?.devices?.length&&sys.reportMode!=='aggregate-sample');
+ const inlineNumber=(key:'total'|'base'|'ready'|'deployed',label:string)=>{
+  const isLocked=!!editor&&editableRegistered(project.systems.find((s:any)=>s.id===editor.id));
+  const value=editor?.reportMetrics?.[key]??0;
+  return <input className="nb-report-inline-number" type="number" step="1" min="0" max={key==='total'?1000000:(editor?.reportMetrics?.total||0)} aria-label={label} value={value} disabled={saving||isLocked} title={isLocked?'Registered device progress is edited in its device checklist':label} onChange={e=>changeMetric(key,e.target.value)}/>;
+ };
+ const inlineProgress=(key:'base'|'ready'|'deployed',label:string)=>{
+  const n=Number(editor?.reportMetrics?.[key]||0),total=Number(editor?.reportMetrics?.total||0);
+  return <div className="nb-report-inline-progress">{inlineNumber(key,label)}<span className="nb-report-inline-percent">{total>0&&n>=0?`${Math.round(n/total*100)}%`:'—'}</span><progress value={Math.max(0,Math.min(total,n))} max={Math.max(1,total)} aria-label={label+' progress'}/></div>;
+ };
+ const inlineActions=<div className="nb-report-inline-actions"><button type="button" className="nb-report-inline-save" disabled={saving} onClick={()=>saveEditor()} aria-label="Save system"><Check size={15}/> Save</button><button type="button" disabled={saving} onClick={cancelEditor} aria-label="Cancel editing"><X size={14}/> Cancel</button></div>;
+ const inlineRow=editor&&<tr key={'editing-'+editor.id} className="nb-report-editing-row" onKeyDown={e=>{if(e.key==='Escape')cancelEditor();if(e.key==='Enter'&&(e.target as HTMLElement).tagName==='INPUT'&&!saving){e.preventDefault();saveEditor();}}}>
+   <td><div className="nb-report-name-editor"><input required autoFocus aria-label="System name" maxLength={140} placeholder="System name" value={editor.name} onChange={e=>changeField('name',e.target.value)}/><input aria-label="Device model" maxLength={180} placeholder="Device model" value={editor.deviceType||''} onChange={e=>changeField('deviceType',e.target.value)}/>{formError&&<span className="nb-report-row-error" role="alert">{formError}</span>}</div></td>
+   <td hidden={hidden.includes('Qty')}>{inlineNumber('total','Quantity')}</td>
+   <td hidden={hidden.includes('Venue')}><input aria-label="Venue" maxLength={30} value={editor.reportVenue||''} onChange={e=>changeField('reportVenue',e.target.value)}/></td>
+   <td className="nb-stage-base" hidden={hidden.includes('Base')}>{inlineProgress('base','Base configuration completed')}</td>
+   <td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{inlineProgress('ready','Ready for deployment completed')}</td>
+   <td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{inlineProgress('deployed','Deployed devices')}</td>
+   <td hidden={hidden.includes('AW')}><select aria-label="AW" value={editor.reportAW||''} onChange={e=>changeField('reportAW',e.target.value)}>{['Yes','No','Pending','N/A',''].map(v=><option key={v} value={v}>{v||'—'}</option>)}</select></td>
+   <td hidden={hidden.includes('Cyber')}><select aria-label="Cyber status" value={editor.cyberStatus||'Unknown'} onChange={e=>changeField('cyberStatus',e.target.value)}>{['Unknown','Review','Approved','Blocked','N/A'].map(v=><option key={v} value={v}>{v}</option>)}</select>{(editor.cyberStatus||'Unknown')!==(project.systems.find((s:any)=>s.id===editor.id)?.cyberStatus||'Unknown')&&<input className="nb-report-cyber-reason-inline" required maxLength={500} aria-label="Cyber change reason" title="Cyber change reason / evidence" placeholder="Reason / evidence" value={cyberReason} onChange={e=>setCyberReason(e.target.value)}/>}</td>
+   <td hidden={hidden.includes('Owner')}><input aria-label="Owner" maxLength={100} value={editor.reportOwnerName||''} onChange={e=>changeField('reportOwnerName',e.target.value)}/></td>
+   <td className="nb-report-action-cell">{inlineActions}</td>
+  </tr>;
  const changeField=(key:string,v:any)=>setEditor((old:any)=>({...old,[key]:v}));
  const changeMetric=(key:string,v:string)=>setEditor((old:any)=>({...old,reportMetrics:{...old.reportMetrics,[key]:v}}));
  return <section className="nb-report nb-report-reference-v032">
   <header className="nb-page-header"><div><h1>Configuration Report</h1><p>Legend of the Seas · Deployment overview</p></div><div className="nb-actions"/></header>
   <div className="nb-kpis">{kpis.map(([label,key,n,t,Icon]:any)=><article className="nb-kpi" key={key}><div><span className={'nb-kpi-icon nb-kpi-icon-'+key}><Icon size={24} strokeWidth={2}/></span><h3>{label}</h3><strong>{t?Math.round(n/t*100)+'%':'—'}</strong><div className={'nb-kpi-ring nb-kpi-ring-'+key} role="img" aria-label={`${label}: ${n} of ${t}`} style={{background:`conic-gradient(var(--report-kpi-accent) ${t?n/t*100:0}%, #e4edf8 0)`}}><span/></div><p>{t?`${n.toLocaleString('en-US')} / ${t.toLocaleString('en-US')} ${key==='cyber'?'applicable systems':'devices'}`:key==='deployed'?'No deployment records':'No registered device data'}</p></div></article>)}</div>
   <section className="nb-report-readiness-panel" aria-label="System readiness">
-   <div className="nb-readiness-heading"><h2>System readiness <small>{systems.length} systems</small></h2><div className="nb-scope-tabs" role="group" aria-label="Readiness scope">{['All','In progress','Not started'].map(v=><B key={v} aria-pressed={scope===v} onClick={()=>setScope(v)}>{v}</B>)}</div><div className="nb-report-manage-actions"><B onClick={()=>openEditor()} className="nb-report-add-system"><Plus size={16}/> Add system</B>{isAdmin?<B onClick={()=>onDisableAdmin?.()}>Done editing</B>:<B onClick={()=>onRequestAdmin?.()}>Edit systems</B>}</div></div>
+   <div className="nb-readiness-heading"><h2>System readiness <small>{systems.length} systems</small></h2><div className="nb-scope-tabs" role="group" aria-label="Readiness scope">{['All','In progress','Not started'].map(v=><B key={v} aria-pressed={scope===v} onClick={()=>setScope(v)}>{v}</B>)}</div><div className="nb-report-manage-actions"><B onClick={()=>openEditor()} className="nb-report-add-system"><Plus size={16}/> Add system</B>{isAdmin?<B onClick={()=>{cancelEditor();onDisableAdmin?.();}}>Done editing</B>:<B onClick={()=>onRequestAdmin?.()}>Edit systems</B>}</div></div>
    <div className="nb-toolbar nb-report-filters">
     <label className="nb-report-search"><Search size={19} aria-hidden="true"/><input aria-label="Search systems" placeholder="Search systems or devices..." value={query} onChange={e=>setQuery(e.target.value)}/></label>
     <select aria-label="Venue scope" value={venue} onChange={e=>setVenue(e.target.value)}><option value="">All venues</option>{allVenues.map(v=><option key={v} value={v}>{v}</option>)}</select>
@@ -609,24 +634,17 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
     <select aria-label="Cyber scope" value={cyber} onChange={e=>setCyber(e.target.value)}><option value="">All cyber statuses</option>{['Unknown','Approved','Review','Blocked','N/A'].map(v=><option key={v}>{v}</option>)}</select>
     <details className="nb-report-column-picker"><summary>Columns</summary><div className="nb-report-column-menu">{allColumns.filter(v=>v!=='System').map(v=><label key={v}><input type="checkbox" checked={!hidden.includes(v)} onChange={e=>setHidden(e.target.checked?hidden.filter(x=>x!==v):[...hidden,v])}/>{v}</label>)}<div className="nb-report-sort-control"><label>Sort by<select value={sort} onChange={e=>{setSort(e.target.value);setSortDirection('asc');}}><option value="reference">Reference order</option><option value="name">System name</option><option value="qty">Device quantity</option><option value="base">Base configuration</option><option value="ready">Ready to deploy</option><option value="deployed">Deployed count</option></select></label></div></div></details>
    </div>
-   <div className="nb-report-table"><table><thead><tr>{allColumns.map(v=>{const key=({System:'name',Qty:'qty',Venue:'venue',Base:'base',Ready:'ready',Deployed:'deployed',AW:'aw',Cyber:'cyber',Owner:'owner'} as any)[v];return <th key={v} hidden={hidden.includes(v)} aria-sort={sort===key?(sortDirection==='asc'?'ascending':'descending'):'none'}><button className="nb-report-th-sort" onClick={()=>changeSort(key)}>{({Base:'Base config.',Ready:'Ready to deploy'} as any)[v]||v}<span aria-hidden="true">{sort===key?(sortDirection==='asc'?'⌃':'⌄'):'↕'}</span></button></th>})}</tr></thead>
-    <tbody>{rows.map((s:any)=>{const c=counts(s);return <tr key={s.id}><td><button type="button" className="nb-report-system-link" onClick={()=>openEditor(s)} title={'Edit '+s.name}>{s.name}</button><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={s.cyberStatus||'Unknown'}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td></tr>})}{rows.length===0&&<tr><td colSpan={visibleColumns.length} className="nb-report-no-results">No systems match the current filters.</td></tr>}</tbody></table></div>
-   <div className="nb-report-pagination"><span>{systems.length?actualPage*6+1:0}–{Math.min((actualPage+1)*6,systems.length)} of {systems.length} systems</span><nav aria-label="Report pages"><B disabled={actualPage===0} onClick={()=>setPage(p=>Math.max(0,p-1))} aria-label="Previous page">‹</B>{Array.from(new Set([0,1,2,Math.max(0,actualPage-1),actualPage,Math.min(maxPage,actualPage+1),maxPage])).filter(p=>p>=0&&p<=maxPage).sort((a,b)=>a-b).map((p,i,all)=><React.Fragment key={p}>{i>0&&p>all[i-1]+1&&<span className="nb-report-pagination-ellipsis">…</span>}<B aria-current={actualPage===p?'page':undefined} onClick={()=>setPage(p)}>{p+1}</B></React.Fragment>)}<B disabled={actualPage===maxPage} onClick={()=>setPage(p=>Math.min(maxPage,p+1))} aria-label="Next page">›</B></nav></div>
+   <div className="nb-report-table nb-report-continuous"><table><thead><tr>{allColumns.map(v=>{const key=({System:'name',Qty:'qty',Venue:'venue',Base:'base',Ready:'ready',Deployed:'deployed',AW:'aw',Cyber:'cyber',Owner:'owner'} as any)[v];return <th key={v} hidden={hidden.includes(v)} aria-sort={sort===key?(sortDirection==='asc'?'ascending':'descending'):'none'}><button className="nb-report-th-sort" onClick={()=>changeSort(key)}>{({Base:'Base config.',Ready:'Ready to deploy'} as any)[v]||v}<span aria-hidden="true">{sort===key?(sortDirection==='asc'?'⌃':'⌄'):'↕'}</span></button></th>})}<th className="nb-report-actions-th">Actions</th></tr></thead>
+    <tbody>
+     {isCreating&&inlineRow}
+     {rows.map((s:any)=>{const c=counts(s);if(editor?.id===s.id)return inlineRow;return <tr key={s.id} className="nb-report-data-row"><td><strong className="nb-report-system-name">{s.name}</strong><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={s.cyberStatus||'Unknown'}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td><td className="nb-report-action-cell">{confirmDeleteId===s.id?<div className="nb-report-delete-confirm"><span>Delete this system and its history?</span><button disabled={saving} onClick={()=>deleteEditor(s)} className="nb-report-confirm-danger" aria-label={'Confirm delete '+s.name}>Delete</button><button onClick={()=>setConfirmDeleteId(null)}>Cancel</button></div>:<div className="nb-report-row-actions"><button type="button" aria-label={'Edit '+s.name} title="Edit system inline" onClick={()=>openEditor(s)}><Pencil size={15}/></button>{isAdmin&&<button type="button" aria-label={'Delete '+s.name} title="Delete system" onClick={()=>{setEditor(null);setConfirmDeleteId(s.id);}}><Trash2 size={15}/></button>}</div>}</td></tr>})}
+     {rows.length===0&&!isCreating&&<tr><td colSpan={visibleCount} className="nb-report-no-results">No systems match the current filters.</td></tr>}
+    </tbody></table></div>
+   <div className="nb-report-continuous-footer"><span>Showing all {systems.length} systems · Scroll to view the full list</span></div>
    {project.referenceDemoTotals&&<p className="nb-report-reference-note">Reference demo: six systems reproduced from the approved mockup. KPI totals also include an illustrative subtotal for 68 unseen systems. These totals are not verified device inventory. Editing a system updates its progress and the overall displayed totals.</p>}
+   {formError&&!editor&&<p role="alert" className="nb-report-form-error nb-report-inline-error">{formError}</p>}
    {saveMessage&&<p role="status" className="nb-report-save-message">{saveMessage}</p>}
   </section>
-  {editor&&createPortal(<div className="nb-report-editor-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!saving)setEditor(null);}}><section className="nb-report-editor-dialog" role="dialog" aria-modal="true" aria-label={project.systems.some((s:any)=>s.id===editor.id)?'Edit system':'Add system'}><header><div><h2>{project.systems.some((s:any)=>s.id===editor.id)?'Edit system':'Add system'}</h2><p>Device readiness and report values</p></div><button type="button" onClick={()=>setEditor(null)} aria-label="Close" disabled={saving}><X size={22}/></button></header><form onSubmit={saveEditor}><div className="nb-report-editor-fields">
-   <label className="wide">System name<input required maxLength={140} value={editor.name} onChange={e=>changeField('name',e.target.value)} placeholder="e.g. POS – Mobility"/></label>
-   <label className="wide">Device model / description<input maxLength={180} value={editor.deviceType} onChange={e=>changeField('deviceType',e.target.value)}/></label>
-   <label>Venue<input maxLength={30} value={editor.reportVenue} onChange={e=>changeField('reportVenue',e.target.value)}/></label>
-   <label>Owner<input maxLength={100} value={editor.reportOwnerName} onChange={e=>changeField('reportOwnerName',e.target.value)}/></label>
-   <label>Qty<input type="number" min="0" max="1000000" step="1" required value={editor.reportMetrics.total} onChange={e=>changeMetric('total',e.target.value)}/></label>
-   <label>Base configuration<input type="number" min="0" max={editor.reportMetrics.total} required value={editor.reportMetrics.base} onChange={e=>changeMetric('base',e.target.value)}/></label>
-   <label>Ready for deployment<input type="number" min="0" max={editor.reportMetrics.total} required value={editor.reportMetrics.ready} onChange={e=>changeMetric('ready',e.target.value)}/></label>
-   <label>Deployed<input type="number" min="0" max={editor.reportMetrics.total} required value={editor.reportMetrics.deployed} onChange={e=>changeMetric('deployed',e.target.value)}/></label>
-   <label>AW<select value={editor.reportAW} onChange={e=>changeField('reportAW',e.target.value)}>{['Yes','No','Pending','N/A',''].map(v=><option key={v} value={v}>{v||'Not specified'}</option>)}</select></label>
-   <label>Cyber status<select value={editor.cyberStatus||'Unknown'} onChange={e=>changeField('cyberStatus',e.target.value)}>{['Unknown','Review','Approved','Blocked','N/A'].map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-   </div>{(editor.cyberStatus||'Unknown')!==(project.systems.find((s:any)=>s.id===editor.id)?.cyberStatus||'Unknown')&&<label className="nb-report-cyber-reason">Cyber change reason / evidence reference<input required maxLength={500} value={cyberReason} onChange={e=>setCyberReason(e.target.value)} placeholder="Reference or explanation for this local status"/></label>}<p className="nb-report-editor-hint">Stage counts represent the mockup's reported totals. Registered device checklists, where present, remain the source of verified completion.</p>{formError&&<p className="nb-report-form-error" role="alert">{formError}</p>}<footer><div>{project.systems.some((s:any)=>s.id===editor.id)&&<button type="button" className="nb-report-delete-system" disabled={saving} onClick={deleteEditor}><Trash2 size={16}/> Delete system</button>}</div><div><button type="button" disabled={saving} onClick={()=>setEditor(null)}>Cancel</button><button type="submit" className="nb-report-save" disabled={saving}>{saving?'Saving…':'Save system'}</button></div></footer></form></section></div>,document.body)}
  </section>;
 }
 
