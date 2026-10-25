@@ -75,3 +75,11 @@ Old screenshots, historical reports, isolated verification artifacts, the obsole
 
 ## v0.6.21 — Weekly Tracker header refresh
 Only the Weekly Tracker Overview uses `weekly-tracker-premium-v021.css`. Header colors are stable by project week ID, and current-week emphasis is independent of header color. The sidebar and all other screens retain v0.6.20 styling.
+
+
+## v0.6.22 — Project-week drawer & spacing
+- The Weekly Tracker assignment drawer has four compact status summaries, a separate milestones section, and universally numbered assignment cards (no per-task category icons or redundant Owner labels).
+- Status changes, blocked-reason capture, more/edit controls and inline assignment creation use the existing persistence workflow. In view mode, Edit mode is requested through the existing authorization flow.
+- The gap between the milestone header and the first assignment row matches the 6px horizontal column gutter.
+- Weekday labels spread equally over all seven tracks within **every** footer week card. A legacy middle-card padding rule was explicitly neutralized.
+- The original sidebar and all other app pages were left unchanged.

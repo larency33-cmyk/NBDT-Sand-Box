@@ -8,7 +8,7 @@ import {weekHeaderTone} from './week-palette.mjs';
 import {setResult} from './model.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
+import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
 const fieldIcons:any={'Endpoint':Monitor,'Operating system':AppWindow,'Connection':Plug,'VLAN':Network,'IP scope':Globe,'Reservation':LockKeyhole,'Service account reference':UserRoundKey,'Domain / OU':Workflow,'MDM / AirWatch':ShieldCheck,'Applications':LayoutGrid,'Naming convention':Tag,'Owner':UserRound};
 import {STAGES,LABELS,uid,weekRange,dueDate,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
@@ -53,7 +53,7 @@ export function SystemEditor({sys,project,isAdmin,onSave,onClose,onDelete}:any){
 }
 
 /** Fast status controls save the shared Task ID, not one local assignment copy. */
-function QuickAssignmentRow({task,role,ownerName,personId,isAdmin,onQuickTaskSave,onEdit}:any){
+function QuickAssignmentRow({task,number,isAdmin,onQuickTaskSave,onEdit}:any){
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
  const save=async(status:string,reason='')=>{
   if(!isAdmin||saving)return;
@@ -63,15 +63,23 @@ function QuickAssignmentRow({task,role,ownerName,personId,isAdmin,onQuickTaskSav
   finally{setSaving(false);}
  };
  const actualStatus=task.status||'Planned';
- return <article className={'nb-quick-task-card '+(actualStatus==='Blocked'?'nb-quick-task-blocked':'')}>
-  <div className="nb-quick-task-header"><strong>{task.label}</strong><span className="nb-quick-role">{role}</span></div>
-  <div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status <select aria-label={'Status for '+task.label} value={showBlocker?'Blocked':actualStatus} disabled={!isAdmin||saving} onChange={e=>{const status=e.target.value;if(status==='Blocked'&&!(task.blockReason||'').trim()){setShowBlocker(true);return;}void save(status,task.blockReason||'');}}>
-   <option value="Planned">Planned</option><option value="In Progress">Active</option><option value="Completed">Done</option><option value="Blocked">Blocked</option>
-  </select></label><span className="nb-quick-task-meta">{role==='Helper'?'Owner: '+ownerName:'Owner'}</span>{isAdmin&&<button type="button" className="nb-quick-advanced" onClick={onEdit}>More</button>}</div>
+ return <article className={'nb-quick-task-card nb-drawer-task nb-drawer-task-'+String(actualStatus).toLowerCase().replace(' ','-')}>
+  <div className="nb-drawer-task-index" aria-hidden="true">{String(number).padStart(2,'0')}</div>
+  <div className="nb-drawer-task-content">
+   <div className="nb-quick-task-header">
+    <strong>{task.label}</strong>
+    {isAdmin&&<button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Edit assignment details" onClick={onEdit}><MoreVertical size={20} aria-hidden="true"/></button>}
+   </div>
+   <div className="nb-quick-task-toolbar"><label className="nb-quick-status-label">Status
+    <select aria-label={'Status for '+task.label} value={showBlocker?'Blocked':actualStatus} disabled={!isAdmin||saving} onChange={e=>{const status=e.target.value;if(status==='Blocked'&&!(task.blockReason||'').trim()){setShowBlocker(true);return;}void save(status,task.blockReason||'');}}>
+     <option value="Planned">Planned</option><option value="In Progress">Active</option><option value="Completed">Done</option><option value="Blocked">Blocked</option>
+    </select>
+   </label></div>
   {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
   {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
   {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
   {error&&<p role="alert" className="nb-quick-error">{error}</p>}
+  </div>
  </article>;
 }
 
@@ -429,30 +437,36 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
 
    {selected&&createPortal(<>
     <div className="nb-quick-overlay-backdrop" aria-hidden="true" onClick={closeQuickPanel}/>
-    <aside ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Person assignments" className="nb-assignment-panel nb-quick-panel nb-overlay-panel">
+    <aside ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Person assignments" className="nb-assignment-panel nb-quick-panel nb-overlay-panel nb-project-week-drawer">
     <header className="nb-quick-panel-heading">
       <div className="nb-quick-person"><span className="nb-avatar">{memberInitial(selectedPerson?.name)}</span><div><h2>{selectedPerson?.name}</h2><p>{weekIso(selected.week)} · {weekRange(project.startDate,selected.week)}</p></div></div>
-      <B aria-label="Close person panel" onClick={closeQuickPanel}>✕</B>
+      <B aria-label="Close person panel" onClick={closeQuickPanel}><X size={22} aria-hidden="true"/></B>
     </header>
-    <div className="nb-quick-metrics">
-     <span className="nb-metric-active">{chosen.filter((t:any)=>t.status==='In Progress').length} Active</span>
-     <span>{chosen.filter((t:any)=>t.status==='Planned').length} Planned</span>
-     <span className="nb-metric-done">{chosen.filter((t:any)=>t.status==='Completed').length} Done</span>
-     <span className="nb-metric-blocked">{chosen.filter((t:any)=>t.status==='Blocked').length} Blocked</span>
+    <div className="nb-quick-metrics nb-drawer-stats" aria-label="Assignment status summary">
+     <span className="nb-metric-active"><strong>{chosen.filter((t:any)=>t.status==='In Progress').length}</strong><small>Active</small></span>
+     <span className="nb-metric-planned"><strong>{chosen.filter((t:any)=>t.status==='Planned').length}</strong><small>Planned</small></span>
+     <span className="nb-metric-done"><strong>{chosen.filter((t:any)=>t.status==='Completed').length}</strong><small>Done</small></span>
+     <span className="nb-metric-blocked"><strong>{chosen.filter((t:any)=>t.status==='Blocked').length}</strong><small>Blocked</small></span>
     </div>
-    {!!milestonesAt(selected.week).length&&<div className="nb-quick-milestones"><strong>Milestones</strong>{milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><Flag size={14}/><span>{ms.label}</span></button>)}</div>}
+    <section className="nb-drawer-milestone-section" aria-label="Milestones for selected week">
+     <div className="nb-drawer-section-heading"><Flag size={17} aria-hidden="true"/><strong>Milestones</strong><span>{milestonesAt(selected.week).length}</span></div>
+     <div className="nb-drawer-milestone-list">
+      {milestonesAt(selected.week).length?milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-drawer-milestone-item" title={isAdmin?'Edit milestone':ms.label} onClick={()=>{if(isAdmin){closeQuickPanel();onEdit(ms);}}}><Flag size={16} aria-hidden="true"/><span>{ms.label}</span></button>):<p className="nb-drawer-milestone-empty">No milestones for this week</p>}
+     </div>
+    </section>
+    <div className="nb-drawer-section-heading nb-drawer-assignments-heading"><strong>Assignments</strong><span>{chosen.length}</span></div>
     <div className="nb-quick-list" aria-label="Assignments for selected week">
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
-     {chosen.map((t:any)=><QuickAssignmentRow key={t.id} task={t} ownerName={project.members.find((m:any)=>m.id===t.memberId)?.name||'Unassigned'} personId={selected.id} role={role(t,selected.id)} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>{closeQuickPanel();onEdit(project.tasks.find((item:any)=>item.id===t.id)||t);}} />)}
+     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onEdit={()=>{closeQuickPanel();onEdit(project.tasks.find((item:any)=>item.id===t.id)||t);}} />)}
     </div>
     {isAdmin&&selected.id!==UNASSIGNED_MEMBER_ID?<div className="nb-quick-add-area">
-     {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}>+ Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
+     {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
       <label htmlFor="nb-quick-new-task">New assignment for {selectedPerson?.name}</label>
       <input id="nb-quick-new-task" required maxLength={160} autoFocus placeholder="Type task name and press Enter…" value={newAssignment} disabled={quickAdding} onChange={e=>setNewAssignment(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setAddingAssignment(false);setNewAssignment('');setQuickError('');}}}/>
       <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!newAssignment.trim()}>{quickAdding?'Saving…':'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
      </form>}
      {quickError&&<p className="nb-quick-error" role="alert">{quickError}</p>}
-    </div>:selected.id===UNASSIGNED_MEMBER_ID?<p className="nb-quick-view-note">Unassigned tasks are preserved. Use More to assign them to a team member.</p>:<p className="nb-quick-view-note">Enable Edit mode to change statuses or add assignments.</p>}
+    </div>:selected.id===UNASSIGNED_MEMBER_ID?<p className="nb-quick-view-note">Unassigned tasks are preserved. Switch to Edit mode to reassign them.</p>:<div className="nb-drawer-view-footer"><span>Enable Edit mode to update tasks.</span><button type="button" className="nb-button nb-drawer-edit-button" onClick={()=>{closeQuickPanel();onAuth();}}><Pencil size={17} aria-hidden="true"/> Edit mode</button></div>}
     </aside>
    </>,document.body)}
 

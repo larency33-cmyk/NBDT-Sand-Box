@@ -1,0 +1,210 @@
+/* NBDT v0.6.22 · Weekly Tracker ONLY.  No global sidebar or other-page rules. */
+
+/* Equalize the air between the milestone header and the first assignment card
+   to the existing column gap (6px). The table geometry remains unchanged. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:first-child td {
+  padding-top:var(--nb-week-space,6px)!important;
+}
+
+/* Seven weekdays occupy the actual full width of every bottom week card.
+   The arrows sit inside the upper zone of the first and last cards, not in
+   either end of the weekdays strip. */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card {
+  padding:8px 42px 28px!important;
+  justify-content:flex-start!important;
+  gap:2px!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-days {
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  column-gap:0!important;
+  position:absolute!important;
+  left:8px!important;
+  right:8px!important;
+  bottom:7px!important;
+  top:auto!important;
+  width:calc(100% - 16px)!important;
+  max-width:none!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-day {
+  min-width:0!important;
+  justify-self:stretch!important;
+  text-align:center!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-arrow {
+  top:37%!important;
+  width:33px!important;
+  min-width:33px!important;
+  height:34px!important;
+  min-height:34px!important;
+}
+
+/* Project-week overlay: self-contained, accessible, does not resize the matrix. */
+.nb-assignment-panel.nb-quick-panel.nb-overlay-panel.nb-project-week-drawer {
+  top:clamp(14px,7vh,76px)!important;
+  right:clamp(12px,1.6vw,26px)!important;
+  bottom:clamp(12px,2vh,24px)!important;
+  width:min(540px,calc(100vw - 24px))!important;
+  border:1px solid #cadef2!important;
+  border-radius:19px!important;
+  box-shadow:0 24px 65px rgba(9,37,78,.25),0 7px 20px rgba(12,47,94,.10)!important;
+  background:#ffffff!important;
+}
+.nb-project-week-drawer .nb-quick-panel-heading {
+  padding:19px 19px 18px!important;
+  gap:12px;
+  background:radial-gradient(circle at 95% -30%,#d6e9ff 0 130px,transparent 131px),
+             linear-gradient(110deg,#ffffff,#f0f8ff)!important;
+  border-bottom:1px solid #dce9f6!important;
+}
+.nb-project-week-drawer .nb-quick-person {gap:13px!important;align-items:center!important}
+.nb-project-week-drawer .nb-quick-person>.nb-avatar {
+  flex:0 0 55px!important;width:55px!important;height:55px!important;
+  font-size:23px!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;background:#dff0ff!important;color:#0861bc!important;
+}
+.nb-project-week-drawer .nb-quick-person h2 {font-size:22px!important;line-height:27px!important;font-weight:800!important}
+.nb-project-week-drawer .nb-quick-person p {font-size:13px!important;margin-top:4px!important}
+.nb-project-week-drawer .nb-quick-panel-heading>.nb-button {
+  min-height:40px!important;width:40px!important;min-width:40px!important;
+  padding:0!important;border-radius:10px!important;border:1px solid #e3edf8!important;
+  background:#ffffff!important;color:#2c619b!important;display:flex!important;align-items:center!important;justify-content:center!important;
+}
+
+/* Four compact KPI cards; visual states, no individual task icons. */
+.nb-project-week-drawer .nb-drawer-stats {
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:stretch!important;gap:8px!important;
+  padding:14px 15px!important;background:white!important;
+  border-bottom:0!important;
+}
+.nb-project-week-drawer .nb-drawer-stats>span {
+  display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;
+  gap:3px!important;min-width:0!important;min-height:68px!important;
+  border-radius:11px!important;padding:9px 4px!important;
+  line-height:1.15!important;box-sizing:border-box!important;
+}
+.nb-project-week-drawer .nb-drawer-stats>span>strong {font-size:25px!important;font-weight:800!important;line-height:1!important;font-variant-numeric:tabular-nums!important}
+.nb-project-week-drawer .nb-drawer-stats>span>small {font-size:11px!important;font-weight:650!important;line-height:1.2!important}
+.nb-project-week-drawer .nb-drawer-stats>.nb-metric-active {background:#eaf3ff!important;color:#096bd3!important}
+.nb-project-week-drawer .nb-drawer-stats>.nb-metric-planned {background:#f1f5fa!important;color:#637d9c!important}
+.nb-project-week-drawer .nb-drawer-stats>.nb-metric-done {background:#eaf8f1!important;color:#0b8855!important}
+.nb-project-week-drawer .nb-drawer-stats>.nb-metric-blocked {background:#fff4e7!important;color:#b66211!important}
+
+.nb-project-week-drawer .nb-drawer-milestone-section {
+  margin:0 15px 12px!important;border:1px solid #dce9f6!important;border-radius:12px!important;
+  padding:11px 12px!important;background:#f9fcff!important;
+  box-shadow:0 1px 5px rgba(20,66,114,.035)!important;
+}
+.nb-project-week-drawer .nb-drawer-section-heading {
+  display:flex;align-items:center;gap:8px;
+  color:#113763;font-size:14px;font-weight:760;
+}
+.nb-project-week-drawer .nb-drawer-section-heading>svg {color:#086ed5}
+.nb-project-week-drawer .nb-drawer-section-heading>span {
+  font-size:11px;color:#5c7ca0;font-weight:650;
+  border-radius:7px;background:#e9f2fc;padding:3px 8px;
+}
+.nb-project-week-drawer .nb-drawer-milestone-list {display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.nb-project-week-drawer .nb-drawer-milestone-item {
+  display:flex;align-items:center;gap:8px;min-height:35px;flex:1 0 100%;
+  border:1px solid #cadef7;border-radius:8px;background:white;color:#1e5ca4;
+  font-size:13px;font-weight:700;padding:7px 9px;text-align:left;min-width:0;
+}
+.nb-project-week-drawer .nb-drawer-milestone-item span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nb-project-week-drawer .nb-drawer-milestone-item:disabled {opacity:1;cursor:default}
+.nb-project-week-drawer .nb-drawer-milestone-empty {font-size:12px;color:#748aa5;margin:0;padding:4px 2px}
+.nb-project-week-drawer .nb-drawer-assignments-heading {padding:2px 19px 10px!important}
+
+.nb-project-week-drawer .nb-quick-list {
+  background:linear-gradient(180deg,#fbfdff,#f7fbff)!important;
+  padding:0 14px 14px!important;gap:10px!important;overflow-y:auto!important;
+}
+.nb-project-week-drawer .nb-drawer-task {
+  display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;align-items:start!important;
+  gap:11px!important;padding:12px!important;min-width:0!important;
+  border:1px solid #dce8f7!important;border-left:4px solid #afc6df!important;
+  border-radius:12px!important;background:#ffffff!important;
+  box-shadow:0 2px 7px rgba(13,47,97,.055)!important;
+}
+.nb-project-week-drawer .nb-drawer-task-planned {border-left-color:#aabed6!important}
+.nb-project-week-drawer .nb-drawer-task-in-progress {border-left-color:#48a0ff!important}
+.nb-project-week-drawer .nb-drawer-task-completed {border-left-color:#66caa1!important}
+.nb-project-week-drawer .nb-drawer-task-blocked {border-left-color:#eba65a!important;background:#fffdf9!important}
+.nb-project-week-drawer .nb-drawer-task-index {
+  display:flex;align-items:center;justify-content:center;width:36px;height:36px;
+  border-radius:9px;background:#eef4fc;color:#567ba9;
+  font-size:13px;font-weight:760;font-variant-numeric:tabular-nums;
+}
+.nb-project-week-drawer .nb-drawer-task-completed .nb-drawer-task-index {background:#e4f8ef;color:#0f8b56}
+.nb-project-week-drawer .nb-drawer-task-in-progress .nb-drawer-task-index {background:#e8f3ff;color:#0768cb}
+.nb-project-week-drawer .nb-drawer-task-blocked .nb-drawer-task-index {background:#fff0de;color:#ae5d18}
+.nb-project-week-drawer .nb-drawer-task-content {min-width:0!important;display:flex;flex-direction:column;gap:7px}
+.nb-project-week-drawer .nb-quick-task-header {align-items:start!important;gap:7px!important}
+.nb-project-week-drawer .nb-quick-task-header>strong {
+  font-size:14px!important;line-height:1.35!important;font-weight:740!important;flex:1;
+}
+.nb-project-week-drawer .nb-drawer-more {
+  min-width:29px!important;width:29px!important;height:29px!important;min-height:29px!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:1px!important;background:transparent!important;border:1px solid transparent!important;
+  border-radius:7px!important;color:#496d9c!important;
+}
+.nb-project-week-drawer .nb-drawer-more:hover {background:#eff7ff!important;border-color:#dce8f7!important}
+.nb-project-week-drawer .nb-quick-task-toolbar {display:block!important}
+.nb-project-week-drawer .nb-quick-status-label {font-size:11px!important;color:#5a789c!important;gap:4px!important}
+.nb-project-week-drawer .nb-quick-status-label select {
+  min-height:36px!important;width:100%!important;padding:5px 9px!important;
+  background:#f8fbff!important;border:1px solid #d5e5f6!important;
+  border-radius:7px!important;font-weight:690!important;color:#24466b!important;
+}
+.nb-project-week-drawer .nb-drawer-task-completed .nb-quick-status-label select {background:#edf9f3!important;border-color:#c9e9d9!important;color:#107d51!important}
+.nb-project-week-drawer .nb-drawer-task-blocked .nb-quick-status-label select {background:#fff7eb!important;border-color:#f0d5a6!important;color:#a25a14!important}
+.nb-project-week-drawer .nb-quick-status-label select:disabled {opacity:1!important;cursor:default}
+
+.nb-project-week-drawer .nb-quick-add-area, .nb-project-week-drawer .nb-drawer-view-footer {
+  flex:0 0 auto!important;padding:12px 15px 14px!important;border-top:1px solid #e1ebf6!important;
+  background:#f5faff!important;
+}
+.nb-project-week-drawer .nb-quick-add-button {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;min-height:42px!important;border-radius:9px!important;
+  background:#076cf0!important;color:white!important;border:1px solid #076cf0!important;
+  box-shadow:0 2px 7px rgba(5,94,206,.15)!important;
+}
+.nb-project-week-drawer .nb-quick-add-button:hover {background:#005bd5!important}
+.nb-project-week-drawer .nb-drawer-view-footer {
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:12px;color:#6c829f;
+}
+.nb-project-week-drawer .nb-drawer-edit-button {
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  background:#fff!important;border:1px solid #a7cef7!important;
+  color:#076bdb!important;white-space:nowrap;
+}
+
+@media(max-width:760px) {
+ .nb-assignment-panel.nb-quick-panel.nb-overlay-panel.nb-project-week-drawer {
+  top:0!important;right:0!important;bottom:0!important;width:100vw!important;
+  border-radius:0!important;border:0!important;
+ }
+ .nb-project-week-drawer .nb-drawer-stats {gap:5px!important;padding:11px!important}
+ .nb-project-week-drawer .nb-drawer-stats>span {min-height:61px!important}
+ .nb-project-week-drawer .nb-drawer-task {padding:10px!important}
+}
+/* The legacy :last-child selector applied 82px of padding to the *middle*
+   week cards (because the edge cards have arrow siblings). Remove that
+   restriction explicitly on all four cards. */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card:last-child .nb-week-wide-days,
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card .nb-week-wide-days {
+  padding-left:0!important;
+  padding-right:0!important;
+  max-width:none!important;
+}
