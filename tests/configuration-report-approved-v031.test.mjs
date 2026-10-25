@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const css=readFileSync(new URL('../configuration-report-approved-v031.css',import.meta.url),'utf8');
+const app=readFileSync(new URL('../index.tsx',import.meta.url),'utf8');
+const workspace=readFileSync(new URL('../src/workspace.tsx',import.meta.url),'utf8');
+const report=workspace.slice(workspace.indexOf('export function Report('), workspace.indexOf('export function Overview('));
+test('Approved visual stylesheet loads last and is scoped only to Configuration Report',()=>{
+  assert.ok(app.indexOf("import './configuration-report-approved-v031.css'")>app.indexOf("import './configuration-report-exact-v030.css'"));
+  assert.doesNotMatch(css,/\.nb-sidebar|\.nb-week-grid|\.nb-project-week-drawer/);
+  assert.match(css,/\.nb-report-shell/);
+});
+test('Reference sizing: 4 KPI cards, large heading, integrated readiness card and 65px rows',()=>{
+ assert.match(css,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)!important/);
+ assert.match(css,/height:141px!important/);
+ assert.match(css,/font-size:39px!important/);
+ assert.match(css,/\.nb-report-readiness-panel/);
+ assert.match(css,/height:65px!important/);
+ assert.match(css,/nb-stage-ready progress::-webkit-progress-value/);
+});
+test('Reference search, sorting and page controls are usable',()=>{
+ assert.match(report,/className="nb-report-search"/);
+ assert.match(report,/aria-sort=/);
+ assert.match(report,/changeSort\(key\)/);
+ assert.match(report,/nb-report-pagination/);
+ assert.match(report,/aria-label="Report pages"/);
+});
+test('Top actions match mockup: only export/import; Cyber editing is inside Columns menu',()=>{
+ const top=app.slice(app.indexOf('activeTab === \'config-report\' && ('),app.indexOf('draftIssue && ('));
+ assert.match(top,/Export data/);
+ assert.match(top,/Import Report/);
+ assert.doesNotMatch(top,/View Mode|Admin Mode/);
+ assert.match(report,/Unlock report editing/);
+ assert.match(report,/Edit Cyber statuses/);
+});
+test('Real system records determine totals, no fake mockup inventory added',()=>{
+ assert.match(report,/project\.systems\.reduce/);
+ assert.match(report,/const visibleRows=systems\.slice/);
+ assert.match(report,/counts\(s\)/);
+ assert.doesNotMatch(report,/1,809 devices|74 systems|POS – Mobility/);
+});

@@ -17,6 +17,7 @@ import './weekly-tracker-corporate-v026.css';
 import './weekly-tracker-viewport-v027.css';
 import './configuration-report-reference-v029.css';
 import './configuration-report-exact-v030.css';
+import './configuration-report-approved-v031.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -3262,33 +3263,9 @@ const App = () => {
                   <Upload size={16} /> Import Report
                 </button>
 
-                {/* Admin Toggle (Local for Config Report) */}
-                <button 
-                  onClick={() => {
-                    if (isAdmin) {
-                      setIsAdmin(false);
-                    } else {
-                      setShowAdminAuthModal(true);
-                      setAdminPassInput('');
-                    }
-                  }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-300 cursor-pointer ${
-                    isAdmin 
-                      ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' 
-                      : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 backdrop-blur-md'
-                  }`}
-                >
-                  {isAdmin ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                  <span className="text-[10px] font-black tracking-widest uppercase">
-                    {isAdmin ? 'Admin Mode' : 'View Mode'}
-                  </span>
-                  <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isAdmin ? 'bg-indigo-400' : 'bg-slate-700'}`}>
-                    <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isAdmin ? 'left-5' : 'left-1'}`} />
-                  </div>
-                </button>
               </div>
             </header>
-            <Report project={project} isAdmin={isAdmin} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}}/>
+            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onDisableAdmin={()=>setIsAdmin(false)} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}}/>
           </div>
         )}
 

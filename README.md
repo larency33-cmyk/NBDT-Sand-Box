@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package, **v0.6.30** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
+Clean GitHub source package, **v0.6.31** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
 
 ## Requirements
 
@@ -109,3 +109,11 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 - Export data writes the current System Registry device-readiness counts and metadata. Import report updates existing systems' **Owner** and **Cyber** metadata only (admin mode, validated matching, confirmation required). It does not import aggregate completion numbers.
 - The original sidebar and Weekly Tracker remain unchanged.
 - See `RELEASE_NOTES_v0_6_30_RU.md`.
+
+## v0.6.31 — Configuration Report visual parity
+
+- Rebuilt the report-only visual presentation against `Premium blue configuration report dashboard(3).png`: larger typography, 141px KPI tiles, clear ring gauges, single readiness surface, a 5-control toolbar, 65px table rows, per-stage blue/purple/teal progress and compact pagination.
+- Report header now shows only the two main actions from the reference: Export data and Import report. Report edit/Cyber permissions remain available from **Columns → Unlock report editing / Edit Cyber statuses**, with the existing authorization check.
+- The search field includes a proper magnifier icon, and sortable table headers expose keyboard-accessible controls with `aria-sort`. The column-picker and filter logic are retained.
+- This is a **visual/layout change**, not replacement of actual device inventory with sample numbers from the reference. With two real systems and no devices the report will truthfully show two rows and no metric percentages.
+- No changes to Weekly Tracker, the navigation sidebar, System Registry, or Issue Tracker.
