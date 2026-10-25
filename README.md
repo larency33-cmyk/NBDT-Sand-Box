@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package, **v0.6.23** (Overview-only Weekly Tracker + classic sidebar). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
+Clean GitHub source package, **v0.6.26** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
 
 ## Requirements
 
@@ -31,7 +31,7 @@ The production build is written to `dist/` and must **not** be committed. The Ve
 
 - `index.html`, `index.tsx` — application entry point
 - `src/` — application pages, local data store and date/navigation logic
-- `redesign.css`, `weekly-tracker-approved-v016.css` — app styles
+- `redesign.css`, `weekly-tracker-approved-v016.css`, `weekly-tracker-corporate-v026.css` — app styles; corporate palette loaded last on Weekly Tracker only
 - `package.json`, `vite.config.ts`, `tsconfig.json`, `vercel.json` — dependencies and build/deployment configuration
 - `tests/`, `scripts/` — automated tests and development checks
 
@@ -92,3 +92,12 @@ Weekly Tracker task actions now live in the assignment drawer: Edit, Move to nex
 
 ## Update v0.6.25
 Drawer task menu now supports Move to previous week (disabled on Week 1). Inline Edit changes **Task title only**; all other task fields are preserved.
+
+## v0.6.26 — Calm Corporate Weekly Tracker
+
+- Softer blue, lavender, apricot and mint header palette, tied to stable project week numbers.
+- Current week has a distinct blue border and subtle blue task-card fill.
+- Non-current assignment cards remain almost white with light blue-gray borders.
+- Bottom navigation preserves its existing measured column alignment.
+- Only visual styles changed; no sidebar, task data or workflow changes.
+- See `RELEASE_NOTES_v0_6_26_RU.md` for verification notes.

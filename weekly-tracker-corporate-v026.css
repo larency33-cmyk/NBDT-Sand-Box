@@ -1,0 +1,140 @@
+/* NBDT v0.6.26 — Calm Corporate Weekly Tracker.
+   Only the Weekly Tracker matrix / footer and week-matched drawer heading.
+   Never alter sidebar, routing, data models, status meanings, or geometry. */
+
+/* The stable weekly palette follows the original week index, not viewport order.
+   Blue = weekly emphasis; violet, soft apricot, and sage are navigational hues.
+   Status colors (Blocked/Done/Active) remain separate from week colors. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-blue {
+  --week-bg-a:#e3f1ff;
+  --week-bg-b:#bfdcff;
+  --week-orb:rgba(48,127,224,.105);
+  --week-orb-soft:rgba(65,142,231,.07);
+  --week-accent:#176fcf;
+  --week-accent-border:#b1d1f6;
+  --week-chip-bg:rgba(255,255,255,.82);
+  --week-chip-border:#b8d5f5;
+  --week-text:#1d5698;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-violet {
+  --week-bg-a:#f1efff;
+  --week-bg-b:#e0dcfa;
+  --week-orb:rgba(128,112,206,.11);
+  --week-orb-soft:rgba(133,118,217,.06);
+  --week-accent:#6957bf;
+  --week-accent-border:#d9d1f4;
+  --week-chip-bg:rgba(255,255,255,.83);
+  --week-chip-border:#ded5f7;
+  --week-text:#5b4a9c;
+}
+/* Internal class kept as 'orchid' for compatibility with existing week palette.
+   Its new visual tone is a restrained warm apricot, not bright pink. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-orchid {
+  --week-bg-a:#fff7f0;
+  --week-bg-b:#ffe7d9;
+  --week-orb:rgba(224,142,89,.09);
+  --week-orb-soft:rgba(213,142,89,.055);
+  --week-accent:#bb7143;
+  --week-accent-border:#f1d8c6;
+  --week-chip-bg:rgba(255,255,255,.85);
+  --week-chip-border:#f0d7c5;
+  --week-text:#8c603d;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-week-tone-mint {
+  --week-bg-a:#f0fbf6;
+  --week-bg-b:#d1eee2;
+  --week-orb:rgba(40,155,128,.10);
+  --week-orb-soft:rgba(40,155,128,.065);
+  --week-accent:#237e75;
+  --week-accent-border:#bee5d6;
+  --week-chip-bg:rgba(255,255,255,.84);
+  --week-chip-border:#c3e7d9;
+  --week-text:#236f68;
+}
+
+/* Header: gently colored, clear silhouette, no aggressively saturated fills.
+   Retain original heading, calendar accent, and milestone functionality. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head {
+  box-shadow:0 2px 9px rgba(30,75,125,.062)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
+  border:2px solid #1177ec!important;
+  background:
+    radial-gradient(circle at 101% -28%,rgba(35,128,234,.13) 0 80px,transparent 81px),
+    radial-gradient(circle at 96% 125%,rgba(35,128,234,.075) 0 91px,transparent 92px),
+    linear-gradient(117deg,#d8ebff 0%,#badbfe 100%)!important;
+  box-shadow:inset 0 2px 0 #087bf6,0 4px 13px rgba(23,105,201,.13)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-header-label {
+  color:#16345e!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-chip:not(.nb-ms-complete):not(.nb-ms-review):not(.nb-ms-critical),
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-empty {
+  box-shadow:none!important;
+}
+
+/* The matrix is for scanning assignments: almost-white cards keep legibility.
+   The selected/current week alone gets a gentle blue tint. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:not(.nb-current-week-cell) .nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(odd):not(.nb-current-week-cell) .nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td:nth-child(even):not(.nb-current-week-cell) .nb-week-cell {
+  background:linear-gradient(180deg,#fff 0%,#fbfdff 100%)!important;
+  border-color:#dbe8f4!important;
+  box-shadow:0 2px 7px rgba(24,67,116,.052)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell {
+  background:linear-gradient(180deg,#eff7ff 0%,#e6f2ff 100%)!important;
+  border-color:#b2d3f7!important;
+  box-shadow:0 2px 10px rgba(31,103,181,.09)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td .nb-week-cell.selected,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell .nb-week-cell.selected {
+  border-color:#267ee6!important;
+  box-shadow:0 0 0 1px rgba(38,126,230,.15),0 4px 13px rgba(31,103,181,.11)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td .nb-week-cell:hover {
+  border-color:#91bdec!important;
+  box-shadow:0 4px 13px rgba(23,82,144,.12)!important;
+}
+
+/* The bottom four weeks stay in exactly the same measured grid columns.
+   Style only the card's paint — never change widths, margins or positioning. */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card,
+.nb-tracker[data-view="overview"] .nb-week-nav-shell:nth-child(odd) .nb-week-wide-card {
+  background:linear-gradient(180deg,#fff,#fbfdff)!important;
+  border-color:#d4e2f2!important;
+  box-shadow:0 2px 8px rgba(24,67,116,.057)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-current,
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-selected {
+  background:linear-gradient(180deg,#eaf5ff,#dfedff)!important;
+  border-color:#267ee6!important;
+  box-shadow:inset 0 2px 0 #0a78e8,0 3px 10px rgba(24,109,206,.13)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card:hover {
+  border-color:#93bfe9!important;
+  box-shadow:0 4px 12px rgba(24,67,116,.11)!important;
+}
+
+/* The overlay follows its originating week, but never overwhelms task content. */
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-blue {
+  --drawer-bg-a:#e3f1ff;--drawer-bg-b:#c8e2ff;
+  --drawer-orb:rgba(55,140,228,.13);--drawer-edge:#b8d4f3;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-violet {
+  --drawer-bg-a:#f1efff;--drawer-bg-b:#e3defa;
+  --drawer-orb:rgba(130,115,203,.12);--drawer-edge:#d9d1f4;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-orchid {
+  --drawer-bg-a:#fff7f0;--drawer-bg-b:#ffe9d9;
+  --drawer-orb:rgba(211,143,96,.105);--drawer-edge:#f0d9c9;
+}
+.nb-project-week-drawer .nb-quick-panel-heading.nb-week-tone-mint {
+  --drawer-bg-a:#effbf6;--drawer-bg-b:#d5efe4;
+  --drawer-orb:rgba(46,155,126,.10);--drawer-edge:#c1e6d7;
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .nb-tracker[data-view="overview"] .nb-week-grid .nb-week-cell,
+  .nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card {transition:none!important;}
+}

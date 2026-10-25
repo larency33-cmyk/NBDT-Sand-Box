@@ -11,6 +11,7 @@ import './weekly-tracker-premium-v021.css';
 import './weekly-tracker-drawer-v022.css';
 import './weekly-tracker-overview-v023.css';
 import './weekly-tracker-task-actions-v024.css';
+import './weekly-tracker-corporate-v026.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
