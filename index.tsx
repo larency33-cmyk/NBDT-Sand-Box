@@ -1,5 +1,6 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
+import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
@@ -18,6 +19,7 @@ import './weekly-tracker-viewport-v027.css';
 import './configuration-report-reference-v029.css';
 import './configuration-report-exact-v030.css';
 import './configuration-report-approved-v031.css';
+import './configuration-report-editable-v032.css';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -196,6 +198,12 @@ interface SystemInfo {
   endpointProfiles?: any[];
   valueStates?: Record<string,string>;
   cyberHistory?: any[];
+  reportMode?: string;
+  reportMetrics?: {total:number;base:number;ready:number;deployed:number};
+  reportVenue?: string;
+  reportAW?: string;
+  reportOwnerName?: string;
+  reportOrder?: number;
   devices?: any[];
   deviceRuns?: any[];
   publishedGuide?: any;
@@ -494,7 +502,7 @@ const getTaskStatusFromChecklist = (checklist: ChecklistItem[] | undefined, curr
 
 const ensureProjectData = (data: any): ProjectData => {
   const {configReportRows: obsoleteAggregateRows, ...currentData} = data;
-  return {
+  return seedReferenceReport({
     ...currentData,
     id: data.id || 'default',
     name: data.name || 'New Project',
@@ -504,7 +512,7 @@ const ensureProjectData = (data: any): ProjectData => {
     issues: data.issues || INITIAL_ISSUES,
     startDate: data.startDate || '2026-01-05',
     updatedAt: data.updatedAt || 0
-  };
+  });
 };
 
 // --- Icon System Implementation ---
@@ -1603,7 +1611,7 @@ const App = () => {
       }
     }
 
-    return base;
+    return ensureProjectData(base);
   });
 
   const [userProjects, setUserProjects] = useState<Record<string, UserProject[]>>(() => {
@@ -2101,7 +2109,7 @@ const App = () => {
   const exportConfigReport = () => {
     const rows = project.systems.map((system) => {
       const summary = reportDeviceCounts(system);
-      const venues = [...new Set((system.devices || []).map((d:any) => d.venue).filter(Boolean))];
+      const venues = [...new Set([system.reportVenue,...(system.devices || []).map((d:any) => d.venue)].filter(Boolean))];
       const owner = project.members.find(m => m.id === system.assigneeId);
       return {
         System: system.name,
@@ -2110,9 +2118,9 @@ const App = () => {
         'Base config.': summary.base,
         'Ready to deploy': summary.ready,
         Deployed: summary.deployed,
-        AW: system.airWatchTags || system.airWatch || system.mdm || '',
+        AW: system.reportAW || system.airWatchTags || system.airWatch || system.mdm || '',
         Cyber: system.cyberStatus || 'Unknown',
-        Owner: owner?.name || 'Unassigned'
+        Owner: system.reportOwnerName || owner?.name || 'Unassigned'
       };
     });
     const worksheet = XLSX.utils.json_to_sheet(rows, {header:['System','Qty','Venue','Base config.','Ready to deploy','Deployed','AW','Cyber','Owner']});
@@ -3265,7 +3273,7 @@ const App = () => {
 
               </div>
             </header>
-            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onDisableAdmin={()=>setIsAdmin(false)} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}}/>
+            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onDisableAdmin={()=>setIsAdmin(false)} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
           </div>
         )}
 

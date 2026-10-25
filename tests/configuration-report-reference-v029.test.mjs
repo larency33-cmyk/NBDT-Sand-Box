@@ -19,15 +19,15 @@ test('Reference readiness panel wraps filters, table and pagination',()=>{
   assert.ok(report.indexOf('nb-report-pagination')>report.indexOf('nb-report-table'));
   assert.doesNotMatch(report,/Legacy report|configReportRows/);
 });
-test('Dashboard uses real readiness counts, no invented mockup values',()=>{
-  assert.match(report,/counts\(s\)\[key\]/);
+test('Dashboard uses computed progress and identifies sample benchmark totals',()=>{
+  assert.match(report,/reportCounts\(project,counts\)/);
   assert.match(report,/No registered device data/);
-  assert.doesNotMatch(report,/1,809 devices|\b88%\b|\b26%\b|\b48%\b/);
+  assert.match(report,/Reference demo:/);
   assert.match(report,/--report-kpi-accent/);
 });
 test('Table includes grounded Venue and AW values, and 6-row paging',()=>{
   assert.match(report,/Venue','Base','Ready','Deployed','AW','Cyber','Owner/);
-  assert.match(report,/uniqueVenues/);
+  assert.match(report,/displayVenue/);
   assert.match(report,/displayAw/);
   assert.match(report,/Math\.ceil\(systems\.length\/6\)/);
   assert.match(report,/Search systems or devices/);

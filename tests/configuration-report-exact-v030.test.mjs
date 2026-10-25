@@ -30,9 +30,9 @@ test('Dashboard matches reference information hierarchy',()=>{
  assert.match(css,/grid-template-columns:minmax\(195px,2\.3fr\)/);
  assert.match(css,/\.nb-report \.nb-report-column-picker/);
 });
-test('Four KPI cards and stage progress remain based on accepted device runs',()=>{
- assert.match(report,/project\.systems\.reduce\(\(a:number,s:any\)=>a\+counts\(s\)\[key\],0\)/);
- assert.match(report,/project\.systems\.reduce\(\(n:number,s:any\)=>n\+counts\(s\)\.total,0\)/);
+test('Four KPI cards use dynamic report aggregation and retain verified device counts',()=>{
+ assert.match(report,/reportCounts\(project,counts\)/);
+ assert.match(report,/progress\(c\.base,c\.total\)/);
  assert.match(report,/No registered device data/);
  assert.doesNotMatch(report,/1,809 devices|\b88%\b/);
 });

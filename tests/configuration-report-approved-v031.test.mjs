@@ -25,17 +25,18 @@ test('Reference search, sorting and page controls are usable',()=>{
  assert.match(report,/nb-report-pagination/);
  assert.match(report,/aria-label="Report pages"/);
 });
-test('Top actions match mockup: only export/import; Cyber editing is inside Columns menu',()=>{
+test('Top actions match mockup: export/import; report supports explicitly gated system management',()=>{
  const top=app.slice(app.indexOf('activeTab === \'config-report\' && ('),app.indexOf('draftIssue && ('));
  assert.match(top,/Export data/);
  assert.match(top,/Import Report/);
  assert.doesNotMatch(top,/View Mode|Admin Mode/);
- assert.match(report,/Unlock report editing/);
- assert.match(report,/Edit Cyber statuses/);
+ assert.match(report,/onRequestAdmin/);
+ assert.match(report,/Add system/);
+ assert.match(report,/Edit systems/);
 });
-test('Real system records determine totals, no fake mockup inventory added',()=>{
- assert.match(report,/project\.systems\.reduce/);
- assert.match(report,/const visibleRows=systems\.slice/);
+test('The six reference systems use live aggregation, with an explicitly labelled illustrative baseline',()=>{
+ assert.match(report,/reportCounts\(project,counts\)/);
+ assert.match(report,/systems\.slice\(actualPage\*6/);
  assert.match(report,/counts\(s\)/);
- assert.doesNotMatch(report,/1,809 devices|74 systems|POS – Mobility/);
+ assert.match(report,/Reference demo:/);
 });

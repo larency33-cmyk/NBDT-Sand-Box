@@ -1,0 +1,19 @@
+{
+  "base_version": "0.6.31",
+  "version": "0.6.32",
+  "changed_files": [
+    "index.tsx",
+    "package.json",
+    "src/model.mjs",
+    "src/reference-report.mjs",
+    "src/workspace.tsx",
+    "configuration-report-editable-v032.css",
+    "tests/configuration-report-approved-v031.test.mjs",
+    "tests/configuration-report-exact-v030.test.mjs",
+    "tests/configuration-report-reference-v029.test.mjs",
+    "tests/configuration-report-editable-v032.test.mjs",
+    "RELEASE_NOTES_v0_6_32_RU.md"
+  ],
+  "deleted_files": [],
+  "notes": "Existing IndexedDB records preserved; six visible reference systems added once"
+}
