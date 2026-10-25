@@ -10,8 +10,8 @@
 .nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell.nb-populated-week .nb-week-cell,
 .nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell.nb-populated-week .nb-week-cell.selected {
   box-sizing: border-box !important;
-  border-left: 5px solid #1680ee !important;
-  padding-left: 11px !important;
+  border-left: 3.25px solid #1680ee !important;
+  padding-left: 12px !important;
   box-shadow: 0 2px 10px rgba(21, 101, 194, .12) !important;
 }
 .nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb-current-week-cell.nb-populated-week .nb-week-cell:hover {

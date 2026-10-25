@@ -121,15 +121,15 @@
 .nb-project-week-drawer .nb-drawer-milestone-item span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nb-project-week-drawer .nb-drawer-milestone-item:disabled {opacity:1;cursor:default}
 .nb-project-week-drawer .nb-drawer-milestone-empty {font-size:12px;color:#748aa5;margin:0;padding:4px 2px}
-.nb-project-week-drawer .nb-drawer-assignments-heading {padding:2px 19px 10px!important}
+.nb-project-week-drawer .nb-drawer-assignments-heading {padding:10px 17px 8px!important;margin:0!important}
 
 .nb-project-week-drawer .nb-quick-list {
   background:linear-gradient(180deg,#fbfdff,#f7fbff)!important;
-  padding:0 14px 14px!important;gap:10px!important;overflow-y:auto!important;
+  padding:0 14px 10px!important;gap:8px!important;overflow-y:auto!important;
 }
 .nb-project-week-drawer .nb-drawer-task {
-  display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;align-items:start!important;
-  gap:11px!important;padding:12px!important;min-width:0!important;
+  display:grid!important;grid-template-columns:35px minmax(0,1fr)!important;align-items:start!important;
+  gap:9px!important;padding:10px 11px!important;min-width:0!important;
   border:1px solid #dce8f7!important;border-left:4px solid #afc6df!important;
   border-radius:12px!important;background:#ffffff!important;
   box-shadow:0 2px 7px rgba(13,47,97,.055)!important;
@@ -139,38 +139,40 @@
 .nb-project-week-drawer .nb-drawer-task-completed {border-left-color:#66caa1!important}
 .nb-project-week-drawer .nb-drawer-task-blocked {border-left-color:#eba65a!important;background:#fffdf9!important}
 .nb-project-week-drawer .nb-drawer-task-index {
-  display:flex;align-items:center;justify-content:center;width:36px;height:36px;
-  border-radius:9px;background:#eef4fc;color:#567ba9;
-  font-size:13px;font-weight:760;font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;justify-content:center;width:31px;height:31px;
+  border-radius:8px;background:#eef4fc;color:#567ba9;
+  font-size:12px;font-weight:760;font-variant-numeric:tabular-nums;
 }
 .nb-project-week-drawer .nb-drawer-task-completed .nb-drawer-task-index {background:#e4f8ef;color:#0f8b56}
 .nb-project-week-drawer .nb-drawer-task-in-progress .nb-drawer-task-index {background:#e8f3ff;color:#0768cb}
 .nb-project-week-drawer .nb-drawer-task-blocked .nb-drawer-task-index {background:#fff0de;color:#ae5d18}
-.nb-project-week-drawer .nb-drawer-task-content {min-width:0!important;display:flex;flex-direction:column;gap:7px}
-.nb-project-week-drawer .nb-quick-task-header {align-items:start!important;gap:7px!important}
+.nb-project-week-drawer .nb-drawer-task-content {min-width:0!important;display:flex;flex-direction:column;gap:5px}
+.nb-project-week-drawer .nb-quick-task-header {align-items:start!important;gap:6px!important}
 .nb-project-week-drawer .nb-quick-task-header>strong {
-  font-size:14px!important;line-height:1.35!important;font-weight:740!important;flex:1;
+  font-size:13px!important;line-height:1.25!important;font-weight:740!important;flex:1;
 }
 .nb-project-week-drawer .nb-drawer-more {
-  min-width:29px!important;width:29px!important;height:29px!important;min-height:29px!important;
+  min-width:27px!important;width:27px!important;height:27px!important;min-height:27px!important;
   display:flex!important;align-items:center!important;justify-content:center!important;
   padding:1px!important;background:transparent!important;border:1px solid transparent!important;
   border-radius:7px!important;color:#496d9c!important;
 }
 .nb-project-week-drawer .nb-drawer-more:hover {background:#eff7ff!important;border-color:#dce8f7!important}
 .nb-project-week-drawer .nb-quick-task-toolbar {display:block!important}
-.nb-project-week-drawer .nb-quick-status-label {font-size:11px!important;color:#5a789c!important;gap:4px!important}
+.nb-project-week-drawer .nb-quick-status-label {font-size:10px!important;color:#5a789c!important;gap:3px!important}
 .nb-project-week-drawer .nb-quick-status-label select {
-  min-height:36px!important;width:100%!important;padding:5px 9px!important;
+  min-height:32px!important;width:100%!important;padding:4px 9px!important;
   background:#f8fbff!important;border:1px solid #d5e5f6!important;
   border-radius:7px!important;font-weight:690!important;color:#24466b!important;
 }
 .nb-project-week-drawer .nb-drawer-task-completed .nb-quick-status-label select {background:#edf9f3!important;border-color:#c9e9d9!important;color:#107d51!important}
 .nb-project-week-drawer .nb-drawer-task-blocked .nb-quick-status-label select {background:#fff7eb!important;border-color:#f0d5a6!important;color:#a25a14!important}
+.nb-project-week-drawer .nb-quick-task-toolbar {display:block!important;margin-top:1px!important}
+.nb-project-week-drawer .nb-quick-status-label span, .nb-project-week-drawer .nb-quick-status-label::first-line {line-height:1.1!important}
 .nb-project-week-drawer .nb-quick-status-label select:disabled {opacity:1!important;cursor:default}
 
 .nb-project-week-drawer .nb-quick-add-area, .nb-project-week-drawer .nb-drawer-view-footer {
-  flex:0 0 auto!important;padding:12px 15px 14px!important;border-top:1px solid #e1ebf6!important;
+  flex:0 0 auto!important;padding:11px 15px 12px!important;border-top:1px solid #e1ebf6!important;
   background:#f5faff!important;
 }
 .nb-project-week-drawer .nb-quick-add-button {
@@ -197,7 +199,7 @@
  }
  .nb-project-week-drawer .nb-drawer-stats {gap:5px!important;padding:11px!important}
  .nb-project-week-drawer .nb-drawer-stats>span {min-height:61px!important}
- .nb-project-week-drawer .nb-drawer-task {padding:10px!important}
+ .nb-project-week-drawer .nb-drawer-task {padding:9px!important;gap:8px!important;grid-template-columns:33px minmax(0,1fr)!important}
 }
 /* The legacy :last-child selector applied 82px of padding to the *middle*
    week cards (because the edge cards have arrow siblings). Remove that

@@ -459,12 +459,6 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
      <span className="nb-metric-done"><strong>{chosen.filter((t:any)=>t.status==='Completed').length}</strong><small>Done</small></span>
      <span className="nb-metric-blocked"><strong>{chosen.filter((t:any)=>t.status==='Blocked').length}</strong><small>Blocked</small></span>
     </div>
-    <section className="nb-drawer-milestone-section" aria-label="Milestones for selected week">
-     <div className="nb-drawer-section-heading"><Flag size={17} aria-hidden="true"/><strong>Milestones</strong><span>{milestonesAt(selected.week).length}</span></div>
-     <div className="nb-drawer-milestone-list">
-      {milestonesAt(selected.week).length?milestonesAt(selected.week).map((ms:any)=><button type="button" key={ms.id} className="nb-drawer-milestone-item" title={isAdmin?'Edit milestone':ms.label} onClick={()=>{if(isAdmin)editMilestone(ms);}}><Flag size={16} aria-hidden="true"/><span>{ms.label}</span></button>):<p className="nb-drawer-milestone-empty">No milestones for this week</p>}
-     </div>
-    </section>
     <div className="nb-drawer-section-heading nb-drawer-assignments-heading"><strong>Assignments</strong><span>{chosen.length}</span></div>
     {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">

@@ -11,7 +11,7 @@ test('desktop compact view adapts heights to screen without global browser zoom'
 });
 test('thick blue border appears on task cards of actual current week only',()=>{
   assert.match(css,/td\.nb-current-week-cell\.nb-populated-week\s+\.nb-week-cell/);
-  assert.match(css,/border-left:\s*5px solid #1680ee\s*!important/);
+  assert.match(css,/border-left:\s*3\.25px solid #1680ee\s*!important/);
   assert.doesNotMatch(css,/\.nbdt-redesign>aside|\.nb-sidebar/);
 });
 test('laptop density preserves readable tasks and overflow link',()=>{

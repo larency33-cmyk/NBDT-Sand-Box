@@ -25,12 +25,14 @@ test('existing status save, blocked reason and advanced edit remain accessible',
  assert.match(drawer,/Move to next week/);
  assert.match(drawer,/onQuickTaskEdit\(task.id,\{label:draft.label\}\)/);
 });
-test('drawer includes four status cards, milestones, quick add and authentication-safe edit entry',()=>{
+test('drawer includes four status cards, compact assignments, quick add and authentication-safe edit entry',()=>{
  assert.match(panel,/nb-drawer-stats/);
- assert.match(panel,/nb-drawer-milestone-section/);
+ assert.doesNotMatch(panel,/nb-drawer-milestone-section/);
  assert.match(panel,/nb-drawer-assignments-heading/);
  assert.match(panel,/nb-quick-add-form/);
  assert.match(panel,/closeQuickPanel\(\);onAuth\(\)/);
+ assert.match(style,/grid-template-columns:35px minmax\(0,1fr\)!important/);
+ assert.match(style,/min-height:32px!important/);
 });
 test('footer weekdays span seven equal tracks with legacy middle-card restriction overridden',()=>{
  assert.match(style,/grid-template-columns:repeat\(7,minmax\(0,1fr\)\)!important/);

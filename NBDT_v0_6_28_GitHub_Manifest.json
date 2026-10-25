@@ -1,0 +1,13 @@
+{
+  "base_version": "0.6.27",
+  "version": "0.6.28",
+  "changed_files": [
+    "package.json",
+    "src/workspace.tsx",
+    "weekly-tracker-drawer-v022.css",
+    "weekly-tracker-viewport-v027.css",
+    "tests/drawer-week-spacing-v022.test.mjs",
+    "tests/responsive-current-week-v027.test.mjs",
+    "RELEASE_NOTES_v0_6_28_RU.md"
+  ]
+}
