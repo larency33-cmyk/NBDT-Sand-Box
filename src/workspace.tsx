@@ -10,7 +10,7 @@ import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
 const fieldIcons:any={'Endpoint':Monitor,'Operating system':AppWindow,'Connection':Plug,'VLAN':Network,'IP scope':Globe,'Reservation':LockKeyhole,'Service account reference':UserRoundKey,'Domain / OU':Workflow,'MDM / AirWatch':ShieldCheck,'Applications':LayoutGrid,'Naming convention':Tag,'Owner':UserRound};
-import {STAGES,LABELS,uid,weekRange,dueDate,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
+import {STAGES,LABELS,uid,weekRange,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
 const Badge=({value}:any)=><span className={'nb-badge nb-status-'+String(value).toLowerCase().replaceAll(' ','-')}>{({'In Progress':'Active','Completed':'Done'} as any)[value]||value}</span>;
 function useDirty(dirty:boolean){useEffect(()=>{const f=(e:BeforeUnloadEvent)=>{if(dirty){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',f);return()=>window.removeEventListener('beforeunload',f);},[dirty]);}
@@ -84,7 +84,14 @@ function QuickAssignmentRow({task,number,isAdmin,onQuickTaskSave,onEdit}:any){
 }
 
 export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
- const [view,setView]=useState(()=>({overview:'Overview',list:'List'} as any)[new URLSearchParams(location.search).get('view')||'overview']||'Overview'),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[collapsed,setCollapsed]=useState<string[]>([]),[detail,setDetail]=useState<any>(null);
+ const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
+ // Legacy shared URLs with ?view=list now open the only supported Overview layout.
+ useEffect(()=>{
+  const url=new URL(location.href);
+  if(!url.searchParams.has('view'))return;
+  url.searchParams.delete('view');
+  window.history.replaceState({nbdt:true},'',url.pathname+url.search+url.hash);
+ },[]);
  // The left edge of the 4-week viewport is provided as `week` by the app.
  // Selection is independent. Selecting a week MUST NOT shift the viewport.
  const [selectedWeek,setSelectedWeek]=useState<number>(()=>{
@@ -145,7 +152,6 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  // Borders, resized sidebars and fractional browser pixels can otherwise produce
  // visible drift in later week cards. A single resize measurement is authoritative.
  useEffect(()=>{
-  if(view!=='Overview')return;
   const table=tableScrollRef.current?.querySelector<HTMLTableElement>('.nb-week-grid');
   const footerGrid=weekFooterGridRef.current;
   if(!table||!footerGrid)return;
@@ -167,7 +173,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
   headers.forEach(header=>observer?.observe(header));
   window.addEventListener('resize',update);
   return()=>{observer?.disconnect();window.removeEventListener('resize',update);};
- },[view,project.id,showMobileMatrix]);
+ },[project.id,showMobileMatrix]);
  const resetWeekScroll=()=>{
   if(tableScrollRef.current)tableScrollRef.current.scrollLeft=0;
   if(weekFooterScrollRef.current)weekFooterScrollRef.current.scrollLeft=0;
@@ -228,7 +234,6 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
  const selectedPerson=people.find((m:any)=>m.id===selected?.id) || (selected?.id===UNASSIGNED_MEMBER_ID?unassignedPerson:undefined);
  const chosen=selected?at(selected.id,selected.week):[];
  const open=(t:any)=>setDetail(t);
- const role=(t:any,id:string)=>id===UNASSIGNED_MEMBER_ID?'Unassigned':t.memberId===id?'Owner':'Helper';
  const selectedIsoWeek=`Week ${selectedWeek+1}`;
  const weekIso=(w:number)=>`Week ${w+1}`;
  const weekDate=(w:number)=>projectWeekDate(project.startDate,w);
@@ -287,25 +292,24 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
 
  useEffect(()=>{if(!isAdmin){setEditingMemberId(null);setAddingMember(false);setMemberToDelete(null);setMemberError('');}},[isAdmin]);
 
- useEffect(()=>{setSelected(null);setDetail(null);},[week,view,project.id]);
+ useEffect(()=>{setSelected(null);setDetail(null);},[week,project.id]);
  useEffect(()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');},[selected?.id,selected?.week]);
 
- return <section className="nb-tracker" data-view={view.toLowerCase()}>
+ return <section className="nb-tracker" data-view="overview">
   <header className="nb-page-header">
    <div>
     <div className="nb-tracker-breadcrumb">NBDT · {project.name} · Weekly Tracker</div>
     <h1>Weekly Tracker</h1>
-    <p>{`${weekRange(project.startDate,week)} — ${weekRange(project.startDate,week+3)}`} · {project.name}</p>
    </div>
    <div className="nb-actions">
-    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.set('view',view.toLowerCase());url.searchParams.set('selectedWeek',String(selectedWeek+1));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
+    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.delete('view');url.searchParams.set('selectedWeek',String(selectedWeek+1));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
     <B onClick={onAuth}>{isAdmin?'Exit edit mode':'Edit mode'}</B>
     {isAdmin&&<B primary onClick={()=>onEdit({id:uid(),label:'New task',memberId:person||project.members[0]?.id||'',startWeek:week,duration:1,status:'Planned',description:''})}>Add task</B>}
    </div>
   </header>
 
   <div className="nb-toolbar">
-   <div className="nb-segments">{['Overview','List'].map(v=><B key={v} onClick={()=>{setView(v);const url=new URL(location.href);url.searchParams.set('view',v.toLowerCase());window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} aria-pressed={view===v}>{v}</B>)}</div>
+   <div className="nb-segments nb-overview-only-segment"><span className="nb-button nb-overview-only-tab" aria-current="page">Overview</span></div>
    <label className="nb-project-start"><CalendarDays size={17} aria-hidden="true"/><span>Project start</span>{isAdmin?<input type="date" aria-label="Project start date" disabled={dateSaving} value={project.startDate} onChange={e=>{void updateStart(e.target.value);}}/>:<strong>{project.startDate}</strong>}</label>
    <select aria-label="Person filter" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
    <select aria-label="Status filter" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Blocked','Completed'].map(v=><option key={v}>{v}</option>)}</select>
@@ -331,7 +335,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
 
   <div className="nb-tracker-content">
    <div className="nb-tracker-table-wrap" ref={tableScrollRef} onScroll={syncWeekScroll}>
-    {view==='Overview'?<>
+    <>
      <div className={'nb-mobile-week-cards '+(showMobileMatrix?'matrix-open':'')} aria-label="Assignments by person">
       {people.map((m:any)=>{
        const mobileList=at(m.id,week);
@@ -425,13 +429,7 @@ export function Tracker({project,isAdmin,onAuth,onEdit,onProjectStartChange,onQu
        </th><td colSpan={4} aria-hidden="true"/></tr>}
       </tbody>
      </table>
-    </>:<div className="nb-task-list">
-      <div className="nb-list-heading"><span>Task</span><span>Role</span><span>Status</span><span>Due</span></div>
-      {people.map((m:any)=>{const list=tasks.filter((t:any)=>(m.id===UNASSIGNED_MEMBER_ID?orphaned(t):assignments(t).includes(m.id))&&t.startWeek<week+4&&t.startWeek+Math.max(1,t.duration)>week&&matches(t));return <section key={m.id}><div className="nb-person-heading"><B aria-label={'Toggle '+m.name} aria-expanded={!collapsed.includes(m.id)} onClick={()=>setCollapsed(collapsed.includes(m.id)?collapsed.filter(id=>id!==m.id):[...collapsed,m.id])}>{collapsed.includes(m.id)?'›':'⌄'}</B><B onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}><span className="nb-avatar">{memberInitial(m.name)}</span><span>{m.name}</span></B><small>{list.length} assignments · {list.filter((t:any)=>t.status==='Blocked').length} blocked</small>
-      {isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&<div className="nb-member-actions nb-member-actions-list"><button type="button" onClick={()=>startMemberRename(m)} title={`Rename ${m.name}`} aria-label={`Rename ${m.name}`}><Pencil size={15}/></button><button type="button" onClick={()=>deleteMember(m)} title={`Remove ${m.name}`} aria-label={`Remove ${m.name}`}><Trash2 size={15}/></button></div>}
-      </div>{editingMemberId===m.id&&isAdmin&&<form className="nb-member-rename-form nb-member-rename-list" onSubmit={saveMemberRename}><input required autoFocus maxLength={80} value={memberDraft} onChange={e=>setMemberDraft(e.target.value)} aria-label={`New name for ${m.name}`}/><button type="submit">Save</button><button type="button" onClick={()=>setEditingMemberId(null)}>Cancel</button></form>}{!collapsed.includes(m.id)&&list.map((t:any)=><button className="nb-task-row" key={t.id} onClick={()=>{const taskWeek=Math.max(week,t.startWeek);selectWeek(taskWeek);openQuickPanel(m.id,taskWeek,t);}}><span>{t.label}<small>{t.category||'Assignment'}{t.status==='Blocked'?' · Open blocker':''}</small></span><span>{role(t,m.id)}</span><Badge value={t.status}/><span>{dueDate(project.startDate,t)}{dueDate(project.startDate,t)<projectToday(project.timezone||'Europe/Paris')&&t.status!=='Completed'&&<small className="nb-overdue">Overdue</small>}</span></button>)}</section>})}
-      {isAdmin&&<div className="nb-member-create-row">{!addingMember?<button type="button" className="nb-member-create-trigger" onClick={()=>{setAddingMember(true);setEditingMemberId(null);}}><Plus size={17}/> Add team member</button>:<form className="nb-member-create-form" onSubmit={createMember}><input aria-label="New team member name" required maxLength={80} value={newMemberName} onChange={e=>setNewMemberName(e.target.value)} placeholder="Team member name"/><button type="submit" disabled={!newMemberName.trim()||memberBusy}>Create</button><button type="button" onClick={()=>{setAddingMember(false);setNewMemberName('');}}>Cancel</button></form>}{memberError&&<p role="alert" className="nb-member-error">{memberError}</p>}</div>}
-     </div>}
+    </>
    </div>
   </div>
 

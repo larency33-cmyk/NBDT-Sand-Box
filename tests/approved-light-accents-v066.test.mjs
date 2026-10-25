@@ -50,8 +50,9 @@ test('overlay assignment panel still uses portal and cannot compress the matrix'
  assert.match(css,/\.nb-assignment-panel\.nb-quick-panel\.nb-overlay-panel\s*\{[^}]*position:fixed!important/s);
 });
 
-test('only Overview and List remain; project weeks and today are dynamic',()=>{
- assert.match(tracker,/\['Overview','List'\]/);
+test('only Overview remains; project weeks and today are dynamic',()=>{
+ assert.match(tracker,/nb-overview-only-tab/);
+ assert.doesNotMatch(tracker,/\['Overview','List'\]/);
  assert.doesNotMatch(tracker,/Master Timeline/);
  assert.match(tracker,/projectWeekDays\(project.startDate,w\)/);
  assert.match(tracker,/day\.date===todayDate/);

@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package based on **v0.6.17** (approved Weekly Tracker + classic sidebar). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
+Clean GitHub source package, **v0.6.23** (Overview-only Weekly Tracker + classic sidebar). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
 
 ## Requirements
 
@@ -83,3 +83,6 @@ Only the Weekly Tracker Overview uses `weekly-tracker-premium-v021.css`. Header 
 - The gap between the milestone header and the first assignment row matches the 6px horizontal column gutter.
 - Weekday labels spread equally over all seven tracks within **every** footer week card. A legacy middle-card padding rule was explicitly neutralized.
 - The original sidebar and all other app pages were left unchanged.
+
+## v0.6.23
+Weekly Tracker now uses Overview only. The List switch and implementation were removed, duplicate header date text is gone, upper week labels align left, and the sidebar and project-week navigation are preserved.

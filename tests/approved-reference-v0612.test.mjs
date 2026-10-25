@@ -10,10 +10,12 @@ test('approved week-column styling is retained in deployable CSS',()=>{
  assert.match(approved,/--nb-employee-width:255px;/);
  assert.match(approved,/nb-week-wide-card/);
 });
-test('four top headers show a week number, its project date range, select arrow and then milestones',()=>{
+test('top headers now have accessible week-only selection with no date and no arrow',()=>{
  const head=tracker.slice(tracker.indexOf('<thead>'),tracker.indexOf('</thead>'));
- assert.ok(head.includes('<strong>{weekIso(w)}</strong><small>{weekRange(project.startDate,w)}</small>'));
- assert.ok(head.includes('className="nb-week-head-select"'));
+ assert.ok(head.includes('className="nb-week-header-label"'));
+ assert.ok(head.includes('>{weekIso(w)}</button>'));
+ assert.ok(!head.includes('<small>{weekRange(project.startDate,w)}</small>'));
+ assert.ok(!head.includes('className="nb-week-head-select"'));
  assert.ok(head.includes('onClick={()=>selectWeek(w)}'));
  assert.ok(head.indexOf('nb-week-head-top') < head.indexOf('nb-week-milestones'));
  assert.ok(head.includes('nb-milestone-chip'));
@@ -32,8 +34,9 @@ test('task statuses use distinct accessible chips, and selection/current week ar
  assert.ok(tracker.includes('currentWeek===w'));
  assert.ok(tracker.includes('day.date===todayDate'));
 });
-test('the approved layout preserves quick edit, arrow navigation and two-view tracker',()=>{
- assert.ok(tracker.includes("['Overview','List']"));
+test('the approved layout preserves quick edit, arrow navigation and Overview-only tracker',()=>{
+ assert.ok(tracker.includes('nb-overview-only-tab'));
+ assert.ok(!tracker.includes("['Overview','List']"));
  assert.ok(tracker.includes('onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week})'));
  assert.ok(tracker.includes('onClick={()=>navigateWeek(1)}'));
  assert.ok(tracker.includes('onClick={()=>navigateWeek(-1)}'));

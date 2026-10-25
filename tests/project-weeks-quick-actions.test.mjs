@@ -46,8 +46,9 @@ test('inline Add assignment uses selected person and week with default Planned',
  assert.throws(()=>quickCreateAssignment(input,{label:'   ',memberId:'H',startWeek:6},'new2'),/title/i);
  assert.throws(()=>quickCreateAssignment(input,{label:'ok',memberId:'X',startWeek:6},'new2'),/employee/i);
 });
-test('tracker has only Overview and List, no Week mode, and never shows ISO labels in footer',()=>{
- assert.ok(view.includes("['Overview','List']"));
+test('tracker has only Overview, no List/Week mode, and never shows ISO labels in footer',()=>{
+ assert.ok(view.includes('nb-overview-only-tab'));
+ assert.ok(!view.includes("['Overview','List']"));
  assert.ok(!view.includes("['Overview','Week','List']"));
  assert.ok(view.includes('const weekIso=(w:number)=>`Week ${w+1}`'));
  assert.ok(view.includes('Project weeks</strong>'));
