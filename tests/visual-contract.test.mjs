@@ -14,8 +14,15 @@ test('registry uses one set of searchable filters and true filtered six-item pag
 test('registry documentation never silently goes to a fake SharePoint link',()=>{
  assert.ok(app.includes('Documentation not linked'));assert.ok(app.includes('safeDocumentationUrl'));
 });
-test('guides retain real profile and device selection and guard missing publications',()=>{
- assert.ok(ui.includes('Guide preview · Select a device'));assert.ok(ui.includes('!guide?\'Legacy preview · Not recorded\''));assert.ok(ui.includes('No reviewed guide has been published'));
+test('configuration guide removes the six obsolete preview and demo sections',()=>{
+ const guide=ui.slice(ui.indexOf('export function Guide('),ui.indexOf('export function SystemEditor('));
+ for(const label of ['Guide preview · Select a device','Register an actual device','No reviewed guide has been published','Legacy system checklist · not device completion','Demo mode. Local record versions',' / {sys.name} / Guide'])assert.ok(!guide.includes(label),label);
+ const enhanced=readFileSync(new URL('../src/enhancements.tsx',import.meta.url),'utf8');
+ const profile=enhanced.slice(enhanced.indexOf('export function ProfileGuide('),enhanced.indexOf('export function Migration('));
+ assert.ok(!profile.includes('Add endpoint profile'));
+ assert.ok(!profile.includes('aria-label="Endpoint profile"'));
+ assert.ok(profile.includes('profileView(sys,profileId)'));
+ for(const text of ['Technical essentials','Lessons Learned','Configuration checklists'])assert.ok(guide.includes(text),text);
 });
 test('visual guide uses accessible labeled icons and three stages',()=>{
  assert.ok(ui.includes('fieldIcons[k]||Monitor'));assert.ok(ui.includes('Configuration checklists'));assert.ok(css.includes('.nb-stage-tabs button.selected'));

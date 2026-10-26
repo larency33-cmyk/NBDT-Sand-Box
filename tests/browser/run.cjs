@@ -7,13 +7,31 @@ server=http.createServer((req,res)=>{if(req.url==='/test.js'){res.setHeader('Con
 browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||undefined,args:['--no-sandbox']});const context=await browser.newContext({viewport:{width:1672,height:941}});page=await context.newPage();page.setDefaultTimeout(7000);const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());await page.goto(url);await page.waitForFunction(()=>typeof window.mount==='function');
 const mount=async(name,admin=true,fail=false)=>{await page.evaluate(([n,a,f])=>window.mount(n,a,f),[name,admin,fail]);await page.waitForTimeout(80);};
 const test=async(name,fn)=>{await fn();results.push({name,status:'PASS'});console.log('PASS '+name);};
-await test('Guide preview cannot record completion without device',async()=>{assert.equal(await page.locator('.nb-check-row input[type=checkbox]').first().isDisabled(),true);});
-await test('Device run stages accept only in sequence',async()=>{await page.getByLabel('Device',{exact:true}).selectOption('device');await page.getByRole('button',{name:'Start device run'}).click();await page.getByRole('button',{name:/Ready for Deployment/}).click();assert.equal(await page.locator('.nb-check-row input[type=checkbox]').first().isDisabled(),true);await page.getByRole('button',{name:/Base Configuration/}).click();await page.locator('.nb-check-row input[type=checkbox]').first().check();await page.getByRole('button',{name:/Accept Base Configuration/}).click();await page.locator('.nb-check-row input[type=checkbox]').first().check();await page.getByRole('button',{name:/Accept Ready for Deployment/}).click();await page.locator('.nb-check-row input[type=checkbox]').first().check();await page.getByRole('button',{name:'Accept Deployment'}).click();assert.ok(await page.evaluate(()=>window.getProject().systems[0].deviceRuns[0].accepted.deployment));});
-await test('Reopening Base clears downstream acceptance',async()=>{await page.getByRole('button',{name:/Base Configuration/}).click();await page.locator('.nb-check-row input[type=checkbox]').first().uncheck();assert.deepEqual(await page.evaluate(()=>window.getProject().systems[0].deviceRuns[0].accepted),{});});
-await test('Viewer cannot change device results',async()=>{await mount('guide',false);await page.getByLabel('Device',{exact:true}).selectOption('device');assert.equal(await page.getByRole('button',{name:'Start device run'}).count(),0);assert.equal(await page.locator('.nb-check-row input[type=checkbox]').first().isDisabled(),true);});
-await test('Endpoint profile switch isolates device inventory',async()=>{await mount('profiles');await page.getByLabel('Endpoint profile',{exact:true}).selectOption('tablet');assert.equal(await page.getByLabel('Device',{exact:true}).locator('option').count(),1);});
-await test('Primary profile wrapper persists a device run',async()=>{await mount('profiles');await page.getByLabel('Device',{exact:true}).selectOption('device');await page.getByRole('button',{name:'Start device run'}).click();assert.equal(await page.evaluate(()=>window.getProject().systems[0].deviceRuns.length),1);});
-await test('Secondary profile editor saves platform details independently',async()=>{await mount('profiles');await page.getByLabel('Endpoint profile',{exact:true}).selectOption('tablet');await page.getByRole('button',{name:'Edit endpoint profile'}).click();await page.getByLabel('Hardware / model',{exact:true}).fill('Updated test tablet');await page.getByRole('button',{name:'Save changes',exact:true}).click();assert.equal(await page.evaluate(()=>window.getProject().systems[0].endpointProfiles[0].deviceType),'Updated test tablet');assert.equal(await page.evaluate(()=>window.getProject().systems[0].deviceType),'Test PC');});
+await test('System guide opens directly into technical details and configuration stages',async()=>{
+ await mount('guide');
+ assert.equal(await page.getByRole('heading',{name:'Test System'}).count(),1);
+ assert.equal(await page.getByText('Technical essentials',{exact:true}).count(),1);
+ assert.equal(await page.getByText('Configuration checklists',{exact:true}).count(),1);
+});
+await test('Obsolete system-guide UI is absent in viewer and edit modes',async()=>{
+ for (const admin of [true,false]){
+  await mount('profiles',admin);
+  for(const text of ['Endpoint profile','Add endpoint profile','Guide preview · Select a device to record completion','Register an actual device','No reviewed guide has been published','Legacy system checklist · not device completion','Demo mode. Local record versions']){
+   assert.equal(await page.getByText(text,{exact:false}).count(),0,`${text} should be hidden`);
+  }
+ }
+});
+await test('Read-only preview remains protected without selected device',async()=>{
+ await mount('guide',false);
+ assert.equal(await page.locator('.nb-check-row input[type=checkbox]').first().isDisabled(),true);
+ assert.equal(await page.getByRole('button',{name:/Ready for Deployment/}).count(),1);
+});
+await test('Endpoint profiles and device records remain in saved project data',async()=>{
+ await mount('profiles');
+ const source=await page.evaluate(()=>window.getProject().systems[0]);
+ assert.equal(source.endpointProfiles.length,1);
+ assert.equal(source.devices.length,1);
+});
 await test('Task Owner and Helpers save together',async()=>{await mount('task');await page.getByRole('button',{name:/Test Owner: 1 assignments/}).click();await page.getByRole('button',{name:'More options for Test task'}).click();await page.getByRole('menuitem',{name:'Edit',exact:true}).click();await page.getByLabel('Task title',{exact:true}).fill('Updated test task');await page.getByRole('button',{name:'Save changes',exact:true}).click();assert.equal(await page.evaluate(()=>window.getProject().tasks[0].label),'Updated test task');assert.deepEqual(await page.evaluate(()=>window.getProject().tasks[0].helperIds),['b']);});
 await test('Task save failure retains draft and displays error',async()=>{await mount('task',true,true);await page.getByRole('button',{name:/Test Owner: 1 assignments/}).click();await page.getByRole('button',{name:'More options for Test task'}).click();await page.getByRole('menuitem',{name:'Edit',exact:true}).click();await page.getByLabel('Task title',{exact:true}).fill('Unsaved test task');await page.getByRole('button',{name:'Save changes',exact:true}).click();await page.getByRole('alert').filter({hasText:'Injected test save failure'}).waitFor();assert.equal(await page.getByLabel('Task title',{exact:true}).inputValue(),'Unsaved test task');});
 await test('System profile save failure remains visible',async()=>{await mount('editor',true,true);await page.getByLabel('System name',{exact:true}).fill('Unsaved system');await page.getByRole('button',{name:'Save changes',exact:true}).click();await page.getByRole('alert').filter({hasText:'Injected test save failure'}).waitFor();});

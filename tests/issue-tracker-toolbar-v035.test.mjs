@@ -38,5 +38,5 @@ test('dropdowns use restrained colors, fixed borders and responsive grids', () =
   assert.ok(css.includes('border:1px solid #c9dcf2'));
   assert.ok(css.includes('@media(max-width:950px)'));
   assert.ok(css.includes('@media(max-width:560px)'));
-  assert.equal(pkg.version,'0.6.35');
+  assert.ok(Number(pkg.version.split('.').at(-1))>=35, 'Issue Tracker toolbar introduced in v0.6.35');
 });
