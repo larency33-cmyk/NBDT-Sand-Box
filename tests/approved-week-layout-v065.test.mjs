@@ -13,7 +13,7 @@ test('approved tracker keeps week names above milestones and dates only in foote
  assert.ok(head.includes('No milestone'));
  assert.ok(head.includes('nb-week-head-title'));
  assert.ok(!head.includes('weekRange(project.startDate,w)'));
- assert.ok(head.includes('nb-week-head-select'));
+ assert.ok(!head.includes('nb-week-head-select'));
  assert.ok(head.indexOf('nb-week-head-title') < head.indexOf('nb-week-milestones'));
  assert.ok(head.includes('nb-milestone-add'));
 });
