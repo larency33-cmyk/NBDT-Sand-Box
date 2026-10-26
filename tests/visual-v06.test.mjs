@@ -34,10 +34,11 @@ test('weekly panel opens only from a selected person/week cell',()=>{
  assert.ok(w.includes('nb-quick-panel'));
  assert.ok(w.includes('onQuickTaskSave'));
 });
-test('system cards distinguish legacy steps from genuine device completion',()=>{
- assert.ok(app.includes('nb-card-legacy-tag'));
- assert.ok(app.includes('legacy steps'));
- assert.ok(app.includes('Documentation not linked'));
+test('registry cards show guide-sourced technical fields without legacy progress',()=>{
+ assert.ok(app.includes('registryCardFields(sys)'));
+ assert.ok(app.includes('nb-description-panel'));
+ assert.ok(!app.includes('nb-card-legacy-tag'));
+ assert.ok(app.includes('No documentation URL has been linked'));
 });
 test('brand and nav use unified NBDT labels without changing project records',()=>{
  assert.ok(app.includes('nbdt-brand-wordmark'));

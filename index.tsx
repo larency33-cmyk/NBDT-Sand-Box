@@ -23,6 +23,7 @@ import './configuration-report-editable-v032.css';
 import './configuration-report-inline-v033.css';
 import './issue-tracker-v034.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
+import {DEVICE_TYPES,registryCardFields,registryVisualType} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -593,23 +594,6 @@ const getVisualTone = (type: SystemVisualType) => {
   return 'blue';
 };
 
-const getSystemVisualType = (sys: any): SystemVisualType => {
-  const category = String(sys.deviceCategory || '').toLowerCase();
-  const name = `${sys.name || ''} ${sys.deviceType || ''}`.toLowerCase();
-  if (category.includes('app only')) return 'App only';
-  if (category.includes('pos') || name.includes('point of sale') || name.includes(' pos ') || name.startsWith('pos') || name.endsWith(' pos')) return 'POS';
-  if (category.includes('kiosk') || name.includes('kiosk')) return 'Kiosk';
-  if (category.includes('phone') || name.includes('phone') || name.includes('mobile') || name.includes('xcover') || name.includes('tc22')) return 'Phone';
-  if (category.includes('tablet') || name.includes('tablet') || name.includes('ipad')) return 'Tablet';
-  if (category.includes('laptop') || name.includes('laptop') || name.includes('notebook')) return 'Laptop';
-  if (category.includes('pc') || name.includes('desktop') || name.includes('tower')) return 'PC';
-  return 'PC';
-};
-
-const getDeviceIcon = (cat: DeviceCategory | SystemVisualType, size = 32) => {
-  const type = String(cat) as SystemVisualType;
-  return <DeviceGlyph type={type} className="nb-device-glyph" />;
-};
 
 const getNetworkIcon = (network: string, size = 18) => {
   const lower = network.toLowerCase();
@@ -1167,27 +1151,46 @@ const ExpandableRegistryDescription = ({ text, tone }: { text: string, tone: str
   </div>;
 };
 
-const DEVICE_TYPE_LEGEND: SystemVisualType[] = ['Phone', 'Tablet', 'PC', 'Laptop', 'Kiosk', 'POS', 'App only'];
-
-const DeviceTypeLegend = () => (
-  <div className="nb-device-legend" aria-label="Available device types">{DEVICE_TYPE_LEGEND.map(type => {
-    const tone = getVisualTone(type);
-    return <div key={type} className="nb-device-legend-item"><div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={type} className="nb-device-glyph" /></div><span>{type}</span></div>;
-  })}</div>
-);
+const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: string)=>void}) => {
+  const [open,setOpen] = useState(false);
+  const wrapper = useRef<HTMLDivElement>(null);
+  useEffect(()=>{
+    if(!open) return;
+    const pointer=(e:PointerEvent)=>{if(wrapper.current&&!wrapper.current.contains(e.target as Node))setOpen(false);};
+    const key=(e:KeyboardEvent)=>{if(e.key==='Escape'){setOpen(false);wrapper.current?.querySelector<HTMLButtonElement>('.nb-type-filter-trigger')?.focus();}};
+    document.addEventListener('pointerdown',pointer);
+    document.addEventListener('keydown',key);
+    return ()=>{document.removeEventListener('pointerdown',pointer);document.removeEventListener('keydown',key);};
+  },[open]);
+  return <div ref={wrapper} className={'nb-type-filter'+(open?' nb-type-filter-open':'')}>
+    <button type="button" className="nb-type-filter-trigger" aria-label="Device Type" aria-expanded={open} aria-haspopup="listbox" onClick={()=>setOpen(prev=>!prev)}>
+      {value ? <span className={`nb-type-filter-selected nb-tone-${getVisualTone(value as SystemVisualType)}`}><DeviceGlyph type={value as SystemVisualType} className="nb-device-glyph" /></span> : <Layers size={20} aria-hidden="true"/>}
+      <span className="nb-type-filter-label">{value || 'Device Type: All'}</span><ChevronDown size={17} className="nb-type-filter-chevron" aria-hidden="true" />
+    </button>
+    {open&&<div className="nb-type-filter-menu" role="listbox" aria-label="Device Type">
+      <button type="button" role="option" aria-selected={!value} className={'nb-type-filter-option'+(!value?' selected':'')} onClick={()=>{onChange('');setOpen(false);}}>
+        <span className="nb-type-filter-option-all"><Layers size={18}/></span><span>All device types</span>{!value&&<Check size={16} className="nb-type-filter-check"/>}
+      </button>
+      {DEVICE_TYPES.map((type:string)=> <button type="button" role="option" aria-selected={value===type} key={type} className={'nb-type-filter-option'+(value===type?' selected':'')} onClick={()=>{onChange(type);setOpen(false);}}>
+        <span className={`nb-type-filter-option-icon nb-tone-${getVisualTone(type as SystemVisualType)}`}><DeviceGlyph type={type as SystemVisualType} className="nb-device-glyph" /></span><span>{type}</span>{value===type&&<Check size={16} className="nb-type-filter-check"/>}
+      </button>)}
+    </div>}
+  </div>;
+};
 
 const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveCheckSheetSys}: any) => {
   const url = safeDocumentationUrl(sys.documentationUrl);
-  const visualType = getSystemVisualType(sys);
-  const tone = getVisualTone(visualType);
-  const description = sys.description || sys.documentation || `${visualType} configuration and deployment guide.`;
+  const fields = registryCardFields(sys);
+  const visualType = registryVisualType(sys);
+  const tone = getVisualTone(visualType as SystemVisualType);
+  const description = fields.description || `${visualType} configuration and deployment guide.`;
   return <article className="nb-system-card nb-system-card-template">
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
       {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit ${sys.name}`} onClick={()=>setDraftSystem(sys)}><Edit2 size={16}/></button>}
     </div>
-    <dl className="nb-spec-list nb-spec-list-template">{[['Device model',sys.deviceType || visualType],['OS',`${sys.os || ''}${sys.osVersion ? ` ${sys.osVersion}` : ''}`.trim() || '—'],['Connection',sys.network || '—'],['Naming',sys.namingConvention || '—']].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
+    <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <ExpandableRegistryDescription text={description} tone={tone} />
     <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
   </article>;
@@ -1718,6 +1721,7 @@ const App = () => {
   const [activeLessonsLearnedSys, setActiveLessonsLearnedSys] = useState<SystemInfo | null>(null);
   const [systemSearch, setSystemSearch] = useState('');
   const [systemPage, setSystemPage] = useState(0);
+  const [deviceTypeFilter,setDeviceTypeFilter] = useState('');
   const [issueSearch, setIssueSearch] = useState('');
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -2451,12 +2455,14 @@ const App = () => {
     setActiveFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
-  useEffect(()=>setSystemPage(0),[systemSearch,activeFilters,assigneeFilter,project.id]);
+  useEffect(()=>setSystemPage(0),[systemSearch,activeFilters,assigneeFilter,deviceTypeFilter,project.id]);
   const filteredSystems = useMemo(() => {
     return project.systems.filter(s => {
-      const matchesSearch = s.name.toLowerCase().includes(systemSearch.toLowerCase()) || 
-        (s.deviceType || '').toLowerCase().includes(systemSearch.toLowerCase()) ||
-        (s.osVersion || '').toLowerCase().includes(systemSearch.toLowerCase());
+      const guideFields = registryCardFields(s);
+      const normalizedSearch = systemSearch.trim().toLowerCase();
+      const matchesSearch = !normalizedSearch || [s.name,guideFields.model,guideFields.os,guideFields.network,guideFields.naming,guideFields.description]
+        .some(value => String(value||'').toLowerCase().includes(normalizedSearch));
+      const deviceTypeMatch = !deviceTypeFilter || registryVisualType(s) === deviceTypeFilter;
       
       const osChoices = ['Windows', 'Linux', 'iOS', 'iPadOS', 'Android', 'macOS'];
       const netChoices = ['WiFi', 'Wired'];
@@ -2465,10 +2471,11 @@ const App = () => {
       const activeNetFilters = activeFilters.filter(f => netChoices.includes(f));
 
       // OS check: exact match against filter list
-      const osMatch = activeOsFilters.length === 0 || [s,...(s.endpointProfiles||[])].some(p=>activeOsFilters.includes(p.os));
+      const guideTech = s.publishedGuide?.technicalSnapshot || s;
+      const osMatch = activeOsFilters.length === 0 || [guideTech,...(s.endpointProfiles||[])].some(p=>activeOsFilters.includes(p.os));
       
       // Network check: robust fuzzy matching for WiFi/Wired
-      const netMatch = activeNetFilters.length === 0 || activeNetFilters.some(f => [s,...(s.endpointProfiles||[])].some((profile:any)=>{
+      const netMatch = activeNetFilters.length === 0 || activeNetFilters.some(f => [guideTech,...(s.endpointProfiles||[])].some((profile:any)=>{
         const netValue = (profile.network || '').toLowerCase();
         const filterValue = f.toLowerCase();
         if (filterValue === 'wifi') {
@@ -2482,9 +2489,9 @@ const App = () => {
 
       const assigneeMatch = !assigneeFilter || s.assigneeId === assigneeFilter;
 
-      return matchesSearch && osMatch && netMatch && assigneeMatch;
+      return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch;
     });
-  }, [project.systems, systemSearch, activeFilters, assigneeFilter]);
+  }, [project.systems, systemSearch, activeFilters, assigneeFilter, deviceTypeFilter]);
 
   useEffect(()=>setSystemPage(p=>Math.min(p,Math.max(0,Math.ceil(filteredSystems.length/6)-1))),[filteredSystems.length]);
 
@@ -2859,7 +2866,7 @@ const App = () => {
                 <button type="button" className="nb-button" onClick={()=>{
                   const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
                   const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
-                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,s.deviceType||s.deviceCategory,s.os,s.network,s.vlan,s.namingConvention,project.members.find(m=>m.id===s.assigneeId)?.name||''])];
+                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,project.members.find(m=>m.id===s.assigneeId)?.name||''])];
                   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
                   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
                 }}><Download size={18}/> Export</button>
@@ -2869,12 +2876,13 @@ const App = () => {
             </header>
             <div className="nb-registry-filters" role="search" aria-label="Filter system registry">
               <label className="nb-search-field"><Search size={19}/><span className="sr-only">Search systems</span><input value={systemSearch} onChange={e=>setSystemSearch(e.target.value)} placeholder="Search systems…"/></label>
+              <DeviceTypeFilter value={deviceTypeFilter} onChange={setDeviceTypeFilter}/>
               <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
               <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
               <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
-              {(activeFilters.length>0||assigneeFilter||systemSearch)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');}}>Clear filters</button>}
+              {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
-            <div className="nb-registry-meta-row"><DeviceTypeLegend />{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
+            <div className="nb-registry-meta-row">{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
               {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} setDraftSystem={setDraftSystem} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             <footer className="nb-registry-pagination">

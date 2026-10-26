@@ -2071,10 +2071,6 @@ body:has(.nb-tracker)::-webkit-scrollbar{
 .nb-registry-filters .nb-search-field svg,.nb-registry-filters .nb-filter-field svg{color:#2867d8;flex:none}
 .nb-registry-meta-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-top:16px;margin-bottom:18px;flex-wrap:wrap}
 .nb-registry-inline-summary{margin-left:auto;font-size:14px;color:#7890ae;padding-top:10px}
-.nb-device-legend{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-start}
-.nb-device-legend-item{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:72px}
-.nb-device-legend-item .nb-device{width:52px;height:52px;min-width:52px;min-height:52px;border-radius:999px}
-.nb-device-legend-item span{font-size:12px;line-height:1.15;font-weight:650;color:#17365f;text-align:center}
 .nb-registry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
 .nb-registry-grid .nb-system-card.nb-system-card-template{min-height:0;padding:22px 20px 18px;border:1px solid #cfe0f2;border-radius:14px;box-shadow:0 6px 18px rgba(27,73,129,.05)}
 .nb-registry-grid .nb-system-card.nb-system-card-template:hover{border-color:#b8d1ee;box-shadow:0 10px 28px rgba(27,73,129,.09)}
@@ -2114,4 +2110,62 @@ body:has(.nb-tracker)::-webkit-scrollbar{
   .nb-card-edit-icon{grid-column:2;justify-self:end;margin-top:-42px}
   .nb-card-actions.nb-card-actions-template{grid-template-columns:1fr}
   .nb-spec-list.nb-spec-list-template{grid-template-columns:102px minmax(0,1fr)}
+}
+
+/* v0.6.38 | Registry type filter replaces the decorative seven-icon strip */
+.nb-registry-page .nb-registry-filters{
+  grid-template-columns:minmax(230px,2.2fr) repeat(4,minmax(145px,1fr));
+  gap:12px;
+  margin-bottom:0;
+}
+.nb-registry-page .nb-registry-meta-row{justify-content:flex-end;min-height:25px;margin:9px 0 12px;}
+.nb-registry-page .nb-registry-inline-summary{font-size:12px;margin-left:auto;padding-top:0;color:#7b8ba9;}
+.nb-registry-page .nb-type-filter{position:relative;min-width:0;align-self:stretch;z-index:15;}
+.nb-registry-page .nb-type-filter-trigger{
+  display:flex;align-items:center;gap:11px;width:100%;height:100%;min-height:56px;
+  background:#fff;border:1px solid #c9dbef;border-radius:11px;
+  padding:0 13px;color:#203b60;font-size:14px;font-weight:500;text-align:left;
+}
+.nb-registry-page .nb-type-filter-trigger:hover{border-color:#9fc5f4;background:#fbfdff;}
+.nb-registry-page .nb-type-filter-trigger:focus-visible{outline:2px solid #2078ee;outline-offset:2px;}
+.nb-registry-page .nb-type-filter-open .nb-type-filter-trigger{border-color:#78b2ff;box-shadow:0 0 0 3px rgba(0,111,255,.08);}
+.nb-registry-page .nb-type-filter-trigger>svg:first-child{color:#2867d8;flex-shrink:0;}
+.nb-registry-page .nb-type-filter-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nb-registry-page .nb-type-filter-chevron{color:#29598d;flex-shrink:0;transition:transform .12s;}
+.nb-registry-page .nb-type-filter-open .nb-type-filter-chevron{transform:rotate(180deg);}
+.nb-registry-page .nb-type-filter-selected,.nb-registry-page .nb-type-filter-option-icon{
+  display:grid;place-items:center;border-radius:50%;flex:none;width:32px;height:32px;
+}
+.nb-registry-page .nb-type-filter-selected .nb-device-glyph,.nb-registry-page .nb-type-filter-option-icon .nb-device-glyph{width:23px;height:23px;}
+.nb-registry-page .nb-type-filter-menu{
+  position:absolute;top:calc(100% + 7px);left:0;z-index:60;
+  background:white;min-width:max(100%,220px);padding:7px;
+  border:1px solid #ccdef1;border-radius:12px;box-shadow:0 16px 40px rgba(21,58,104,.15);
+  max-height:min(420px,70vh);overflow-y:auto;
+}
+.nb-registry-page .nb-type-filter-option{
+  display:flex;align-items:center;gap:11px;width:100%;min-height:43px;padding:5px 10px;
+  background:transparent;border:0;border-radius:8px;color:#233c5d;font-weight:560;font-size:14px;text-align:left;
+}
+.nb-registry-page .nb-type-filter-option:hover,.nb-registry-page .nb-type-filter-option:focus-visible{background:#f0f7ff;outline:none;}
+.nb-registry-page .nb-type-filter-option.selected{background:#ebf5ff;color:#0069e7;}
+.nb-registry-page .nb-type-filter-option-all{display:grid;place-items:center;width:32px;height:32px;flex:none;color:#3973bb;background:#eff6ff;border-radius:50%;}
+.nb-registry-page .nb-type-filter-check{margin-left:auto;color:#0876ed;}
+.nb-registry-page .nb-type-filter-option-icon.nb-tone-blue,.nb-registry-page .nb-type-filter-selected.nb-tone-blue{background:#edf4ff;color:#1b68ea;}
+.nb-registry-page .nb-type-filter-option-icon.nb-tone-teal,.nb-registry-page .nb-type-filter-selected.nb-tone-teal{background:#eefaf8;color:#19a4a4;}
+.nb-registry-page .nb-type-filter-option-icon.nb-tone-violet,.nb-registry-page .nb-type-filter-selected.nb-tone-violet{background:#f4efff;color:#8a67d7;}
+.nb-registry-page .nb-system-card-top .nb-device{border-radius:50%!important;width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;}
+.nb-registry-page .nb-system-card-top .nb-device .nb-device-glyph{width:34px;height:34px;}
+@media(max-width:1270px){
+ .nb-registry-page .nb-registry-filters{grid-template-columns:minmax(210px,1.6fr) repeat(2,minmax(150px,1fr));}
+ .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1/-1;}
+}
+@media(max-width:790px){
+ .nb-registry-page .nb-registry-filters{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1/-1;}
+}
+@media(max-width:520px){
+ .nb-registry-page .nb-registry-filters{grid-template-columns:minmax(0,1fr);}
+ .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1;}
+ .nb-registry-page .nb-type-filter-menu{min-width:100%;width:100%;}
 }

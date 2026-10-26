@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-Clean GitHub source package, **v0.6.31** (calm corporate Week colors, Overview-only Weekly Tracker, classic sidebar, and quick task actions). The wide, labeled navigation from before v0.6.16 is restored while the four-week tracker keeps the approved rounded-card layout, 16px gutters, independent week selection, and bottom cards aligned to the rendered table header widths.
+**Current package: v0.6.38.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
 
 ## Requirements
 

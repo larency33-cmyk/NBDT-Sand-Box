@@ -12,7 +12,7 @@ test('registry uses one set of searchable filters and true filtered six-item pag
  for(const token of ['nb-registry-filters','nb-registry-grid','filteredSystems.slice(systemPage*6,systemPage*6+6)','Showing ${systemPage*6+1}'])assert.ok(app.includes(token),token);
 });
 test('registry documentation never silently goes to a fake SharePoint link',()=>{
- assert.ok(app.includes('Documentation not linked'));assert.ok(app.includes('safeDocumentationUrl'));
+ assert.ok(app.includes('No documentation URL has been linked'));assert.ok(app.includes('disabled title='));assert.ok(app.includes('safeDocumentationUrl'));
 });
 test('configuration guide removes the six obsolete preview and demo sections',()=>{
  const guide=ui.slice(ui.indexOf('export function Guide('),ui.indexOf('export function SystemEditor('));
