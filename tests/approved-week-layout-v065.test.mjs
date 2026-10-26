@@ -7,13 +7,13 @@ const tracker=ui.slice(ui.indexOf('export function Tracker('),ui.indexOf('export
 const css=readFileSync(new URL('../redesign.css',import.meta.url),'utf8');
 const v065=css.slice(css.indexOf('/* =======================================================================\n   v0.6.5'));
 
-test('approved v0.6.12 places weeks and date ranges above milestones in the top header',()=>{
+test('approved tracker keeps week names above milestones and dates only in footer',()=>{
  const head=tracker.slice(tracker.indexOf('<thead>'),tracker.indexOf('</thead>'));
  assert.ok(head.includes('nb-week-milestones'));
  assert.ok(head.includes('No milestone'));
  assert.ok(head.includes('nb-week-head-title'));
- assert.ok(head.includes('weekRange(project.startDate,w)'));
- assert.ok(head.includes('nb-week-head-select'));
+ assert.ok(!head.includes('weekRange(project.startDate,w)'));
+ assert.ok(!head.includes('nb-week-head-select'));
  assert.ok(head.indexOf('nb-week-head-title') < head.indexOf('nb-week-milestones'));
  assert.ok(head.includes('nb-milestone-add'));
 });

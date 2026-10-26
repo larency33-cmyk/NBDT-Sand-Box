@@ -21,6 +21,8 @@ import './configuration-report-exact-v030.css';
 import './configuration-report-approved-v031.css';
 import './configuration-report-editable-v032.css';
 import './configuration-report-inline-v033.css';
+import './issue-tracker-v034.css';
+import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -2438,7 +2440,7 @@ const App = () => {
   const filteredIssues = useMemo(() => {
     return project.issues.filter(i => {
       const matchesSearch = i.title.toLowerCase().includes(issueSearch.toLowerCase()) || 
-        i.description.toLowerCase().includes(issueSearch.toLowerCase());
+        i.description.toLowerCase().includes(issueSearch.toLowerCase()) || project.systems.some(sys=>sys.id===i.systemId&&sys.name.toLowerCase().includes(issueSearch.toLowerCase()));
       
       const statusMatch = !issueStatusFilter || i.status === issueStatusFilter;
       const severityMatch = !issueSeverityFilter || i.severity === issueSeverityFilter;
@@ -2446,7 +2448,7 @@ const App = () => {
       
       return matchesSearch && statusMatch && severityMatch && assigneeMatch;
     });
-  }, [project.issues, issueSearch, issueStatusFilter, issueSeverityFilter, assigneeFilter]);
+  }, [project.issues, project.systems, issueSearch, issueStatusFilter, issueSeverityFilter, assigneeFilter]);
 
   const copyToClipboard = (text: string) => {
     if (!text) return;
@@ -3059,189 +3061,25 @@ const App = () => {
         )}
 
         {activeTab === 'issues' && (
-          <div className="px-10 py-6 flex flex-col h-full overflow-hidden animate-fadeIn w-full bg-[#020617] relative">
-            {/* Atmospheric Depth */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
-              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] pulse-bg" />
-              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/5 blur-[120px] pulse-bg" style={{ animationDelay: '-4s' }} />
-              {project.issues.some(i => i.severity === 'Critical') && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-red-500/[0.02] blur-[150px] pulse-bg" />
-              )}
-            </div>
-
-            <header className="flex items-center justify-between mb-8 shrink-0 relative z-10">
-               <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-                      <ShieldAlert className="text-red-500" size={18} />
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tighter text-white">Issue Tracker</h1>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-slate-400 text-sm font-medium">System anomalies and maintenance tracking hub.</p>
-                    <div className="flex items-center gap-1 h-4">
-                      {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className="w-1 bg-indigo-500/30 rounded-full pulse-line" style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.2}s` }} />
-                      ))}
-                    </div>
-                  </div>
-               </div>
-               <div className="flex items-center gap-4">
-                  <div className="relative group">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                    <input 
-                      type="text" 
-                      placeholder="Search issues..." 
-                      className="bg-[#0a0f1d] border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-xs outline-none focus:border-indigo-500 w-[240px] transition-all text-white placeholder:text-slate-600" 
-                      value={issueSearch} 
-                      onChange={e => setIssueSearch(e.target.value)} 
-                    />
-                  </div>
-
-                  {/* Admin Toggle (Local for Issues) - Refined */}
-                  <button 
-                    onClick={() => {
-                      if (isAdmin) {
-                        setIsAdmin(false);
-                      } else {
-                        setShowAdminAuthModal(true);
-                        setAdminPassInput('');
-                      }
-                    }}
-                    className={`flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-500 cursor-pointer group ${
-                      isAdmin 
-                        ? 'bg-indigo-600/10 border-indigo-500/50 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.1)]' 
-                        : 'bg-slate-900/40 border-slate-800 text-slate-500 hover:border-slate-700 backdrop-blur-md'
-                    }`}
-                  >
-                    <div className={`w-7 h-3.5 rounded-full relative transition-all duration-500 ${isAdmin ? 'bg-indigo-500/40' : 'bg-slate-800'}`}>
-                      <div className={`absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all duration-500 shadow-sm ${isAdmin ? 'left-4 bg-indigo-400' : 'left-0.5 bg-slate-600'}`} />
-                    </div>
-                    <span className="text-[9px] font-black tracking-[0.2em] uppercase">
-                      {isAdmin ? 'Admin' : 'View Only'}
-                    </span>
-                  </button>
-
-                  {isAdmin && (
-                    <button 
-                      onClick={() => setDraftIssue({
-                        id: `issue-${Date.now()}`,
-                        systemId: project.systems[0]?.id || '',
-                        title: '',
-                        description: '',
-                        severity: 'Medium',
-                        status: 'Open',
-                        assigneeId: project.members[0]?.id || '',
-                        createdAt: Date.now(),
-                        updatedAt: Date.now()
-                      })} 
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-2"
-                    >
-                      <Plus size={16}/> Create
-                    </button>
-                  )}
-               </div>
-            </header>
-
-            {/* Quick Filters - Refined Hierarchy */}
-            <div className="mb-8 flex items-center gap-8 shrink-0 relative z-10">
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Severity:</span>
-                <div className="flex items-center gap-1.5">
-                  {[
-                    { label: 'Critical', color: 'red' },
-                    { label: 'High', color: 'orange' },
-                    { label: 'Medium', color: 'amber' },
-                    { label: 'Low', color: 'blue' }
-                  ].map(sev => (
-                    <button 
-                      key={sev.label}
-                      onClick={() => setIssueSeverityFilter(issueSeverityFilter === sev.label ? '' : sev.label)}
-                      className={cn(
-                        "px-3 py-1.5 rounded-lg border text-[9px] font-black transition-all duration-300 uppercase tracking-tighter",
-                        issueSeverityFilter === sev.label
-                        ? ISSUE_SEVERITY_FILTER_CLASSES[sev.label]
-                        : "bg-slate-900/40 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-400"
-                      )}
-                    >
-                      {sev.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="h-4 w-px bg-slate-800" />
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Assignee:</span>
-                <select 
-                  value={assigneeFilter}
-                  onChange={(e) => setAssigneeFilter(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-300 outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="">All Assignees</option>
-                  {project.members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              </div>
-              {(issueSeverityFilter || assigneeFilter || issueSearch) && (
-                <>
-                  <div className="h-4 w-px bg-slate-800" />
-                  <button 
-                    onClick={() => {
-                      setIssueSeverityFilter('');
-                      setAssigneeFilter('');
-                      setIssueSearch('');
-                    }}
-                    className="text-[9px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors"
-                  >
-                    Clear All
-                  </button>
-                </>
-              )}
-            </div>
-
-            {/* Kanban Board */}
-            <DndContext 
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleIssueDragStart}
-              onDragEnd={handleIssueDragEnd}
-            >
-              <div className="flex-1 flex gap-6 overflow-x-auto pb-6 no-scrollbar relative z-10">
-                {['Open', 'Investigating', 'Waiting for Parts', 'Resolved'].map(status => {
-                  const columnIssues = filteredIssues.filter(i => i.status === status);
-                  
-                  return (
-                    <KanbanColumn 
-                      key={status} 
-                      status={status as IssueStatus} 
-                      issues={columnIssues} 
-                      project={project}
-                      setDraftIssue={setDraftIssue}
-                    />
-                  );
-                })}
-              </div>
-
-              <DragOverlay adjustScale={false} dropAnimation={null}>
-                {activeIssueId ? (
-                  <motion.div 
-                    initial={{ scale: 1, rotate: 0 }}
-                    animate={{ scale: 1.05, rotate: 1.5 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                    className="w-[308px] cursor-grabbing pointer-events-none"
-                  >
-                    <StaticIssueCard 
-                      issue={project.issues.find(i => i.id === activeIssueId)!} 
-                      project={project} 
-                      isOverlay={true}
-                    />
-                  </motion.div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
-          </div>
+          <IssueTrackerBoard
+            project={project}
+            isAdmin={isAdmin}
+            setIsAdmin={setIsAdmin}
+            setShowAdminAuthModal={setShowAdminAuthModal}
+            setAdminPassInput={setAdminPassInput}
+            setDraftIssue={setDraftIssue}
+            issueSearch={issueSearch}
+            setIssueSearch={setIssueSearch}
+            issueSeverityFilter={issueSeverityFilter}
+            setIssueSeverityFilter={setIssueSeverityFilter}
+            assigneeFilter={assigneeFilter}
+            setAssigneeFilter={setAssigneeFilter}
+            filteredIssues={filteredIssues}
+            sensors={sensors}
+            handleIssueDragStart={handleIssueDragStart}
+            handleIssueDragEnd={handleIssueDragEnd}
+            activeIssueId={activeIssueId}
+          />
         )}
 
         {activeTab === 'config-report' && (
