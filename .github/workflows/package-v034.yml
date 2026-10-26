@@ -30,13 +30,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NBDT_Full_Project_v0_6_34
-          path: $RUNNER_TEMP/nbdt-release/NBDT_Full_Project_v0_6_34.zip
+          path: ${{ runner.temp }}/nbdt-release/NBDT_Full_Project_v0_6_34.zip
           retention-days: 30
       - name: Upload GitHub update
         uses: actions/upload-artifact@v4
         with:
           name: NBDT_Changed_Files_v0_6_34_GitHub
-          path: $RUNNER_TEMP/nbdt-release/NBDT_Changed_Files_v0_6_34_GitHub.zip
+          path: ${{ runner.temp }}/nbdt-release/NBDT_Changed_Files_v0_6_34_GitHub.zip
           retention-days: 30
       - name: Set up Node
         uses: actions/setup-node@v4
