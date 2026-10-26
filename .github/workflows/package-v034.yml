@@ -1,0 +1,52 @@
+name: Package NBDT v0.6.34
+on:
+  push:
+    branches: [nbdt-v0.6.34-issue-tracker]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create clean project archives
+        run: |
+          set -euo pipefail
+          mkdir -p dist-release/full dist-release/changed
+          git archive HEAD | tar -x -C dist-release/full
+          (cd dist-release/full && zip -qr ../NBDT_Full_Project_v0_6_34.zip .)
+          git diff --name-only --diff-filter=ACMRT origin/main...HEAD | grep -v '^.github/workflows/' > dist-release/changed-list.txt || true
+          while IFS= read -r f; do
+            if [ -f "$f" ]; then
+              mkdir -p "dist-release/changed/$(dirname "$f")"
+              cp "$f" "dist-release/changed/$f"
+            fi
+          done < dist-release/changed-list.txt
+          (cd dist-release/changed && zip -qr ../NBDT_Changed_Files_v0_6_34_GitHub.zip .)
+      - name: Upload full project
+        uses: actions/upload-artifact@v4
+        with:
+          name: NBDT_Full_Project_v0_6_34
+          path: dist-release/NBDT_Full_Project_v0_6_34.zip
+          retention-days: 30
+      - name: Upload GitHub update
+        uses: actions/upload-artifact@v4
+        with:
+          name: NBDT_Changed_Files_v0_6_34_GitHub
+          path: dist-release/NBDT_Changed_Files_v0_6_34_GitHub.zip
+          retention-days: 30
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify TypeScript
+        run: npm run lint
+      - name: Run tests
+        run: npm test
+      - name: Verify production build
+        run: npm run build
