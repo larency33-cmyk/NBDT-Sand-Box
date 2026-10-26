@@ -146,7 +146,8 @@ const uiStorage = demoStorage;
 // --- Types ---
 type SystemStatus = 'Active' | 'Limited' | 'Pilot' | 'Legacy';
 type TaskStatus = 'Planned' | 'In Progress' | 'Blocked' | 'Completed';
-type DeviceCategory = 'PC' | 'Laptop' | 'Tablet' | 'Phone' | 'Kiosk';
+type DeviceCategory = 'PC' | 'Laptop' | 'Tablet' | 'Phone' | 'Kiosk' | 'POS' | 'App only';
+type SystemVisualType = 'Phone' | 'Tablet' | 'PC' | 'Laptop' | 'Kiosk' | 'POS' | 'App only';
 type OSType = 'Windows' | 'Linux' | 'iOS' | 'Android' | 'Other';
 type IssueSeverity = 'Low' | 'Medium' | 'High' | 'Critical';
 type IssueStatus = 'Open' | 'Investigating' | 'Waiting for Parts' | 'Resolved';
@@ -565,21 +566,49 @@ const getOSIcon = (os: OSType, size = 24) => {
   }
 };
 
-const getDeviceIcon = (cat: DeviceCategory, size = 32) => {
-  const className = `text-indigo-400 group-hover:text-indigo-300 transition-colors`;
-  switch(cat) {
-    case 'PC': return <Monitor size={size} className={className} />;
-    case 'Laptop': return <Laptop size={size} className={className} />;
-    case 'Tablet': return <Tablet size={size} className={className} />;
-    case 'Phone': return <Smartphone size={size} className={className} />;
-    case 'Kiosk': 
-      return (
-        <svg viewBox="0 0 24 24" className={`w-${size/4} h-${size/4} fill-current ${className}`}>
-          <path d="M4 3h16c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2zm0 2v14h16V5H4zm1 2h14v2H5V7zm0 4h3v3H5v-3zm5 0h3v3h-3v-3zm5 0h3v3h-3v-3zm-10 4h3v3H5v-3zm5 0h3v3h-3v-3zm5 0h3v3h-3v-3z"/>
-        </svg>
-      );
-    default: return <HardDrive size={size} className={className} />;
+const DeviceGlyph = ({ type, className = '' }: { type: SystemVisualType, className?: string }) => {
+  switch(type) {
+    case 'Phone':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><line x1="10" y1="5.5" x2="14" y2="5.5"/><circle cx="12" cy="18.2" r="0.9"/></svg>;
+    case 'Tablet':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3.3" y="5.2" width="17.4" height="13.6" rx="2.1"/><circle cx="18.2" cy="12" r="0.55"/></svg>;
+    case 'PC':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="5" width="16" height="10.5" rx="1.6"/><line x1="12" y1="15.5" x2="12" y2="19"/><line x1="8.2" y1="19" x2="15.8" y2="19"/></svg>;
+    case 'Laptop':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="6" width="14" height="8.8" rx="1.2"/><path d="M3.5 17.2h17l-1.15 2.3H4.65l-1.15-2.3Z"/></svg>;
+    case 'Kiosk':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="3.5" width="8" height="10" rx="1.2"/><line x1="12" y1="13.5" x2="12" y2="18"/><path d="M8.3 20h7.4"/></svg>;
+    case 'POS':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3.2" y="6.2" width="12.5" height="8.5" rx="1.2"/><line x1="8.8" y1="14.7" x2="8.8" y2="17.2"/><line x1="5.8" y1="17.2" x2="11.8" y2="17.2"/><rect x="17.2" y="8.2" width="3.9" height="8.1" rx="0.8"/></svg>;
+    case 'App only':
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><rect x="7.2" y="7.2" width="3.4" height="3.4" rx="0.45"/><rect x="13.4" y="7.2" width="3.4" height="3.4" rx="0.45"/><rect x="7.2" y="13.4" width="3.4" height="3.4" rx="0.45"/><rect x="13.4" y="13.4" width="3.4" height="3.4" rx="0.45"/></svg>;
+    default:
+      return <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="5" width="16" height="10.5" rx="1.6"/><line x1="12" y1="15.5" x2="12" y2="19"/><line x1="8.2" y1="19" x2="15.8" y2="19"/></svg>;
   }
+};
+
+const getVisualTone = (type: SystemVisualType) => {
+  if (type === 'Tablet' || type === 'Kiosk' || type === 'App only') return 'teal';
+  if (type === 'PC' || type === 'POS') return 'violet';
+  return 'blue';
+};
+
+const getSystemVisualType = (sys: any): SystemVisualType => {
+  const category = String(sys.deviceCategory || '').toLowerCase();
+  const name = `${sys.name || ''} ${sys.deviceType || ''}`.toLowerCase();
+  if (category.includes('app only')) return 'App only';
+  if (category.includes('pos') || name.includes('point of sale') || name.includes(' pos ') || name.startsWith('pos') || name.endsWith(' pos')) return 'POS';
+  if (category.includes('kiosk') || name.includes('kiosk')) return 'Kiosk';
+  if (category.includes('phone') || name.includes('phone') || name.includes('mobile') || name.includes('xcover') || name.includes('tc22')) return 'Phone';
+  if (category.includes('tablet') || name.includes('tablet') || name.includes('ipad')) return 'Tablet';
+  if (category.includes('laptop') || name.includes('laptop') || name.includes('notebook')) return 'Laptop';
+  if (category.includes('pc') || name.includes('desktop') || name.includes('tower')) return 'PC';
+  return 'PC';
+};
+
+const getDeviceIcon = (cat: DeviceCategory | SystemVisualType, size = 32) => {
+  const type = String(cat) as SystemVisualType;
+  return <DeviceGlyph type={type} className="nb-device-glyph" />;
 };
 
 const getNetworkIcon = (network: string, size = 18) => {
@@ -1127,18 +1156,40 @@ const safeDocumentationUrl = (value?: string) => {
   if (!value) return null;
   try { const url = new URL(value); return url.protocol === 'https:' ? url.href : null; } catch { return null; }
 };
-const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveCheckSheetSys, setActiveAppListSys, setActiveNamingConventionSys, setActiveLessonsLearnedSys}: any) => {
-  const owner = project.members.find((m: any) => m.id === sys.assigneeId);
+const ExpandableRegistryDescription = ({ text, tone }: { text: string, tone: string }) => {
+  const [expanded, setExpanded] = useState(false);
+  const value = (text || 'No description added for this system yet.').trim();
+  const isLong = value.length > 138;
+  return <div className={`nb-description-panel nb-tone-${tone}`}>
+    <strong>Description</strong>
+    <p className={cn('nb-description-copy', !expanded && isLong && 'collapsed')}>{value}</p>
+    {isLong && <button type="button" className="nb-description-toggle" onClick={() => setExpanded(v => !v)}>{expanded ? 'Show less' : 'Show more'} <span aria-hidden="true">▾</span></button>}
+  </div>;
+};
+
+const DEVICE_TYPE_LEGEND: SystemVisualType[] = ['Phone', 'Tablet', 'PC', 'Laptop', 'Kiosk', 'POS', 'App only'];
+
+const DeviceTypeLegend = () => (
+  <div className="nb-device-legend" aria-label="Available device types">{DEVICE_TYPE_LEGEND.map(type => {
+    const tone = getVisualTone(type);
+    return <div key={type} className="nb-device-legend-item"><div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={type} className="nb-device-glyph" /></div><span>{type}</span></div>;
+  })}</div>
+);
+
+const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveCheckSheetSys}: any) => {
   const url = safeDocumentationUrl(sys.documentationUrl);
-  const stages = sys.checkSheetData || DEFAULT_CHECKSHEET;
-  const total = Object.values(stages).flat().length;
-  const done = (Object.values(stages).flat() as any[]).filter(i => i.completed).length;
-  return <article className="nb-system-card">
-    <div className="nb-card-heading"><div className="nb-device">{getDeviceIcon(sys.deviceCategory, 28)}</div><div><h3>{sys.name}</h3><p>{sys.description || sys.documentation || `${sys.deviceCategory} configuration and deployment guide`}</p></div></div>
-    <dl className="nb-spec-list">{[['Endpoint',sys.deviceType || sys.deviceCategory],['OS',`${sys.os} ${sys.osVersion || ''}`],['Network',sys.network],['VLAN',sys.vlan],['Naming',sys.namingConvention]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={v || 'Not specified'}>{v || 'Not specified'}</dd></React.Fragment>)}</dl>
-    <div className="nb-card-info"><ClipboardList size={17}/><span>{Object.keys(stages).length} checklists · {sys.lessonsLearned?'Lessons available':'No lessons recorded'}</span>{total>0&&<span className="nb-card-legacy-tag">{done}/{total} legacy steps</span>}{sys.lessonsLearned && <button type="button" onClick={()=>setActiveLessonsLearnedSys(sys)}>View lessons ↗</button>}</div>
-    <div className="nb-card-actions">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation not linked</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
-    <button className="nb-edit-link" type="button" onClick={()=>setDraftSystem(sys)}><Edit2 size={13}/>{isAdmin?'Edit system details':'System details'}</button>
+  const visualType = getSystemVisualType(sys);
+  const tone = getVisualTone(visualType);
+  const description = sys.description || sys.documentation || `${visualType} configuration and deployment guide.`;
+  return <article className="nb-system-card nb-system-card-template">
+    <div className="nb-system-card-top">
+      <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
+      <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
+      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit ${sys.name}`} onClick={()=>setDraftSystem(sys)}><Edit2 size={16}/></button>}
+    </div>
+    <dl className="nb-spec-list nb-spec-list-template">{[['Device model',sys.deviceType || visualType],['OS',`${sys.os || ''}${sys.osVersion ? ` ${sys.osVersion}` : ''}`.trim() || '—'],['Connection',sys.network || '—'],['Naming',sys.namingConvention || '—']].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
+    <ExpandableRegistryDescription text={description} tone={tone} />
+    <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
   </article>;
 };
 const SystemActionButton: React.FC<{
@@ -2803,7 +2854,7 @@ const App = () => {
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
             <header className="nb-registry-heading">
-              <div><h1>System Registry</h1><p>{project.systems.length} systems · Configuration guides · {project.name}</p></div>
+              <div><h1>System Registry</h1><p>{project.name} · {project.systems.length} systems · Configuration guides</p></div>
               <div className="nb-registry-actions">
                 <button type="button" className="nb-button" onClick={()=>{
                   const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
@@ -2823,8 +2874,8 @@ const App = () => {
               <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
               {(activeFilters.length>0||assigneeFilter||systemSearch)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');}}>Clear filters</button>}
             </div>
-            {filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} setDraftSystem={setDraftSystem} setActiveCheckSheetSys={openGuide} setActiveAppListSys={setActiveAppListSys} setActiveNamingConventionSys={setActiveNamingConventionSys} setActiveLessonsLearnedSys={setActiveLessonsLearnedSys}/>)}
+            <div className="nb-registry-meta-row"><DeviceTypeLegend />{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
+              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} setDraftSystem={setDraftSystem} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             <footer className="nb-registry-pagination">
               <p>{filteredSystems.length?`Showing ${systemPage*6+1}–${Math.min((systemPage+1)*6,filteredSystems.length)} of ${filteredSystems.length} systems`:'Showing 0 systems'}</p>

@@ -2055,3 +2055,63 @@ body:has(.nb-tracker)::-webkit-scrollbar{
   box-shadow:inset 0 3px 0 var(--nb-approved-blue)!important;
   border-color:#cddff2!important;
 }
+
+
+/* v0.6.37 - System Registry template refresh */
+.nb-registry-heading{align-items:flex-start;gap:18px}
+.nb-registry-heading h1{font-size:34px;line-height:1.08;font-weight:780;letter-spacing:-0.035em}
+.nb-registry-heading p{font-size:14px;color:#6980a0;margin-top:6px}
+.nb-registry-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.nb-registry-actions .nb-button{min-height:52px;border-radius:10px;padding:0 18px;font-size:15px}
+.nb-registry-actions .nb-primary{min-width:168px}
+.nb-registry-actions .nb-registry-mode{border:0;background:transparent;color:#0e5fd2;padding-inline:0}
+.nb-registry-filters{display:grid;grid-template-columns:minmax(260px,1.8fr) repeat(3,minmax(170px,1fr));gap:14px;align-items:stretch;margin-top:22px}
+.nb-registry-filters .nb-search-field,.nb-registry-filters .nb-filter-field{display:flex;align-items:center;gap:10px;border:1px solid #c9dbef;border-radius:11px;padding:0 16px;background:#fff;min-height:56px}
+.nb-registry-filters .nb-search-field input,.nb-registry-filters .nb-filter-field select{border:0;background:transparent;padding:0;width:100%;font-size:15px;color:#203b60}
+.nb-registry-filters .nb-search-field svg,.nb-registry-filters .nb-filter-field svg{color:#2867d8;flex:none}
+.nb-registry-meta-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-top:16px;margin-bottom:18px;flex-wrap:wrap}
+.nb-registry-inline-summary{margin-left:auto;font-size:14px;color:#7890ae;padding-top:10px}
+.nb-device-legend{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-start}
+.nb-device-legend-item{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:72px}
+.nb-device-legend-item .nb-device{width:52px;height:52px;min-width:52px;min-height:52px;border-radius:999px}
+.nb-device-legend-item span{font-size:12px;line-height:1.15;font-weight:650;color:#17365f;text-align:center}
+.nb-registry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.nb-registry-grid .nb-system-card.nb-system-card-template{min-height:0;padding:22px 20px 18px;border:1px solid #cfe0f2;border-radius:14px;box-shadow:0 6px 18px rgba(27,73,129,.05)}
+.nb-registry-grid .nb-system-card.nb-system-card-template:hover{border-color:#b8d1ee;box-shadow:0 10px 28px rgba(27,73,129,.09)}
+.nb-system-card-top{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:start;margin-bottom:18px}
+.nb-system-title-wrap{min-width:0;padding-top:6px}
+.nb-system-title-wrap h3{font-size:21px;line-height:1.15;font-weight:760;letter-spacing:-0.03em;color:#112f59}
+.nb-card-edit-icon{display:inline-grid;place-items:center;width:34px;height:34px;border:0;background:transparent;color:#0d69ea;border-radius:8px;margin-top:2px}
+.nb-card-edit-icon:hover{background:#edf5ff}
+.nb-device{display:grid;place-items:center;width:56px;height:56px;min-width:56px;min-height:56px;border-radius:999px;color:#1d62de;background:#edf5ff}
+.nb-device.nb-tone-blue{background:#edf4ff;color:#1b68ea}
+.nb-device.nb-tone-teal{background:#eefaf8;color:#19a4a4}
+.nb-device.nb-tone-violet{background:#f4efff;color:#8a67d7}
+.nb-device-glyph{width:34px;height:34px;stroke-linecap:round;stroke-linejoin:round}
+.nb-spec-list.nb-spec-list-template{grid-template-columns:120px minmax(0,1fr);gap:4px 18px;margin:0 0 18px;font-size:14px;line-height:1.45}
+.nb-spec-list.nb-spec-list-template dt{color:#7189aa;font-weight:500}
+.nb-spec-list.nb-spec-list-template dd{color:#1d3760;font-weight:600;white-space:normal;overflow:visible;text-overflow:clip}
+.nb-description-panel{border-radius:11px;padding:14px 16px 12px;margin-top:auto;min-height:124px;display:flex;flex-direction:column;align-items:flex-start}
+.nb-description-panel strong{font-size:15px;line-height:1.2;font-weight:760;color:#6c82a2;margin-bottom:10px}
+.nb-description-panel.nb-tone-blue{background:#eef5ff;border-left:4px solid #1f6eff}
+.nb-description-panel.nb-tone-teal{background:#eefaf8;border-left:4px solid #18b0aa}
+.nb-description-panel.nb-tone-violet{background:#f4effd;border-left:4px solid #8c67df}
+.nb-description-copy{font-size:14px;line-height:1.45;color:#4d6589;margin:0;display:block;max-width:100%}
+.nb-description-copy.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nb-description-toggle{margin-top:10px;border:0;background:transparent;color:#0e69e3;font-size:14px;font-weight:650;padding:0;display:inline-flex;align-items:center;gap:6px}
+.nb-card-actions.nb-card-actions-template{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.nb-card-actions.nb-card-actions-template .nb-button{min-height:48px;border-radius:10px;border-color:#c9dbef;font-weight:700;color:#1664d9}
+.nb-card-actions.nb-card-actions-template .nb-primary{color:#fff;border-color:#0d6bf2}
+@media (max-width: 1040px){
+  .nb-registry-filters{grid-template-columns:1fr 1fr}
+  .nb-registry-meta-row{flex-direction:column}
+  .nb-registry-inline-summary{margin-left:0;padding-top:0}
+}
+@media (max-width: 680px){
+  .nb-registry-heading{flex-direction:column}
+  .nb-registry-filters{grid-template-columns:1fr}
+  .nb-system-card-top{grid-template-columns:auto 1fr}
+  .nb-card-edit-icon{grid-column:2;justify-self:end;margin-top:-42px}
+  .nb-card-actions.nb-card-actions-template{grid-template-columns:1fr}
+  .nb-spec-list.nb-spec-list-template{grid-template-columns:102px minmax(0,1fr)}
+}
