@@ -1,5 +1,5 @@
 import React from 'react';
-import {DndContext,DragOverlay,closestCenter} from '@dnd-kit/core';
+import {DndContext,DragOverlay,closestCenter,useDroppable} from '@dnd-kit/core';
 import {SortableContext,useSortable,verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 import {Search,Plus,Eye,ChevronDown,SlidersHorizontal,UserRound,ClipboardList,Package,CheckCircle2,Clock3,Box,MoreVertical,Inbox,CircleCheck,X} from 'lucide-react';
@@ -20,6 +20,10 @@ function IssueCard({issue,project,onOpen,overlay=false}:any){
  <span className={'nb34-severity nb34-severity--'+sev}><i/>{issue.severity}</span></div>
  <div className="nb34-card-meta-second"><span>#{label} · {assignee?.name||'Unassigned'}</span><span className="nb34-card-date"><Clock3 size={15}/>{updated}</span></div></div>
  </article>;
+}
+function IssueColumn({status,issues,project,setDraftIssue}:any){
+ const {setNodeRef}=useDroppable({id:status});const {label,Icon}=STYLES[status];
+ return <section ref={setNodeRef} className={'nb34-column nb34-column--'+status.toLowerCase().replace(/\\s+/g,'-')}><header className="nb34-column-head"><div className="nb34-column-name"><span className="nb34-column-icon"><Icon size={21}/></span><h2>{label}</h2></div><span className="nb34-column-count">{issues.length}</span></header><SortableContext items={issues.map((i:any)=>i.id)} strategy={verticalListSortingStrategy}><div className="nb34-column-content">{issues.map((issue:any)=><SortableCard key={issue.id} issue={issue} project={project} onOpen={()=>setDraftIssue(issue)}/>)}{!issues.length&&<div className="nb34-empty"><span>{status==='Resolved'?<CircleCheck size={31}/>:<Inbox size={30}/>}</span><p>{status==='Resolved'?'No resolved issues':status==='Waiting for Parts'?'No issues waiting':status==='Investigating'?'No issues being investigated':'No open issues'}</p></div>}</div></SortableContext></section>;
 }
 function SortableCard({issue,project,onOpen}:any){
  const {attributes,listeners,setNodeRef,transform,transition,isDragging}=useSortable({id:issue.id});
@@ -45,13 +49,7 @@ export function IssueTrackerBoard(props:any){
  </section>
  <div className="nb34-summary"><div className="nb34-summary-group"><strong>{active.length} active {active.length===1?'issue':'issues'}</strong>{critical>0&&<span className="nb34-count nb34-count--critical"><i/>{critical} Critical</span>}{high>0&&<span className="nb34-count nb34-count--high"><i/>{high} High</span>}</div><span className="nb34-last-updated">Updated {updated}</span></div>
  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleIssueDragStart} onDragEnd={handleIssueDragEnd}>
- <div className="nb34-board">{STATUSES.map(status=>{const {label,Icon}=STYLES[status];const issues=filteredIssues.filter((i:any)=>i.status===status);
- return <section key={status} className={'nb34-column nb34-column--'+status.toLowerCase().replace(/\s+/g,'-')}>
- <header className="nb34-column-head"><div className="nb34-column-name"><span className="nb34-column-icon"><Icon size={21}/></span><h2>{label}</h2></div><span className="nb34-column-count">{issues.length}</span></header>
- <SortableContext items={issues.map((i:any)=>i.id)} strategy={verticalListSortingStrategy}><div className="nb34-column-content">
- {issues.map((issue:any)=><SortableCard key={issue.id} issue={issue} project={project} onOpen={()=>setDraftIssue(issue)}/>)}
- {!issues.length&&<div className="nb34-empty"><span>{status==='Resolved'?<CircleCheck size={31}/>:<Inbox size={30}/>}</span><p>{status==='Resolved'?'No resolved issues':status==='Waiting for Parts'?'No issues waiting':status==='Investigating'?'No issues being investigated':'No open issues'}</p></div>}
- </div></SortableContext></section>;})}</div>
+ <div className="nb34-board">{STATUSES.map(status=><IssueColumn key={status} status={status} issues={filteredIssues.filter((i:any)=>i.status===status)} project={project} setDraftIssue={setDraftIssue}/>)}</div>
  <DragOverlay adjustScale={false} dropAnimation={null}>{activeIssueId?(()=>{const issue=project.issues.find((i:any)=>i.id===activeIssueId);return issue?<div className="nb34-drag-overlay"><IssueCard issue={issue} project={project} overlay onOpen={()=>{}}/></div>:null;})():null}</DragOverlay>
  </DndContext>
  </main>;
