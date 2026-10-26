@@ -33,5 +33,5 @@ test('Device Type icons are in dropdown, not above cards',()=>{
 test('editor removes legacy quality state selectors without dropping underlying data',()=>{
  assert.doesNotMatch(editor,/aria-label=\{label\+' value state'\}/);
  assert.doesNotMatch(editor,/field\('valueState','Technical value state'/);
- assert.match(editor,/field\('deviceCategory','Device category'/);
+ assert.match(editor,/\['deviceCategory','Device type'/);
 });

@@ -1,14 +1,14 @@
-/** Shared read model for the System Registry: exactly the source displayed by
- * Guide > Technical essentials, without copying obsolete parallel form state.
- * A published guide has a versioned technicalSnapshot. If there is no snapshot,
- * the current primary endpoint fields remain the source of truth.
+/** A single read model for Guide > Technical essentials and System Registry.
+ * Last saved guide draft wins; otherwise read the published version. Legacy
+ * system fields are only a migration fallback for profiles not yet edited.
  */
 export const DEVICE_TYPES = Object.freeze(['Phone','Tablet','PC','Laptop','Kiosk','POS','App only']);
 
 export function guideTechnicalValues(system) {
-  const snapshot = system?.publishedGuide?.technicalSnapshot;
-  // Guide itself uses: publishedGuide?.technicalSnapshot || system.
-  return snapshot && typeof snapshot === 'object' ? snapshot : (system || {});
+  const draft = system?.guideDraft?.technicalSnapshot;
+  if (draft && typeof draft === 'object') return draft;
+  const published = system?.publishedGuide?.technicalSnapshot;
+  return published && typeof published === 'object' ? published : (system || {});
 }
 
 export function registryCardFields(system) {

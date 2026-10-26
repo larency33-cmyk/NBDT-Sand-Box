@@ -15,7 +15,7 @@ test('registry documentation never silently goes to a fake SharePoint link',()=>
  assert.ok(app.includes('No documentation URL has been linked'));assert.ok(app.includes('disabled title='));assert.ok(app.includes('safeDocumentationUrl'));
 });
 test('configuration guide removes the six obsolete preview and demo sections',()=>{
- const guide=ui.slice(ui.indexOf('export function Guide('),ui.indexOf('export function SystemEditor('));
+ const guide=ui.slice(ui.indexOf('export function Guide('),ui.indexOf('export function SystemCreate('));
  for(const label of ['Guide preview · Select a device','Register an actual device','No reviewed guide has been published','Legacy system checklist · not device completion','Demo mode. Local record versions',' / {sys.name} / Guide'])assert.ok(!guide.includes(label),label);
  const enhanced=readFileSync(new URL('../src/enhancements.tsx',import.meta.url),'utf8');
  const profile=enhanced.slice(enhanced.indexOf('export function ProfileGuide('),enhanced.indexOf('export function Migration('));

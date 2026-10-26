@@ -4,7 +4,7 @@ import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
-import {Tracker as WeeklyTracker,Report,Overview,SystemEditor} from './src/workspace';
+import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
@@ -23,7 +23,7 @@ import './configuration-report-editable-v032.css';
 import './configuration-report-inline-v033.css';
 import './issue-tracker-v034.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
-import {DEVICE_TYPES,registryCardFields,registryVisualType} from './src/registry-metadata.mjs';
+import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
 
@@ -1178,7 +1178,7 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
-const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveCheckSheetSys}: any) => {
+const SystemRegistryCard = ({sys, project, isAdmin, openGuideForEdit, setActiveCheckSheetSys}: any) => {
   const url = safeDocumentationUrl(sys.documentationUrl);
   const fields = registryCardFields(sys);
   const visualType = registryVisualType(sys);
@@ -1188,7 +1188,7 @@ const SystemRegistryCard = ({sys, project, isAdmin, setDraftSystem, setActiveChe
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
-      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit ${sys.name}`} onClick={()=>setDraftSystem(sys)}><Edit2 size={16}/></button>}
+      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit ${sys.name}`} onClick={()=>openGuideForEdit(sys)}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <ExpandableRegistryDescription text={description} tone={tone} />
@@ -1716,6 +1716,7 @@ const App = () => {
   const [draftSystem, setDraftSystem] = useState<SystemInfo | null>(null);
   const [draftIssue, setDraftIssue] = useState<Issue | null>(null);
   const [activeCheckSheetSys, setActiveCheckSheetSys] = useState<SystemInfo | null>(null);
+  const [guideOpenEdit,setGuideOpenEdit] = useState(false);
   const [activeAppListSys, setActiveAppListSys] = useState<SystemInfo | null>(null);
   const [activeNamingConventionSys, setActiveNamingConventionSys] = useState<SystemInfo | null>(null);
   const [activeLessonsLearnedSys, setActiveLessonsLearnedSys] = useState<SystemInfo | null>(null);
@@ -2040,11 +2041,12 @@ const App = () => {
 
   const openGuide=(sys:SystemInfo)=>{
     if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes?'))return;
-    setActiveTabRaw('systems');setActiveCheckSheetSys(sys);
+    setActiveTabRaw('systems');setGuideOpenEdit(false);setActiveCheckSheetSys(sys);
     window.history.pushState({nbdt:true},'',guidePath(projectRef.current.id,sys.id,{profileId:sys.id}));
   };
+  const openGuideForEdit=(sys:SystemInfo)=>{openGuide(sys);setGuideOpenEdit(true);};
   const closeGuide=()=>{
-    setActiveCheckSheetSys(null);
+    setGuideOpenEdit(false);setActiveCheckSheetSys(null);
     window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,'systems'));
   };
   const updateGuideRoute=(systemId:string,selection:{profileId?:string,deviceId?:string,stage?:string})=>{
@@ -2471,7 +2473,7 @@ const App = () => {
       const activeNetFilters = activeFilters.filter(f => netChoices.includes(f));
 
       // OS check: exact match against filter list
-      const guideTech = s.publishedGuide?.technicalSnapshot || s;
+      const guideTech = guideTechnicalValues(s);
       const osMatch = activeOsFilters.length === 0 || [guideTech,...(s.endpointProfiles||[])].some(p=>activeOsFilters.includes(p.os));
       
       // Network check: robust fuzzy matching for WiFi/Wired
@@ -2883,7 +2885,7 @@ const App = () => {
               {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
             <div className="nb-registry-meta-row">{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} setDraftSystem={setDraftSystem} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} openGuideForEdit={openGuideForEdit} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             <footer className="nb-registry-pagination">
               <p>{filteredSystems.length?`Showing ${systemPage*6+1}–${Math.min((systemPage+1)*6,filteredSystems.length)} of ${filteredSystems.length} systems`:'Showing 0 systems'}</p>
@@ -2892,7 +2894,7 @@ const App = () => {
           </section>
         )}
 
-        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} onEdit={()=>{setDraftSystem(project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys);closeGuide();}} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -3285,7 +3287,7 @@ const App = () => {
 
         {/* --- Dialogs & Modals --- */}
 
-        {draftSystem && <SystemEditor key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={(next:SystemInfo)=>{if(isAdmin)return saveSystem(next);throw Error('Edit mode is required');}} onDelete={()=>{if(isAdmin){handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==draftSystem.id)}));setDraftSystem(null);}}}/>}
+        {draftSystem && <SystemCreate key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await saveSystem(next);openGuideForEdit(next);}}/>}
         {showAdminAuthModal && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
             <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" onClick={() => setShowAdminAuthModal(false)} />

@@ -1,5 +1,5 @@
 import React,{useState,useEffect,useRef} from 'react';
-import {Guide,SystemEditor} from './workspace';
+import {Guide} from './workspace';
 import {uid,counts} from './model.mjs';
 import {profiles,profileView,mergeProfile,migrateRun,validateTask,effectiveStatus,validateImport,csv} from './extended-model.mjs';
 import {importLegacyStorage,auditLog} from './demo-store.mjs';
