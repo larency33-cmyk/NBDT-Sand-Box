@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect,useRef,useState} from 'react';
 import {DndContext,DragOverlay,closestCenter,useDroppable} from '@dnd-kit/core';
 import {SortableContext,useSortable,verticalListSortingStrategy} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
@@ -6,6 +6,76 @@ import {Search,Plus,Eye,ChevronDown,SlidersHorizontal,UserRound,ClipboardList,Pa
 
 const STATUSES=['Open','Investigating','Waiting for Parts','Resolved'] as const;
 const STYLES:any={Open:{label:'Open',Icon:ClipboardList},Investigating:{label:'Investigating',Icon:Search},'Waiting for Parts':{label:'Waiting for parts',Icon:Package},Resolved:{label:'Resolved',Icon:CheckCircle2}};
+type FilterChoice = {value:string;label:string};
+type FilterDropdownProps = {
+ icon:React.ReactNode;
+ label:string;
+ allLabel:string;
+ value:string;
+ onChange:(value:string)=>void;
+ options:FilterChoice[];
+};
+/** Project-scoped accessible dropdown. Unlike native select, the popup shares the Issue Tracker theme. */
+function FilterDropdown({icon,label,allLabel,value,onChange,options}:FilterDropdownProps){
+ const [open,setOpen]=useState(false);
+ const rootRef=useRef<HTMLDivElement>(null);
+ const triggerRef=useRef<HTMLButtonElement>(null);
+ const choiceList:FilterChoice[]=[{value:'',label:allLabel},...options];
+ const selected=choiceList.find(option=>option.value===value);
+ useEffect(()=>{
+  if(!open)return;
+  const closeOnOutside=(event:PointerEvent)=>{
+   if(!rootRef.current?.contains(event.target as Node))setOpen(false);
+  };
+  const closeOnEscape=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'){
+    event.preventDefault();setOpen(false);triggerRef.current?.focus();
+   }
+  };
+  document.addEventListener('pointerdown',closeOnOutside);
+  document.addEventListener('keydown',closeOnEscape);
+  return ()=>{
+   document.removeEventListener('pointerdown',closeOnOutside);
+   document.removeEventListener('keydown',closeOnEscape);
+  };
+ },[open]);
+ const select=(choice:FilterChoice)=>{onChange(choice.value);setOpen(false);triggerRef.current?.focus();};
+ const keyOnTrigger=(event:React.KeyboardEvent<HTMLButtonElement>)=>{
+  if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+   event.preventDefault();setOpen(true);
+   requestAnimationFrame(()=>{
+    const choices=Array.from(rootRef.current?.querySelectorAll<HTMLButtonElement>('.nb34-dropdown-option')||[]);
+    const selectedIndex=choiceList.findIndex(item=>item.value===value);
+    choices[Math.max(0,selectedIndex)]?.focus();
+   });
+  }
+ };
+ const keyOnMenu=(event:React.KeyboardEvent<HTMLDivElement>)=>{
+  if(!['ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
+  const choices=Array.from(rootRef.current?.querySelectorAll<HTMLButtonElement>('.nb34-dropdown-option')||[]);
+  if(!choices.length)return;
+  event.preventDefault();
+  const current=choices.indexOf(document.activeElement as HTMLButtonElement);
+  const next=event.key==='Home'?0:event.key==='End'?choices.length-1:
+   event.key==='ArrowDown'?(current+1)%choices.length:(current+choices.length-1)%choices.length;
+  choices[next]?.focus();
+ };
+ return <div ref={rootRef} className={'nb34-filter'+(open?' nb34-filter--open':'')+(value?' nb34-filter--active':'')}>
+  <button ref={triggerRef} type="button" className="nb34-filter-trigger" aria-label={label+' filter'}
+   aria-haspopup="listbox" aria-expanded={open} onKeyDown={keyOnTrigger} onClick={()=>setOpen(wasOpen=>!wasOpen)}>
+   <span className="nb34-filter-icon" aria-hidden="true">{icon}</span>
+   <span className="nb34-filter-label" title={selected?.label||allLabel}>{label}: <strong>{selected?.label||allLabel}</strong></span>
+   <ChevronDown size={17} className="nb34-filter-chevron" aria-hidden="true"/>
+  </button>
+  {open&&<div className="nb34-dropdown" role="listbox" aria-label={label+' options'} onKeyDown={keyOnMenu}>
+   {choiceList.map(choice=><button type="button" role="option" aria-selected={choice.value===value}
+    key={choice.value} className={'nb34-dropdown-option'+(choice.value===value?' nb34-dropdown-option--selected':'')}
+    onClick={()=>select(choice)}><span className="nb34-dropdown-text">{choice.label}</span>
+    {choice.value===value&&<CheckCircle2 size={16} aria-hidden="true"/>}</button>)}
+  </div>}
+ </div>;
+}
+
 function IssueCard({issue,project,onOpen,overlay=false}:any){
  const system=project.systems.find((s:any)=>s.id===issue.systemId);
  const assignee=project.members.find((m:any)=>m.id===issue.assigneeId);
@@ -42,10 +112,20 @@ export function IssueTrackerBoard(props:any){
  <button type="button" className="nb34-mode-btn" onClick={()=>{if(isAdmin)setIsAdmin(false);else{setShowAdminAuthModal(true);setAdminPassInput('');}}}><Eye size={19}/>{isAdmin?'Edit mode':'View mode'}<ChevronDown size={17}/></button>
  <button className="nb34-add-btn" onClick={createIssue}><Plus size={22}/> New issue</button></div></div></header>
  <section className="nb34-toolbar" aria-label="Issue filters">
- <label className="nb34-search"><Search size={22}/><input aria-label="Search issues or systems" placeholder="Search issues or systems..." value={issueSearch} onChange={e=>setIssueSearch(e.target.value)}/></label>
- <label className="nb34-select"><SlidersHorizontal size={21}/><select aria-label="Filter by severity" value={issueSeverityFilter} onChange={e=>setIssueSeverityFilter(e.target.value)}><option value="">Severity: All</option>{['Critical','High','Medium','Low'].map(s=><option key={s} value={s}>Severity: {s}</option>)}</select><ChevronDown size={18}/></label>
- <label className="nb34-select"><UserRound size={22}/><select aria-label="Filter by assignee" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">Assignee: All</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select><ChevronDown size={18}/></label>
- {(issueSearch||issueSeverityFilter||assigneeFilter)&&<button className="nb34-clear" onClick={()=>{setIssueSearch('');setIssueSeverityFilter('');setAssigneeFilter('');}}><X size={14}/> Clear</button>}
+  <div className="nb34-search">
+   <Search size={21} className="nb34-search-icon" aria-hidden="true"/>
+   <input type="search" aria-label="Search issues or systems" placeholder="Search issues or systems..."
+    value={issueSearch} onChange={event=>setIssueSearch(event.target.value)}/>
+   {(issueSearch||issueSeverityFilter||assigneeFilter)&&<button type="button" className="nb34-reset"
+    onClick={()=>{setIssueSearch('');setIssueSeverityFilter('');setAssigneeFilter('');}}
+    aria-label="Clear all issue filters"><X size={14}/> Clear</button>}
+  </div>
+  <FilterDropdown icon={<SlidersHorizontal size={19}/>} label="Severity" allLabel="All"
+   value={issueSeverityFilter} onChange={setIssueSeverityFilter}
+   options={['Critical','High','Medium','Low'].map(severity=>({value:severity,label:severity}))}/>
+  <FilterDropdown icon={<UserRound size={20}/>} label="Assignee" allLabel="All"
+   value={assigneeFilter} onChange={setAssigneeFilter}
+   options={project.members.map((member:any)=>({value:member.id,label:member.name}))}/>
  </section>
  <div className="nb34-summary"><div className="nb34-summary-group"><strong>{active.length} active {active.length===1?'issue':'issues'}</strong>{critical>0&&<span className="nb34-count nb34-count--critical"><i/>{critical} Critical</span>}{high>0&&<span className="nb34-count nb34-count--high"><i/>{high} High</span>}</div><span className="nb34-last-updated">Updated {updated}</span></div>
  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleIssueDragStart} onDragEnd={handleIssueDragEnd}>
