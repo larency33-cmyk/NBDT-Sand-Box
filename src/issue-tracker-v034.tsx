@@ -107,8 +107,8 @@ export function IssueTrackerBoard(props:any){
  const updated=last?new Date(last).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
  function createIssue(){if(!isAdmin){setShowAdminAuthModal(true);setAdminPassInput('');return;}const now=Date.now();setDraftIssue({id:'issue-'+now,systemId:project.systems[0]?.id||'',title:'',description:'',severity:'Medium',status:'Open',assigneeId:'',createdAt:now,updatedAt:now});}
  return <main className="nb34-issues">
- <header className="nb34-hero"><div className="nb34-breadcrumb">NBDT <span>/</span> Legend OTS <span>/</span> Issue Tracker</div>
- <div className="nb34-heading-row"><div><h1>Issue Tracker</h1><p>Track system issues from report to resolution</p></div><div className="nb34-heading-actions">
+ <header className="nb34-hero">
+ <div className="nb34-heading-row nb45-primary-header"><div><h1>Issue Tracker</h1><p>Track system issues from report to resolution</p></div><div className="nb34-heading-actions">
  <button type="button" className="nb34-mode-btn" onClick={()=>{if(isAdmin)setIsAdmin(false);else{setShowAdminAuthModal(true);setAdminPassInput('');}}}><Eye size={19}/>{isAdmin?'Edit mode':'View mode'}<ChevronDown size={17}/></button>
  <button className="nb34-add-btn" onClick={createIssue}><Plus size={22}/> New issue</button></div></div></header>
  <section className="nb34-toolbar" aria-label="Issue filters">

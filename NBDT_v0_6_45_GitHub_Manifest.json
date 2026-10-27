@@ -1,0 +1,33 @@
+{
+  "version": "0.6.45",
+  "baseline": "0.6.44",
+  "notes": "Extract changed-only ZIP into the GitHub repository root. Original relative paths are preserved; unchanged files are excluded.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_45.txt",
+    "NBDT_v0_6_45_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_45_RU.md",
+    "index.tsx",
+    "nbdt-layout-v045.css",
+    "package.json",
+    "src/issue-tracker-v034.tsx",
+    "src/workspace.tsx",
+    "tests/overview-only-v023.test.mjs",
+    "tests/unified-workspace-v045.test.mjs",
+    "tests/visual-contract.test.mjs"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_45.txt": "867aae3c0d98e66cb9f76f5811ef2964aeec2e7caada925396edf4dadd3fa016",
+    "README.md": "d4a67086a6de4af380b957063019a51a4de74b11cb7f8735ad2e449fd1901f5e",
+    "RELEASE_NOTES_v0_6_45_RU.md": "488732720a4812c6e2c32230a82c3c2238fdaa9f2be5a6233e6d915fad8ca6fd",
+    "index.tsx": "b88313b7f5b2393c22e46a78400b1547dbad097bc86310cb047670762c772046",
+    "nbdt-layout-v045.css": "0d85f1123382b8add54459316412d39e0e7658edf87f5f3ff7512a66c15f68c1",
+    "package.json": "1bbcf28a03d73a5b5999a1d4d19d7bc5f4ca2cb98215cc143fb3e9d1596f2104",
+    "src/issue-tracker-v034.tsx": "da1d9bcf42e1225ce045fcbbe05d41157cd16d03a35151c0b44e2c1dbbec18e8",
+    "src/workspace.tsx": "3f4b11916c73410e11e65bdabb0d1cc3e15807ace4ec69c25a514e767155152b",
+    "tests/overview-only-v023.test.mjs": "60e6d9820bdad98917b8a0d78faf3b2ebfe3a36057806e91dec2dcf1096357cb",
+    "tests/unified-workspace-v045.test.mjs": "7c979a606b589207c4d241833d1d4669d600258dc79aba9dde6d21d179dccc18",
+    "tests/visual-contract.test.mjs": "4b7f4b0990e1545407fa1c4668a23d8d06b7e38061b8b2c808641ff6fe5e4f4b"
+  }
+}

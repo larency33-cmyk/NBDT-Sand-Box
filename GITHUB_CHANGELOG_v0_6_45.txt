@@ -1,0 +1,8 @@
+NBDT v0.6.45 (base v0.6.44)
+- Unified the four main page titles using Weekly Tracker typography and alignment.
+- Removed Weekly Tracker and Issue Tracker breadcrumbs above titles.
+- System Registry renders all filtered cards continuously (no paging UI or page state).
+- Hidden native scrollbar tracks across app without disabling scrolling.
+- Standardized desktop sidebar width on all routes, including Weekly Tracker.
+- Added visual-contract regression tests and release documentation.
+- See RELEASE_NOTES_v0_6_45_RU.md.

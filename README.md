@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.44.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
+**Current package: v0.6.45.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
 
 ## Requirements
 
@@ -147,3 +147,12 @@ Multiple Milestones expand the entire week header as a single themed card; the b
 - The existing shift rules are unchanged: assignments remain in project weeks; milestone dates shift; manually set task due dates remain.
 - The picker shows commit errors without losing draft selection and is responsive on mobile.
 - See `RELEASE_NOTES_v0_6_44_RU.md`.
+
+
+## v0.6.45 — Unified headers, continuous System Registry
+
+- Weekly Tracker, System Registry, Issue Tracker and Configuration Report share one 32px / 770 heading standard, common spacing, color and alignment. Removed the breadcrumb above Weekly Tracker and Issue Tracker.
+- System Registry now renders the complete filtered list as a continuous grid: no 6-item pagination, page numbers, or previous/next controls. Filtering, export and inline description editing remain intact.
+- Native scrollbar chrome is hidden across application scrollports without disabling actual vertical/horizontal scrolling.
+- Corrected the tracker-only sidebar override (223px) so the expanded menu remains 232px on all desktop routes (72px when collapsed).
+- See `RELEASE_NOTES_v0_6_45_RU.md` for technical details and verification limitations.

@@ -521,9 +521,8 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
  // openQuickPanel/closeQuickPanel own the quick-add lifecycle; do not reset an add opened from the toolbar.
 
  return <section className="nb-tracker" data-view="overview">
-  <header className="nb-page-header">
+  <header className="nb-page-header nb45-primary-header">
    <div>
-    <div className="nb-tracker-breadcrumb">NBDT · {project.name} · Weekly Tracker</div>
     <h1>Weekly Tracker</h1>
    </div>
    <div className="nb-actions">
@@ -863,7 +862,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  const changeField=(key:string,v:any)=>setEditor((old:any)=>({...old,[key]:v}));
  const changeMetric=(key:string,v:string)=>setEditor((old:any)=>({...old,reportMetrics:{...old.reportMetrics,[key]:v}}));
  return <section className="nb-report nb-report-reference-v032">
-  <header className="nb-page-header"><div><h1>Configuration Report</h1><p>Legend of the Seas · Deployment overview</p></div><div className="nb-actions"/></header>
+  <header className="nb-page-header nb45-primary-header"><div><h1>Configuration Report</h1><p>Legend of the Seas · Deployment overview</p></div><div className="nb-actions"/></header>
   <div className="nb-kpis">{kpis.map(([label,key,n,t,Icon]:any)=><article className="nb-kpi" key={key}><div><span className={'nb-kpi-icon nb-kpi-icon-'+key}><Icon size={24} strokeWidth={2}/></span><h3>{label}</h3><strong>{t?Math.round(n/t*100)+'%':'—'}</strong><div className={'nb-kpi-ring nb-kpi-ring-'+key} role="img" aria-label={`${label}: ${n} of ${t}`} style={{background:`conic-gradient(var(--report-kpi-accent) ${t?n/t*100:0}%, #e4edf8 0)`}}><span/></div><p>{t?`${n.toLocaleString('en-US')} / ${t.toLocaleString('en-US')} ${key==='cyber'?'applicable systems':'devices'}`:key==='deployed'?'No deployment records':'No registered device data'}</p></div></article>)}</div>
   <section className="nb-report-readiness-panel" aria-label="System readiness">
    <div className="nb-readiness-heading"><h2>System readiness <small>{systems.length} systems</small></h2><div className="nb-scope-tabs" role="group" aria-label="Readiness scope">{['All','In progress','Not started'].map(v=><B key={v} aria-pressed={scope===v} onClick={()=>setScope(v)}>{v}</B>)}</div><div className="nb-report-manage-actions"><B onClick={()=>openEditor()} className="nb-report-add-system"><Plus size={16}/> Add system</B>{isAdmin?<B onClick={()=>{cancelEditor();onDisableAdmin?.();}}>Done editing</B>:<B onClick={()=>onRequestAdmin?.()}>Edit systems</B>}</div></div>

@@ -1,0 +1,90 @@
+/* NBDT 0.6.45 — unified top-level page headings and continuous registry.
+   A single typographic token set is shared by the four primary workspaces.
+   Layout/scroll behavior stays in the existing page components. */
+.nbdt-redesign.nb-app-root {
+  --nb45-heading-size:32px;
+  --nb45-heading-weight:770;
+  --nb45-heading-ink:#0a2353;
+  --nb45-heading-spacing:-.04em;
+  --nb45-heading-line-height:1.15;
+  --nb45-heading-inset:15px;
+}
+.nbdt-redesign.nb-app-root main .nb45-primary-header h1 {
+  font-family:Inter,"Segoe UI",system-ui,sans-serif!important;
+  font-size:var(--nb45-heading-size)!important;
+  font-weight:var(--nb45-heading-weight)!important;
+  letter-spacing:var(--nb45-heading-spacing)!important;
+  line-height:var(--nb45-heading-line-height)!important;
+  color:var(--nb45-heading-ink)!important;
+  text-transform:none!important;
+  margin:0!important;
+}
+/* Tracker is the reference for title alignment. Its breadcrumb has been removed. */
+.nbdt-redesign.nb-app-root .nb-tracker[data-view="overview"]>.nb45-primary-header {
+  padding:33px var(--nb45-heading-inset) 13px!important;
+  min-height:83px!important;
+  align-items:flex-start!important;
+  flex-shrink:0!important;
+}
+/* Registry, Issue Tracker and Report title left edges match the tracker (15px
+   from main), without re-indenting toolbars/cards and their useful content. */
+.nbdt-redesign.nb-app-root .nb-registry-page{padding-top:35px!important;}
+.nbdt-redesign.nb-app-root .nb-registry-page>.nb45-primary-header{
+  margin-left:calc(var(--nb45-heading-inset) - 24px)!important;
+  margin-right:calc(var(--nb45-heading-inset) - 24px)!important;
+  align-items:flex-start!important;
+}
+.nbdt-redesign.nb-app-root .nb34-issues{padding-top:35px!important;}
+.nbdt-redesign.nb-app-root .nb34-issues>.nb34-hero{
+  margin-left:calc(var(--nb45-heading-inset) - clamp(18px,2.7vw,46px));
+  margin-right:calc(var(--nb45-heading-inset) - clamp(18px,2.7vw,46px));
+  padding-bottom:20px;
+}
+.nbdt-redesign.nb-app-root .nb34-heading-row.nb45-primary-header{align-items:flex-start;}
+.nbdt-redesign.nb-app-root .nb-report-shell>.nb-report{padding-top:35px!important;}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report>.nb45-primary-header{
+  margin-left:calc(var(--nb45-heading-inset) - 28px)!important;
+  min-height:75px!important;
+}
+/* The sidebar must NOT become 223px on Weekly Tracker: use one width on
+   all primary screens, independent of the content, and preserve collapse. */
+@media(min-width:761px){
+  .nbdt-redesign.nb-app-root>aside[data-expanded="true"],
+  .nbdt-redesign.nb-app-root:has(.nb-tracker)>aside[data-expanded="true"]{
+    width:232px!important; flex:0 0 232px!important; min-width:232px!important;
+  }
+  .nbdt-redesign.nb-app-root>aside[data-expanded="false"],
+  .nbdt-redesign.nb-app-root:has(.nb-tracker)>aside[data-expanded="false"]{
+    width:72px!important;flex:0 0 72px!important;min-width:72px!important;
+  }
+}
+/* Registry renders every filtered system into a natural grid. The main content
+   remains an independent scroll container, so all rows are reachable. */
+.nbdt-redesign.nb-app-root>main:has(> .nb-registry-page){
+  overflow-x:clip!important;overflow-y:auto!important;min-height:0;
+}
+/* Suppress only native scrollbar decorations. Maintain overflow, scroll-wheel,
+   touch, keyboard, programmatic scroll, and dialog behavior everywhere. */
+html,body,#root,.nbdt-redesign.nb-app-root,
+.nbdt-redesign.nb-app-root *{scrollbar-width:none!important;-ms-overflow-style:none!important;}
+html::-webkit-scrollbar,body::-webkit-scrollbar,#root::-webkit-scrollbar,
+.nbdt-redesign.nb-app-root::-webkit-scrollbar,
+.nbdt-redesign.nb-app-root *::-webkit-scrollbar{
+  display:none!important;width:0!important;height:0!important;
+}
+@media(max-width:760px){
+  .nbdt-redesign.nb-app-root{--nb45-heading-size:27px;--nb45-heading-inset:15px;}
+  .nbdt-redesign.nb-app-root .nb-tracker[data-view="overview"]>.nb45-primary-header{
+    padding:17px 15px 12px!important;min-height:0!important;flex-wrap:wrap;
+  }
+  .nbdt-redesign.nb-app-root .nb-registry-page{padding-top:17px!important;}
+  .nbdt-redesign.nb-app-root .nb-registry-page>.nb45-primary-header{
+    margin-left:3px!important;margin-right:3px!important;
+  }
+  .nbdt-redesign.nb-app-root .nb34-issues{padding-top:17px!important;}
+  .nbdt-redesign.nb-app-root .nb34-issues>.nb34-hero{margin-left:0;margin-right:0;padding-bottom:12px;}
+  .nbdt-redesign.nb-app-root .nb-report-shell>.nb-report{padding-top:17px!important;}
+  .nbdt-redesign.nb-app-root .nb-report-shell .nb-report>.nb45-primary-header{
+    margin-left:0!important;
+  }
+}

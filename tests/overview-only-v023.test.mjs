@@ -12,7 +12,8 @@ test('Weekly Tracker contains no List view, legacy state, List toggle or extra h
  assert.doesNotMatch(tracker,/nb-task-list|nb-list-heading|setView\(|\['Overview','List'\]/);
  assert.doesNotMatch(tracker,/\{`\$\{weekRange\(project\.startDate,week\)\}/);
  assert.match(tracker,/url\.searchParams\.delete\('view'\)/);
- assert.match(tracker,/className="nb-tracker-breadcrumb"/);
+ assert.doesNotMatch(tracker,/className="nb-tracker-breadcrumb"/);
+ assert.match(tracker,/className="nb-page-header nb45-primary-header"/);
  assert.match(tracker,/\{weekRange\(project\.startDate,w\)\}/);
 });
 test('Overview-only styling aligns top week titles left without changing sidebar',()=>{

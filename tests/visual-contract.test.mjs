@@ -8,8 +8,10 @@ const css=readFileSync(new URL('../redesign.css',import.meta.url),'utf8');
 test('NBDT shared design system uses the exact approved brand and sidebar colors',()=>{
  for(const token of ['--nav-top:#06264B','--nav-bottom:#041B34','--brand:#0066F5','--page-bg:#F3F8FE','--text-heading:#081C4A'])assert.ok(css.includes(token),token);
 });
-test('registry uses one set of searchable filters and true filtered six-item paging',()=>{
- for(const token of ['nb-registry-filters','nb-registry-grid','filteredSystems.slice(systemPage*6,systemPage*6+6)','Showing ${systemPage*6+1}'])assert.ok(app.includes(token),token);
+test('registry uses searchable filters and displays all matching systems without pagination',()=>{
+ for(const token of ['nb-registry-filters','nb-registry-grid','filteredSystems.map(sys=>','Showing all {filteredSystems.length} systems'])assert.ok(app.includes(token),token);
+ assert.ok(!app.includes('nb-registry-pagination'));
+ assert.ok(!app.includes('systemPage'));
 });
 test('registry documentation never silently goes to a fake SharePoint link',()=>{
  assert.ok(app.includes('No documentation URL has been linked'));assert.ok(app.includes('disabled title='));assert.ok(app.includes('safeDocumentationUrl'));

@@ -27,6 +27,7 @@ import './guide-interactive-v041.css';
 import './weekly-tracker-milestones-v042.css';
 import './weekly-tracker-milestone-harmony-v043.css';
 import './weekly-tracker-project-calendar-v044.css';
+import './nbdt-layout-v045.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
@@ -1742,7 +1743,6 @@ const App = () => {
   const [activeNamingConventionSys, setActiveNamingConventionSys] = useState<SystemInfo | null>(null);
   const [activeLessonsLearnedSys, setActiveLessonsLearnedSys] = useState<SystemInfo | null>(null);
   const [systemSearch, setSystemSearch] = useState('');
-  const [systemPage, setSystemPage] = useState(0);
   const [deviceTypeFilter,setDeviceTypeFilter] = useState('');
   const [issueSearch, setIssueSearch] = useState('');
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
@@ -2478,7 +2478,6 @@ const App = () => {
     setActiveFilters(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
   };
 
-  useEffect(()=>setSystemPage(0),[systemSearch,activeFilters,assigneeFilter,deviceTypeFilter,project.id]);
   const filteredSystems = useMemo(() => {
     return project.systems.filter(s => {
       const guideFields = registryCardFields(s);
@@ -2516,7 +2515,6 @@ const App = () => {
     });
   }, [project.systems, systemSearch, activeFilters, assigneeFilter, deviceTypeFilter]);
 
-  useEffect(()=>setSystemPage(p=>Math.min(p,Math.max(0,Math.ceil(filteredSystems.length/6)-1))),[filteredSystems.length]);
 
   const filteredIssues = useMemo(() => {
     return project.issues.filter(i => {
@@ -2886,7 +2884,7 @@ const App = () => {
         }} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');url.searchParams.delete('selectedWeek');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{const start=clampWeekViewport(w);setCurrentStartWeek(start+1);const url=new URL(location.href);url.searchParams.set('week',String(start+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
-            <header className="nb-registry-heading">
+            <header className="nb-registry-heading nb45-primary-header">
               <div><h1>System Registry</h1><p>{project.name} · {project.systems.length} systems · Configuration guides</p></div>
               <div className="nb-registry-actions">
                 <button type="button" className="nb-button" onClick={()=>{
@@ -2908,13 +2906,9 @@ const App = () => {
               <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
               {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
-            <div className="nb-registry-meta-row">{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
+            <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
+              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
-            <footer className="nb-registry-pagination">
-              <p>{filteredSystems.length?`Showing ${systemPage*6+1}–${Math.min((systemPage+1)*6,filteredSystems.length)} of ${filteredSystems.length} systems`:'Showing 0 systems'}</p>
-              <nav aria-label="System pages"><button type="button" className="nb-button" disabled={systemPage===0} onClick={()=>setSystemPage(p=>Math.max(0,p-1))}><ChevronLeft size={18}/><span className="sr-only">Previous page</span></button>{Array.from({length:Math.ceil(filteredSystems.length/6)},(_,i)=><button key={i} type="button" aria-current={systemPage===i?'page':undefined} className={'nb-page-number '+(systemPage===i?'selected':'')} onClick={()=>setSystemPage(i)}>{i+1}</button>)}<button type="button" className="nb-button" disabled={systemPage>=Math.ceil(filteredSystems.length/6)-1} onClick={()=>setSystemPage(p=>p+1)}><ChevronRight size={18}/><span className="sr-only">Next page</span></button></nav>
-            </footer>
           </section>
         )}
 
