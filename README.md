@@ -162,3 +162,7 @@ Multiple Milestones expand the entire week header as a single themed card; the b
 ## v0.6.47 — Guest / Admin / Super Admin (POC)
 
 The site starts in **Guest** role with read-only browsing. Use **Sign in** (upper-right) for the local-only proof-of-concept. Test Super Admin: username `superadmin`, password `NBDT-POC-2026!`. Under **Administration**, create and disable Admin accounts or reset their passwords. Admins can edit project records via existing contextual pencils, without any global Edit mode. For first tests, stay in the same browser profile: accounts are stored in localStorage and project data in IndexedDB. **Not secure authentication and not multi-user:** never use this local auth for production. See `RELEASE_NOTES_v0_6_47_RU.md` for migration/security details.
+
+## v0.6.50 — Issue Tracker heading frame fix
+
+The Issue Tracker title now shares the same `width: 100%; max-width: var(--content-max); margin-inline: auto` layout frame as its filter toolbar, summary, and issue board. This removes the header's leftward jump on wide/zoomed-out screens without arbitrary pixel offsets. See `RELEASE_NOTES_v0_6_50_RU.md`.

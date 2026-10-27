@@ -1,0 +1,17 @@
+{
+  "release": "v0.6.50",
+  "base": "v0.6.49",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_50.txt",
+    "NBDT_v0_6_50_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_50_RU.md",
+    "index.tsx",
+    "nbdt-layout-v050.css",
+    "package.json",
+    "tests/issue-header-frame-v050.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "291/291",
+  "note": "Issue Tracker header has the same centered max-width as its filters, summary, and cards; verified widths 1649, 2048 and 2560."
+}

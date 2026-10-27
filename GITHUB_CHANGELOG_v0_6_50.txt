@@ -1,0 +1,12 @@
+NBDT v0.6.50 — Issue Tracker header frame alignment
+
+GITHUB_CHANGELOG_v0_6_50.txt
+NBDT_v0_6_50_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_50_RU.md
+index.tsx
+nbdt-layout-v050.css
+package.json
+tests/issue-header-frame-v050.test.mjs
+
+Removed files: none

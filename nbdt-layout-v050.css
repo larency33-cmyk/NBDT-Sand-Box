@@ -1,0 +1,13 @@
+/* NBDT v0.6.50 — Issue Tracker heading shares the exact content frame.
+   The base stylesheet constrains direct main > section / main > div elements
+   to --content-max (1920px) and centers them. The Issue Tracker's hero is a
+   <header>, so earlier margin resets left it pinned to the parent padding
+   while search/board were centered on wide or zoomed-out viewports.
+   Give the hero the very same width/max-width/auto-margin contract instead of
+   a hard-coded left shift that would break when viewport or zoom changes. */
+.nbdt-redesign.nb-app-root .nb34-issues > .nb34-hero {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: var(--content-max) !important;
+  margin-inline: auto !important;
+}
