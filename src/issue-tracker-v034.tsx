@@ -86,9 +86,9 @@ function IssueCard({issue,project,onOpen,overlay=false}:any){
  return <article className={'nb34-card'+(overlay?' nb34-card--dragging':'')} onClick={onOpen}>
  <div className="nb34-card-primary"><div className="nb34-card-text"><h3 title={issue.title}>{issue.title}</h3><p>{issue.description?.trim()||'No description provided.'}</p></div>
  <button className="nb34-card-more" type="button" aria-label="Open issue details" onClick={(e)=>{e.stopPropagation();onOpen();}}><MoreVertical size={19}/></button></div>
- <div className="nb34-card-meta"><div className="nb34-card-meta-first"><span className="nb34-card-system"><Box size={16}/><span>{system?.name||'Unknown system'}</span></span>
+ <div className="nb34-card-meta"><div className="nb34-card-meta-first"><span className="nb34-card-system"><Box size={16}/><span title={system?.assignmentOwnerLabel?`System Owner: ${system.assignmentOwnerLabel}`:undefined}>{system?.name||'Unknown system'}</span></span>
  <span className={'nb34-severity nb34-severity--'+sev}><i/>{issue.severity}</span></div>
- <div className="nb34-card-meta-second"><span>#{label} · {assignee?.name||'Unassigned'}</span><span className="nb34-card-date"><Clock3 size={15}/>{updated}</span></div></div>
+ <div className="nb34-card-meta-second"><span>#{label} · {assignee?.name||'Unassigned'}</span><span className="nb34-card-date" title={system?.assignmentOwnerLabel?`System Owner: ${system.assignmentOwnerLabel}`:undefined}><Clock3 size={15}/>{updated}</span></div></div>
  </article>;
 }
 function IssueColumn({status,issues,project,setDraftIssue}:any){

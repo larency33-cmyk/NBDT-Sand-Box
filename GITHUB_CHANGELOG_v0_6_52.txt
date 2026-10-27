@@ -1,0 +1,17 @@
+NBDT v0.6.52 — Assignment owner registry
+
+GITHUB_CHANGELOG_v0_6_52.txt
+NBDT_v0_6_52_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_52_RU.md
+index.tsx
+nbdt-assignment-v052.css
+package.json
+src/assignment-page-v052.tsx
+src/assignment-roster.mjs
+src/issue-tracker-v034.tsx
+src/navigation.mjs
+src/workspace.tsx
+tests/assignment-v052.test.mjs
+
+Removed files: none

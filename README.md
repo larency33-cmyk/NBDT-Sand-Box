@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.49.** Unified Issue Tracker heading alignment with Weekly Tracker, System Registry, and Configuration Report; move Sign in modal to a document-level portal so its dim/blur covers the entire browser viewport; remove the upper-right Share view and Add task buttons from Weekly Tracker (contextual task editing/creation stays available). See `RELEASE_NOTES_v0_6_49_RU.md`.
+**Current package: v0.6.52.** New Assignment page with the provided 13-person / 108-system matrix, editable and draggable assignment cells for Admin/Super Admin, and central exact-name system-owner lookup across Registry, Guide, Configuration Report and task details. Global browser-local Assignment registry lives in IndexedDB. See `RELEASE_NOTES_v0_6_52_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 

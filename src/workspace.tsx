@@ -101,7 +101,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape')close();};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[dirty,onClose]);
  const url=safeUrl(sys.documentationUrl);
  const technicalValues=editingSection&&editingSection!=='lessons'?draft.technicalSnapshot:guideTechnicalValues(sys);
- const owner=project.members.find((m:any)=>m.id===(editingSection==='access'?identity.assigneeId:sys.assigneeId))?.name||'Unassigned';
+ const owner=sys.assignmentOwnerLabel||project.members.find((m:any)=>m.id===(editingSection==='access'?identity.assigneeId:sys.assigneeId))?.name||'Unassigned';
  const items=guide?.stages?.[stage]||[];
  const previewItems=items.length?items:(sys.checkSheetData?.[stage]||[]);
  const reviewRun=run||{...reviewDraft,snapshot:guide};
@@ -113,7 +113,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const inlineField=(key:string,label:string,options?:readonly string[])=>options?
   <select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:
   <input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>;
- const ownerInput=<select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>;
+ const ownerInput=sys.assignmentOwnerLabel?<span className="nb52-managed-owner" title="Manage ownership in Assignment">{sys.assignmentOwnerLabel} · Managed in Assignment</span>:<select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>;
  const beginEdit=(section:string)=>{if(!isAdmin||editingSection)return;if(reviewDirty&&!confirm('Discard unsaved checklist progress?'))return;
   setReviewDraft(savedReview);setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
  };
@@ -241,7 +241,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
   <div className="nb-drawer-task-index" aria-hidden="true">{String(number).padStart(2,'0')}</div>
   <div className="nb-drawer-task-content">
    <div className="nb-quick-task-header">
-    <strong>{task.label}</strong>
+    <strong title={task.assignmentOwnerLabel?`System Owner: ${task.assignmentOwnerLabel}`:undefined}>{task.label}</strong>
     {<div className="nb-task-action-anchor" ref={menuRef}>
      <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><MoreVertical size={20} aria-hidden="true"/></button>
      {menuOpen&&<div className="nb-task-action-menu" role="menu" aria-label={'Actions for '+task.label}>
@@ -262,6 +262,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
     </select>
    </label></div>}
    {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
+   {task.assignmentOwnerLabel&&<p className="nb52-task-owner">System Owner: <strong>{task.assignmentOwnerLabel}</strong></p>}
    {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
    {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
    {error&&<p role="alert" className="nb-quick-error">{error}</p>}
@@ -642,7 +643,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
              <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
              {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
             </div>
-            {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id}><span>{t.label}</span><Badge value={t.status}/></span>)}
+            {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id} title={t.assignmentOwnerLabel?`System Owner: ${t.assignmentOwnerLabel}`:undefined}><span>{t.label}</span><Badge value={t.status}/></span>)}
             {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
            </button>
           </td>;
@@ -781,7 +782,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  useEffect(()=>{localStorage.setItem('nbdt-report-hidden',JSON.stringify(hidden));},[hidden]);
  const reportSummary=reportCounts(project,counts);
  const allColumns=['System','Qty','Venue','Base','Ready','Deployed','AW','Cyber','Owner'];
- const memberName=(sys:any)=>sys.reportOwnerName||project.members.find((m:any)=>m.id===sys.assigneeId)?.name||'Unassigned';
+ const memberName=(sys:any)=>sys.assignmentOwnerLabel||sys.reportOwnerName||project.members.find((m:any)=>m.id===sys.assigneeId)?.name||'Unassigned';
  const displayVenue=(sys:any)=>sys.reportVenue||[...new Set((sys.devices||[]).map((d:any)=>d.venue).filter(Boolean))].join(', ')||'—';
  const displayAw=(sys:any)=>{const v=sys.reportAW??sys.airWatchTags??sys.airWatch??sys.mdm;if(v===true)return 'Yes';if(v===false)return 'No';const s=String(v||'').trim();return ['Yes','No','Pending','N/A'].includes(s)?s:s?'Specified':'—';};
  const compare=(a:any,b:any)=>{const key=(sys:any)=>sort==='reference'?(sys.reportOrder??100000):sort==='name'?sys.name:sort==='qty'?counts(sys).total:sort==='venue'?displayVenue(sys):sort==='base'?counts(sys).base:sort==='ready'?counts(sys).ready:sort==='deployed'?counts(sys).deployed:sort==='aw'?displayAw(sys):sort==='cyber'?sys.cyberStatus||'Unknown':memberName(sys);const x=key(a),y=key(b);const n=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y));return sortDirection==='asc'?n:-n;};
@@ -851,7 +852,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
    <td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{inlineProgress('deployed','Deployed devices')}</td>
    <td hidden={hidden.includes('AW')}><select aria-label="AW" value={editor.reportAW||''} onChange={e=>changeField('reportAW',e.target.value)}>{['Yes','No','Pending','N/A',''].map(v=><option key={v} value={v}>{v||'—'}</option>)}</select></td>
    <td hidden={hidden.includes('Cyber')}><select aria-label="Cyber status" value={editor.cyberStatus||'Unknown'} onChange={e=>changeField('cyberStatus',e.target.value)}>{['Unknown','Review','Approved','Blocked','N/A'].map(v=><option key={v} value={v}>{v}</option>)}</select>{(editor.cyberStatus||'Unknown')!==(project.systems.find((s:any)=>s.id===editor.id)?.cyberStatus||'Unknown')&&<input className="nb-report-cyber-reason-inline" required maxLength={500} aria-label="Cyber change reason" title="Cyber change reason / evidence" placeholder="Reason / evidence" value={cyberReason} onChange={e=>setCyberReason(e.target.value)}/>}</td>
-   <td hidden={hidden.includes('Owner')}><input aria-label="Owner" maxLength={100} value={editor.reportOwnerName||''} onChange={e=>changeField('reportOwnerName',e.target.value)}/></td>
+   <td hidden={hidden.includes('Owner')}>{editor.assignmentOwnerLabel?<span title="Change this owner in Assignment">{editor.assignmentOwnerLabel}</span>:<input aria-label="Owner" maxLength={100} value={editor.reportOwnerName||''} onChange={e=>changeField('reportOwnerName',e.target.value)}/>}</td>
    <td className="nb-report-action-cell">{inlineActions}</td>
   </tr>;
  const changeField=(key:string,v:any)=>setEditor((old:any)=>({...old,[key]:v}));

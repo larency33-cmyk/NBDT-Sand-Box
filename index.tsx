@@ -5,6 +5,8 @@ import {renameMember,addMember,removeMember} from './src/members.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
+import {AssignmentPage} from './src/assignment-page-v052';
+import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
@@ -34,6 +36,7 @@ import './nbdt-access-v048.css';
 import './nbdt-layout-v049.css';
 import './nbdt-layout-v050.css';
 import './nbdt-layout-v051.css';
+import './nbdt-assignment-v052.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -289,6 +292,7 @@ interface ProjectData {
   id: string;
   name: string;
   tasks: RoadmapTask[];
+  assignmentRoster?: any;
   members: NDBTMember[];
   systems: SystemInfo[];
   issues: Issue[];
@@ -1216,6 +1220,7 @@ const SystemRegistryCard = ({sys, project, isAdmin, onUpdateDescription, setActi
       {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setEditingDescription(true);}}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
+    {sys.assignmentOwnerLabel&&<div className="nb52-owner-in-registry"><User size={12}/><span>Owner: <strong>{sys.assignmentOwnerLabel}</strong></span></div>}
     {editingDescription?<div className="nb41-card-description-edit">
       <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
       <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
@@ -1531,18 +1536,18 @@ const ProjectPanel: React.FC<{
 const StatusBadge = ({status}: {status: string}) => <span className={'nb-badge nb-status-' + status.toLowerCase().replaceAll(' ','-')}>{status}</span>;
 const App = () => {
   // Secure Access startup screen disabled: users open the application directly.
-  const [activeTab, setActiveTabRaw] = useState<'overview' | 'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report' | 'administration'>(() => {
+  const [activeTab, setActiveTabRaw] = useState<'overview' | 'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report' | 'assignment' | 'administration'>(() => {
     const route = readAppRoute(window.location.href);
     if (route.projectId) return route.tab as any;
     const hash = window.location.hash.replace('#', '');
-    if (['overview', 'roadmap', 'systems', 'sync', 'issues', 'config-report'].includes(hash)) return hash as any;
+    if (['overview', 'roadmap', 'systems', 'sync', 'issues', 'config-report','assignment'].includes(hash)) return hash as any;
     return 'overview';
   });
 
   const [mobileNav,setMobileNav]=useState(false);
   const [routeError,setRouteError]=useState('');
   const setActiveTab=(tab:any)=>{if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes before navigating?'))return;delete document.documentElement.dataset.nbdtDirty;setDraftTask(null);setDraftSystem(null);setActiveCheckSheetSys(null);setMobileNav(false);setActiveTabRaw(tab);window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,tab));};
-  useEffect(()=>{const f=()=>{const tab=location.hash.slice(1);if(['overview','roadmap','systems','sync','issues','config-report'].includes(tab))setActiveTab(tab);};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f);},[]);
+  useEffect(()=>{const f=()=>{const tab=location.hash.slice(1);if(['overview','roadmap','systems','sync','issues','config-report','assignment'].includes(tab))setActiveTab(tab);};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f);},[]);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [panelPosition, setPanelPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [memberRect, setMemberRect] = useState<{ x: number; y: number } | null>(null);
@@ -1701,6 +1706,25 @@ const App = () => {
     return ensureProjectData(base);
   });
 
+  // Shared global Assignment registry: one authoritative owner directory across projects.
+  const [assignmentRoster,setAssignmentRoster]=useState<any>(()=>{
+    try{const saved=uiStorage.getItem(ASSIGNMENT_STORAGE_KEY);return saved?JSON.parse(saved):initialAssignmentRoster();}
+    catch{return initialAssignmentRoster();}
+  });
+  const assignmentRosterRef=useRef(assignmentRoster);
+  useEffect(()=>{assignmentRosterRef.current=assignmentRoster;},[assignmentRoster]);
+  const assignmentQueue=useRef<Promise<any>>(Promise.resolve());
+  const changeAssignment=(updater:(roster:any)=>any)=>{
+    if(!isAdmin) return Promise.reject(Error('Administrator sign-in required'));
+    const operation=async()=>{
+      const next=updater(assignmentRosterRef.current);
+      await commitRecord(ASSIGNMENT_STORAGE_KEY,JSON.stringify(next));
+      assignmentRosterRef.current=next;setAssignmentRoster(next);
+      return next;
+    };
+    const result=assignmentQueue.current.then(operation);assignmentQueue.current=result.catch(()=>{});return result;
+  };
+  const displayProject=useMemo(()=>projectWithAssignmentOwners(project,assignmentRoster),[project,assignmentRoster]);
   const [userProjects, setUserProjects] = useState<Record<string, UserProject[]>>(() => {
     const saved = uiStorage.getItem('nbdt_user_projects');
     if (saved) return JSON.parse(saved);
@@ -2196,7 +2220,7 @@ const App = () => {
   const projectRef=useRef(project);useEffect(()=>{projectRef.current=project;},[project]);
   const actionQueue=useRef<Promise<any>>(Promise.resolve());
   const handleAction=(updater:(prev:ProjectData)=>ProjectData)=>{
-    const operation=async()=>{const previous=projectRef.current;const next={...updater(previous),version:(previous.version||0)+1};await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));projectRef.current=next;setProject(next);return next;};
+    const operation=async()=>{const previous=projectRef.current;const updated=updater(previous);const next={...updated,version:(previous.version||0)+1,systems:updated.systems.map(({assignmentOwnerLabel,assignmentOwnerStatus,assignmentOwnerNames,...sys}:any)=>sys),tasks:updated.tasks.map(({assignmentOwnerLabel,assignmentOwnerStatus,...task}:any)=>task)};await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));projectRef.current=next;setProject(next);return next;};
     const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
   // Live device-readiness export: never export retired aggregate/demo records.
@@ -2205,6 +2229,7 @@ const App = () => {
       const summary = reportDeviceCounts(system);
       const venues = [...new Set([system.reportVenue,...(system.devices || []).map((d:any) => d.venue)].filter(Boolean))];
       const owner = project.members.find(m => m.id === system.assigneeId);
+      const resolvedOwner=resolveAssignmentOwner(assignmentRoster,system.name);
       return {
         System: system.name,
         Qty: summary.total,
@@ -2214,7 +2239,7 @@ const App = () => {
         Deployed: summary.deployed,
         AW: system.reportAW || system.airWatchTags || system.airWatch || system.mdm || '',
         Cyber: system.cyberStatus || 'Unknown',
-        Owner: system.reportOwnerName || owner?.name || 'Unassigned'
+        Owner: resolvedOwner.label || system.reportOwnerName || owner?.name || 'Unassigned'
       };
     });
     const worksheet = XLSX.utils.json_to_sheet(rows, {header:['System','Qty','Venue','Base config.','Ready to deploy','Deployed','AW','Cyber','Owner']});
@@ -2522,11 +2547,11 @@ const App = () => {
         return netValue.includes(filterValue);
       }));
 
-      const assigneeMatch = !assigneeFilter || s.assigneeId === assigneeFilter;
+      const assigneeMatch = !assigneeFilter || (assigneeFilter.startsWith('assignment:') ? resolveAssignmentOwner(assignmentRoster,s.name).personIds.includes(assigneeFilter.slice('assignment:'.length)) : s.assigneeId === assigneeFilter);
 
       return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch;
     });
-  }, [project.systems, systemSearch, activeFilters, assigneeFilter, deviceTypeFilter]);
+  }, [project.systems, assignmentRoster, systemSearch, activeFilters, assigneeFilter, deviceTypeFilter]);
 
 
   const filteredIssues = useMemo(() => {
@@ -2764,6 +2789,10 @@ const App = () => {
                <AlertCircle className="w-6 h-6 shrink-0" />
                {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Issues</span>}
             </button>
+            <button onClick={() => setActiveTab('assignment')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'assignment' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
+               <Users className="w-6 h-6 shrink-0" />
+               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Assignment</span>}
+            </button>
             <button onClick={() => setActiveTab('config-report')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'config-report' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
                <FileBarChart className="w-6 h-6 shrink-0" />
                {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Configuration Report</span>}
@@ -2801,8 +2830,9 @@ const App = () => {
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
+        {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
         {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={displayProject} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));
         }} onQuickTaskDelete={async(taskId:string)=>{
@@ -2842,7 +2872,7 @@ const App = () => {
                 <button type="button" className="nb-button" onClick={()=>{
                   const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
                   const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
-                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,project.members.find(m=>m.id===s.assigneeId)?.name||''])];
+                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||project.members.find(m=>m.id===s.assigneeId)?.name||''])];
                   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
                   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
                 }}><Download size={18}/> Export</button>
@@ -2855,19 +2885,19 @@ const App = () => {
               <DeviceTypeFilter value={deviceTypeFilter} onChange={setDeviceTypeFilter}/>
               <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
               <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
-              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
+              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={'assignment:'+person.id}>{person.name}</option>)}{project.members.map(m=><option key={m.id} value={m.id}>Legacy: {m.name}</option>)}</select></label>
               {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
             {filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             </div>
           </section>
         )}
 
-        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={displayProject.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={displayProject} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -3096,7 +3126,7 @@ const App = () => {
 
         {activeTab === 'issues' && (
           <IssueTrackerBoard
-            project={project}
+            project={displayProject}
             isAdmin={isAdmin}
             setShowAdminAuthModal={setShowAdminAuthModal}
             setAdminPassInput={setAdminPassInput}
@@ -3145,7 +3175,7 @@ const App = () => {
 
               </div>
             </header>
-            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
+            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
           </div>
         )}
 

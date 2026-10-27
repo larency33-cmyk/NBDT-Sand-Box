@@ -1,0 +1,22 @@
+{
+  "release": "v0.6.52",
+  "base": "v0.6.51",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_52.txt",
+    "NBDT_v0_6_52_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_52_RU.md",
+    "index.tsx",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "src/assignment-page-v052.tsx",
+    "src/assignment-roster.mjs",
+    "src/issue-tracker-v034.tsx",
+    "src/navigation.mjs",
+    "src/workspace.tsx",
+    "tests/assignment-v052.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "300/300",
+  "note": "Assignment owner source of truth, 13 people and 108 entries, exact names only. Guest read-only; admin edit/drop; browser-local POC IndexedDB, Vite build not verified."
+}

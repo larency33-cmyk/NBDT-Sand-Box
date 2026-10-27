@@ -1,7 +1,7 @@
 import {weekIndexFromDate,projectWeekParam} from './schedule.mjs';
 /** Shareable client-side locations. No user-supplied route text is used as HTML. */
 const safeDecode = value => { try { return decodeURIComponent(value); } catch { return ''; } };
-const SECTIONS = {overview:'overview',roadmap:'tracker',systems:'systems',issues:'issues','config-report':'reports/configuration',sync:'sync',administration:'administration'};
+const SECTIONS = {overview:'overview',roadmap:'tracker',systems:'systems',issues:'issues','config-report':'reports/configuration',sync:'sync',assignment:'assignment',administration:'administration'};
 export function readAppRoute(input) {
   const url = input instanceof URL ? input : new URL(String(input));
   const parts = url.pathname.split('/').filter(Boolean);
@@ -15,6 +15,7 @@ export function readAppRoute(input) {
     else if (parts[2] === 'issues') tab = 'issues';
     else if (parts[2] === 'reports' && parts[3] === 'configuration') tab = 'config-report';
     else if (parts[2] === 'sync') tab = 'sync';
+    else if (parts[2] === 'assignment') tab = 'assignment';
     else if (parts[2] === 'administration') tab = 'administration';
   } else {
     const legacy = url.hash.slice(1).split('?')[0];
