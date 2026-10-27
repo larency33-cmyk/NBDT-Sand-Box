@@ -1,0 +1,43 @@
+/* NBDT v0.6.46 — one shared left edge for page titles AND page content.
+   The 0.6.45 headings were moved independently from the page bodies:
+   Registry content started at 24px, Issues at clamp(18px,2.7vw,46px),
+   and Configuration Report at 28px. That produced a visible sideways jump.
+   Keep Weekly Tracker's 15px inset as the reference; remove those divergent
+   gutters instead of compensating with negative heading margins.
+*/
+.nbdt-redesign.nb-app-root {
+  --nb46-workspace-inset: 15px;
+}
+
+/* System Registry: header, search/filter bar and cards share the same edge. */
+.nbdt-redesign.nb-app-root .nb-registry-page {
+  padding-inline:var(--nb46-workspace-inset)!important;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page>.nb-registry-heading.nb45-primary-header {
+  margin-inline:0!important;
+}
+
+/* Issue Tracker: move the whole working surface, not only its title.
+   Maintain the existing vertical whitespace, toolbar spacing, and board grid. */
+.nbdt-redesign.nb-app-root .nb34-issues {
+  padding-inline:var(--nb46-workspace-inset)!important;
+}
+.nbdt-redesign.nb-app-root .nb34-issues>.nb34-hero {
+  margin-inline:0!important;
+}
+
+/* Configuration Report: match the first KPI tile, readiness panel and title.
+   The floating import/export controls use the matching right-hand gutter. */
+.nbdt-redesign.nb-app-root .nb-report-shell>.nb-report {
+  padding-left:var(--nb46-workspace-inset)!important;
+  padding-right:var(--nb46-workspace-inset)!important;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell>.nb-report>.nb45-primary-header {
+  margin-inline:0!important;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell>.nb-report-top-actions {
+  right:var(--nb46-workspace-inset)!important;
+}
+
+/* Weekly Tracker is the unchanged reference: its main heading is already at
+   the agreed 15px. Its table, filters, tasks and scrolling stay untouched. */

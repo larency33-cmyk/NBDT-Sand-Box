@@ -1,0 +1,6 @@
+NBDT v0.6.46 (base v0.6.45)
+- Aligned all four main-page titles and their first content containers to the Weekly Tracker 15px left inset.
+- Registry filters and cards, Issues toolbar and board, Report KPI/table now share the same leading edge as their title.
+- Kept the Weekly Tracker layout, application logic and storage unchanged.
+- Added final CSS override layer nbdt-layout-v046.css and alignment regression tests.
+- See RELEASE_NOTES_v0_6_46_RU.md.

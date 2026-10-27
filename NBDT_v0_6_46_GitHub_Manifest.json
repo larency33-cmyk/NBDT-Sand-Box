@@ -1,0 +1,25 @@
+{
+  "version": "0.6.46",
+  "baseline": "0.6.45",
+  "notes": "Extract changed-only ZIP into the GitHub repository root. Original relative paths are preserved; unchanged files are excluded.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_46.txt",
+    "NBDT_v0_6_46_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_46_RU.md",
+    "index.tsx",
+    "nbdt-layout-v046.css",
+    "package.json",
+    "tests/workspace-alignment-v046.test.mjs"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_46.txt": "b983244223afd9cf82798891bd9645f04745ce7781ab27e87d474de0feb6cf3b",
+    "README.md": "3473460ac27308e617852ceca25c524ea7583d41fe10b232c61fd358ec2fadeb",
+    "RELEASE_NOTES_v0_6_46_RU.md": "42307b34cc7c34059c48256aff9313edaf4329aa225ca899f877427ad5036c57",
+    "index.tsx": "e63890b2769ecf2c9d2960a55a70007f4df6eed81b0d8604e69948817fa730e5",
+    "nbdt-layout-v046.css": "42eb54b3dcac43513da6e02201cd27855c3212ae108195917d03b4876e056b53",
+    "package.json": "1603c3ad75174b61dd7b39dd1a3ce3b91c0cb66632126c4736bef2ba1970b083",
+    "tests/workspace-alignment-v046.test.mjs": "9dd66bda5ae0d1a38bd720424cff8cedff48382e82830c8560529d5e6af17283"
+  }
+}
