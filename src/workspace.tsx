@@ -1,4 +1,5 @@
 import {Migration,download,useUnsaved} from './enhancements';
+import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
@@ -323,7 +324,7 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
  const [expandedMilestoneWeek,setExpandedMilestoneWeek]=useState<number|null>(null);
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
- const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
+ const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
@@ -412,7 +413,9 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
  const actualCurrentWeek=weekIndexFromDate(project.startDate,todayDate);
  const currentWeek=actualCurrentWeek===null?-1:actualCurrentWeek;
  const milestoneTone=(ms:any)=>/freeze|block|critical/i.test(ms.label)?'critical':/qa|testing|review|inspection/i.test(ms.label)?'review':/handover|final|complete|launch/i.test(ms.label)?'complete':'standard';
- const updateStart=async(value:string)=>{if(dateSaving||value===project.startDate)return;if(!validDate(value)){setDateError('Choose a valid date.');return;}if(project.tasks.length&&!window.confirm('Move project planning calendar to '+value+'? The week positions of tasks are preserved, and milestone dates shift with the new week anchor. Explicit task due dates are not changed.'))return;setDateSaving(true);setDateError('');try{await onProjectStartChange(value);}catch(error:any){setDateError(error?.message||'Unable to save project start date.');}finally{setDateSaving(false);}};
+ // Calendar month/year navigation is entirely local to the picker.
+ // Only the explicit Apply date button reaches this persistence function; no browser confirm per navigation step.
+ const updateStart=async(value:string)=>{if(dateSaving||value===project.startDate)return;if(!validDate(value))throw Error('Choose a valid date.');setDateSaving(true);try{await onProjectStartChange(value);}finally{setDateSaving(false);}};
  const tasks=project.tasks.filter((t:any)=>!t.isMilestone).map((t:any)=>({...t,status:effectiveStatus(t,project.issues)}));
  const milestones=project.tasks.filter((t:any)=>t.isMilestone).sort((a:any,b:any)=>a.startWeek-b.startWeek||String(a.label).localeCompare(String(b.label)));
  const matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
@@ -532,11 +535,10 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
 
   <div className="nb-toolbar">
    <div className="nb-segments nb-overview-only-segment"><span className="nb-button nb-overview-only-tab" aria-current="page">Overview</span></div>
-   <label className="nb-project-start"><CalendarDays size={17} aria-hidden="true"/><span>Project start</span>{isAdmin?<input type="date" aria-label="Project start date" disabled={dateSaving} value={project.startDate} onChange={e=>{void updateStart(e.target.value);}}/>:<strong>{project.startDate}</strong>}</label>
+   <div className="nb-project-start"><ProjectStartPicker value={project.startDate} today={todayDate} hasTasks={project.tasks.length>0} disabled={!isAdmin} busy={dateSaving} onConfirm={updateStart}/></div>
    <select aria-label="Person filter" value={person} onChange={e=>setPerson(e.target.value)}><option value="">All people</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>
    <select aria-label="Status filter" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All statuses</option>{['Planned','In Progress','Blocked','Completed'].map(v=><option key={v}>{v}</option>)}</select>
    <div className="nb-search-box"><Search size={18} aria-hidden="true"/><input aria-label="Search tasks or people" placeholder="Search tasks or people..." value={query} onChange={e=>setQuery(e.target.value)}/></div>
-   {dateError&&<span className="nb-start-error" role="alert">{dateError}</span>}
   </div>
 
   <div className="nb-summary">

@@ -26,6 +26,7 @@ import './guide-approved-v040.css';
 import './guide-interactive-v041.css';
 import './weekly-tracker-milestones-v042.css';
 import './weekly-tracker-milestone-harmony-v043.css';
+import './weekly-tracker-project-calendar-v044.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';

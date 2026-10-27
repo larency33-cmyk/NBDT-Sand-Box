@@ -43,8 +43,8 @@ test('explicit due dates remain preserved when project start moves; generated de
 });
 test('weekly tracker has no upper week calendar or Master Timeline',()=>{
  const tracker=ui.slice(ui.indexOf('export function Tracker('),ui.indexOf('export function Report('));
- assert.ok(tracker.includes('Project start'));
- assert.ok(tracker.includes('type="date"'));
+ assert.ok(tracker.includes('<ProjectStartPicker')); // Dedicated project-start control renders the label and date.
+ assert.ok(tracker.includes('<ProjectStartPicker'));
  assert.ok(!tracker.includes('type="week"'));
  assert.ok(!tracker.includes('onTimeline'));
  assert.ok(!tracker.includes('Master Timeline'));

@@ -1,0 +1,81 @@
+/* NBDT 0.6.44 — project-start picker. No native date-input auto-save.
+   One confirmation action for changing the planning anchor; month/year navigation
+   is local, reversible and does not affect milestones or task assignments. */
+.nb-tracker[data-view="overview"] > .nb-toolbar {position:relative;z-index:140!important;overflow:visible!important}
+.nb-tracker[data-view="overview"] > .nb-toolbar > .nb-project-start {position:relative;overflow:visible!important; padding:4px 9px!important}
+.nb-tracker[data-view="overview"] .nb44-project-start {display:flex;align-items:center;gap:8px;position:relative;min-width:0;height:100%;}
+.nb-tracker[data-view="overview"] .nb44-project-start-icon {color:#0877ee;flex:none}
+.nb-tracker[data-view="overview"] .nb44-project-start-label {font-size:12px;color:#6481a4;white-space:nowrap}
+.nb-tracker[data-view="overview"] .nb44-readonly-date {font-size:12px;color:#193d6c;font-weight:700;white-space:nowrap}
+.nb-tracker[data-view="overview"] .nb44-date-trigger {
+  display:flex;align-items:center;justify-content:space-between;gap:13px;
+  background:#fff!important;color:#17406f!important;border:1px solid #d8e6f7!important;
+  border-radius:6px!important;height:32px!important;min-height:32px!important;
+  padding:0 9px!important;font-size:12px!important;font-weight:600!important;white-space:nowrap;cursor:pointer;
+  box-shadow:0 1px 1px rgba(18,66,126,.02);
+}
+.nb-tracker[data-view="overview"] .nb44-date-trigger svg {color:#5b82b0}
+.nb-tracker[data-view="overview"] .nb44-date-trigger:hover,.nb-tracker[data-view="overview"] .nb44-picker-open .nb44-date-trigger {border-color:#77b6fb!important;box-shadow:0 0 0 2px rgba(19,113,236,.08)!important}
+.nb-tracker[data-view="overview"] .nb44-date-trigger:focus-visible {outline:2px solid #0878f6!important;outline-offset:2px}
+.nb-tracker[data-view="overview"] .nb44-calendar-panel {
+  position:absolute!important;z-index:9999!important;top:calc(100% + 13px);left:-8px;
+  width:356px;max-width:calc(100vw - 24px);height:auto!important;max-height:min(650px,calc(100dvh - 125px));
+  overflow:auto;display:block!important;text-align:left;white-space:normal;
+  border:1px solid #d8e5f5;border-radius:14px;background:#fff;
+  padding:16px;box-shadow:0 18px 45px rgba(11,42,79,.19),0 3px 12px rgba(11,42,79,.08);
+  font-size:13px;color:#15365d;
+}
+.nb44-calendar-panel::before {content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0c75eb,#74b6f8);border-radius:14px 14px 0 0}
+.nb44-calendar-heading {display:flex;justify-content:space-between;align-items:flex-start;margin:0 0 15px;gap:12px}
+.nb44-eyebrow {color:#6990b8;display:block;font-size:9px;font-weight:800;letter-spacing:1.05px;margin-bottom:4px}
+.nb44-calendar-heading h2 {font-size:17px!important;line-height:1.25!important;font-weight:750!important;letter-spacing:-.25px;color:#092c57;margin:0!important}
+.nb44-calendar-panel button {font-family:inherit}
+.nb44-calendar-heading .nb44-close {width:29px!important;height:29px!important;min-height:29px!important;flex:none;border:1px solid #e4edf7!important;background:#f5f8fd!important;color:#617e9e;border-radius:7px;display:grid;place-items:center;cursor:pointer}
+.nb44-calendar-heading .nb44-close:hover {color:#1168c5;background:#edf5ff!important}
+.nb44-calendar-navigation {display:grid;grid-template-columns:26px 26px minmax(93px,1fr) 78px 26px 26px;gap:4px;align-items:center;margin-bottom:13px;}
+.nb44-calendar-navigation button {display:grid;place-items:center;width:26px!important;height:30px!important;min-height:30px!important;padding:0!important;border:1px solid transparent;border-radius:6px;background:transparent!important;color:#4e7096;cursor:pointer}
+.nb44-calendar-navigation button:hover {background:#edf5ff!important;border-color:#d7e8fc;color:#086de2}
+.nb44-calendar-navigation select {width:100%!important;min-width:0!important;max-width:100%!important;height:31px!important;min-height:31px!important;padding:3px 5px!important;border:1px solid #dce9f8!important;border-radius:7px!important;background:#f8fbff!important;color:#19436e!important;font-size:12px!important;font-weight:700;cursor:pointer}
+.nb44-weekday-grid,.nb44-days-grid {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}
+.nb44-weekday-grid {border-bottom:1px solid #edf2f9;padding-bottom:7px;margin-bottom:7px}
+.nb44-weekday-grid span {font-size:11px;font-weight:750;color:#859bb6;line-height:20px}
+.nb44-days-grid .nb44-day {width:100%!important;height:37px!important;min-height:37px!important;display:grid;place-items:center;line-height:1;padding:0!important;font-size:12px!important;font-weight:600!important;color:#27476b!important;border:1px solid transparent!important;border-radius:8px;background:transparent!important;cursor:pointer}
+.nb44-days-grid .nb44-day:hover {background:#eaf4ff!important;border-color:#bddbfc!important;color:#0569d0!important}
+.nb44-days-grid .nb44-day.nb44-outside {color:#acbad0!important;font-weight:450!important}
+.nb44-days-grid .nb44-day.nb44-today:not(.nb44-picked) {box-shadow:inset 0 0 0 1.5px #278afa!important;color:#086fea!important}
+.nb44-days-grid .nb44-day.nb44-picked,.nb44-days-grid .nb44-day.nb44-picked:hover {background:#0b72ec!important;border-color:#0b72ec!important;color:#fff!important;box-shadow:0 2px 7px rgba(9,111,233,.25)!important}
+.nb44-calendar-shortcuts {display:flex;align-items:center;gap:9px;margin:8px 0 13px}
+.nb44-calendar-shortcuts button {border:0!important;background:none!important;padding:4px 2px!important;font-size:11px!important;font-weight:700!important;color:#1674da!important;cursor:pointer}
+.nb44-calendar-shortcuts button:hover {text-decoration:underline}
+.nb44-calendar-selection {display:flex;align-items:center;justify-content:space-between;padding:10px 11px;background:#f2f7ff;border:1px solid #e0ebfb;border-radius:8px;gap:8px}
+.nb44-calendar-selection span {font-size:11px;color:#607fa2;font-weight:600}
+.nb44-calendar-selection strong {color:#0b4289;font-size:13px;font-weight:800;letter-spacing:.15px}
+.nb44-calendar-impact {font-size:11px!important;color:#5d7692!important;line-height:1.48!important;background:#fffaf0;border-left:2px solid #e4b46a;padding:7px 9px;margin:10px 0 0!important}
+.nb44-calendar-error {margin:9px 0 0!important;color:#bc3040!important;font-size:12px!important;line-height:1.4!important}
+.nb44-calendar-actions {display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:14px;padding-top:12px;border-top:1px solid #ecf2f8}
+.nb44-calendar-actions button {display:inline-flex;align-items:center;justify-content:center;gap:6px;height:35px!important;min-height:35px!important;border-radius:7px!important;padding:0 13px!important;font-size:12px!important;font-weight:750!important;cursor:pointer}
+.nb44-calendar-actions .nb44-calendar-cancel {border:1px solid #dce7f4!important;background:#fff!important;color:#536f8c!important}
+.nb44-calendar-actions .nb44-calendar-apply {border:1px solid #076cf0!important;background:#076cf0!important;color:#fff!important;box-shadow:0 2px 6px rgba(0,95,215,.16)}
+.nb44-calendar-actions .nb44-calendar-apply:hover:not(:disabled) {background:#005dd0!important}
+.nb44-calendar-panel button:disabled {opacity:.45;cursor:not-allowed;box-shadow:none!important}
+.nb44-calendar-panel :is(button,select):focus-visible {outline:2px solid #1279ed!important;outline-offset:2px}
+@media (max-width:540px) {
+ .nb-tracker[data-view="overview"] .nb44-calendar-panel {left:0;max-width:calc(100vw - 32px);padding:13px}
+ .nb44-calendar-navigation {grid-template-columns:24px 24px minmax(80px,1fr) 68px 24px 24px;gap:3px}
+ .nb44-calendar-navigation button {width:24px!important}
+ .nb-tracker[data-view="overview"] .nb44-project-start-label {font-size:11px}
+}
+@media (prefers-reduced-motion:reduce) {.nb44-calendar-panel *{transition:none!important}}
+/* On phones / short screens, center the same calendar as a compact dialog;
+   keeping it entirely reachable is better than clipping at the bottom. */
+@media (max-width:540px), (max-height:710px) {
+ .nb-tracker[data-view="overview"] .nb44-calendar-panel {
+  position:fixed!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%);
+  width:min(356px,calc(100vw - 28px))!important;
+  max-width:calc(100vw - 28px)!important;
+  max-height:calc(100dvh - 32px)!important;
+ }
+}

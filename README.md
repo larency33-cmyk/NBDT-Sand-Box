@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.43.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
+**Current package: v0.6.44.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
 
 ## Requirements
 
@@ -138,3 +138,12 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 ## v0.6.43 — seamless Milestone expansion
 
 Multiple Milestones expand the entire week header as a single themed card; the border encompasses the whole open list. The current week always uses blue palette variables and all other weeks inherit their existing color. Milestone buttons and status chips use matching tones. The table, task cells and lower navigation do not move.
+
+
+## v0.6.44 — Weekly Tracker project start calendar
+
+- Project start date uses a compact, accessible inline calendar panel rather than the browser-native date input. Navigate months or years freely, use Today/Saved date, and pick a date without changing project data.
+- **Apply date** commits the new date exactly once. Cancel, Escape, close, and outside click discard the pending selection. No browser OK prompt occurs while browsing years or months.
+- The existing shift rules are unchanged: assignments remain in project weeks; milestone dates shift; manually set task due dates remain.
+- The picker shows commit errors without losing draft selection and is responsive on mobile.
+- See `RELEASE_NOTES_v0_6_44_RU.md`.

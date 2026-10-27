@@ -1,0 +1,35 @@
+{
+  "version": "0.6.44",
+  "baseline": "0.6.43",
+  "notes": "Extract changed-only ZIP into the GitHub repository root. Exact relative paths are preserved; unchanged files are excluded.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_44.txt",
+    "README.md",
+    "RELEASE_NOTES_v0_6_44_RU.md",
+    "index.tsx",
+    "package.json",
+    "src/project-calendar.mjs",
+    "src/project-start-picker.tsx",
+    "src/workspace.tsx",
+    "tests/project-start-picker-v044.test.mjs",
+    "tests/weekly-calendar-v062.test.mjs",
+    "weekly-calendar-v062.test.mjs",
+    "weekly-tracker-project-calendar-v044.css",
+    "NBDT_v0_6_44_GitHub_Manifest.json"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_44.txt": "230bb39e80fef0273da7c5da27cd2768cc41dd191017139943e1e055fadfdbb6",
+    "README.md": "c54ef5f98f7b4387a68c85c99487684fbb7f86edbd58ee9c8ef37425f14a6e9b",
+    "RELEASE_NOTES_v0_6_44_RU.md": "f428e1253629fd8e6543b20eaa1ae48184bbbb81ba88f4f134c54bce038a469a",
+    "index.tsx": "9158c529a7519d53a05689f6e527dbd077ffad7cea96777c68a9cbd5032e4207",
+    "package.json": "efe468a017c0d59135ff9e1cfba1631feeb38895b9e5c4f1d4456afc3dda8fd5",
+    "src/project-calendar.mjs": "7515f9e694546ce2c4ab2bd8e0c9d23d57956fdf581e0f235ab8624f13796b5e",
+    "src/project-start-picker.tsx": "91e7167da1f20184d0446343e6f7d435c70844b3f75276556a22809c94b8f10f",
+    "src/workspace.tsx": "4156933994ae5ae3d02ce9ac80781ee8fbb42eb7ec673c483a40c681cf8ccfec",
+    "tests/project-start-picker-v044.test.mjs": "cc397962b152a26ee2c39248f4e7175d247b83fdc87f7c5715c013c6961cb750",
+    "tests/weekly-calendar-v062.test.mjs": "c7502a2794ceb7be0cf1767bd5decd7b5bc21e9ec74f3877df954eca6a21b8b7",
+    "weekly-calendar-v062.test.mjs": "ec47bfc5af3320c6e5047adecc663b38506e9ee4dbecd44a4ef4f865b8ae7b9f",
+    "weekly-tracker-project-calendar-v044.css": "ed83e875f8314cf9dfdb358638b1f4b593e413c948a589d0743b03fa79442d69"
+  }
+}

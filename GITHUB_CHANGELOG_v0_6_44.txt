@@ -1,0 +1,7 @@
+NBDT v0.6.44 (base v0.6.43)
+- Replaced auto-saving native project start date input with a lightweight NBDT-styled calendar.
+- Navigate months and years without any project date changes or browser confirmations.
+- One explicit Apply date action saves the selected date; Cancel, Escape and outside click discard it.
+- The existing project date shift semantics remain unchanged: milestone dates move, task-week positioning and explicit due dates are preserved.
+- Handles save failures in place; includes responsive popup layout and test coverage.
+- No edits to other application pages. See RELEASE_NOTES_v0_6_44_RU.md.
