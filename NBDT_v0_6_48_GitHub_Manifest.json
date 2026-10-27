@@ -1,0 +1,19 @@
+{
+  "release": "v0.6.48",
+  "base": "v0.6.47",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_48.txt",
+    "NBDT_v0_6_48_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_48_RU.md",
+    "index.tsx",
+    "nbdt-access-v048.css",
+    "package.json",
+    "src/access-control-v047.tsx",
+    "tests/access-v047.test.mjs",
+    "tests/access-v048-sidebar.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "284/284",
+  "note": "Relocate POC role controls to sidebar footer and remove Local UI sandbox visual badge. Browser-local POC only."
+}

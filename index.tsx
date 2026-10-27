@@ -30,6 +30,7 @@ import './weekly-tracker-project-calendar-v044.css';
 import './nbdt-layout-v045.css';
 import './nbdt-layout-v046.css';
 import './nbdt-access-v047.css';
+import './nbdt-access-v048.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -2601,8 +2602,6 @@ const App = () => {
         </div>
       )}
 
-      {/* Sync Status Overlay Removed - Moved to Sidebar */}
-
 
       <aside data-open={mobileNav} data-expanded={isSidebarExpanded} className={`${isSidebarExpanded ? 'w-72' : 'w-20'} border-r border-slate-900 bg-[#020617] flex flex-col py-6 gap-8 shrink-0 z-50 transition-all duration-300 ease-in-out overflow-hidden`}>
          <div className="relative px-4">
@@ -2774,45 +2773,14 @@ const App = () => {
            {isSuperAdmin && <button onClick={()=>setActiveTab('administration')} className={'nb47-sidebar-admin '+(activeTab==='administration'?'nb47-sidebar-admin-selected':'')}><ShieldCheck size={20}/>{isSidebarExpanded&&<span>Administration</span>}</button>}
          </nav>
 
-         <div className="mt-auto px-3 pb-4 flex flex-col gap-4">
-            {/* Minimalist Sync Status */}
-            <div className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg border transition-all duration-500 bg-slate-900/30",
-              !syncConnected ? 'border-red-500/30' : 'border-slate-800/50'
-            )}>
-              <div className="shrink-0 relative">
-                {!syncConnected ? <WifiOff size={12} className="text-red-400" /> :
-                 syncStatus === 'syncing' ? <RefreshCw size={12} className="text-blue-400 animate-spin" /> : 
-                 syncStatus === 'updated' ? <CheckCircle2 size={12} className="text-emerald-500" /> : 
-                 <Database size={12} className="text-slate-500" />}
-                
-                {/* Connection dot when collapsed */}
-                {!isSidebarExpanded && syncConnected && (
-                  <div className={cn(
-                    "absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full",
-                    syncStatus === 'syncing' ? "bg-blue-400 animate-pulse" : "bg-emerald-500 animate-pulse"
-                  )} />
-                )}
-              </div>
-              {isSidebarExpanded && (
-                <div className="flex items-center justify-between flex-1 min-w-0">
-                  <span className={cn(
-                    "text-[8px] font-black tracking-widest uppercase truncate",
-                    !syncConnected ? 'text-red-400' : 'text-slate-500'
-                  )}>
-                    {LOCAL_UI_MODE ? 'Local UI sandbox' : !syncConnected ? 'Offline' :
-                     syncStatus === 'syncing' ? 'Syncing...' : 
-                     'Hub Connected'}
-                  </span>
-                  {syncConnected && (
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full shrink-0 ml-2",
-                      syncStatus === 'syncing' ? "bg-blue-400 animate-pulse" : "bg-emerald-500 animate-pulse"
-                    )} />
-                  )}
-                </div>
-              )}
-            </div>
+         <div className="nb48-sidebar-bottom mt-auto px-3 pb-4 flex flex-col gap-3">
+            <AccessChip
+              user={access.user}
+              expanded={isSidebarExpanded}
+              onLogin={openLogin}
+              onLogout={()=>{access.logout();if(activeTab==='administration')setActiveTab('overview');}}
+              onManage={()=>setActiveTab('administration')}
+            />
 
             <button 
                onClick={() => setIsSidebarExpanded(!isSidebarExpanded)} 
@@ -2826,7 +2794,6 @@ const App = () => {
 
       <button className="nb-mobile-menu" type="button" aria-label="Toggle navigation" aria-expanded={mobileNav} onClick={()=>setMobileNav(!mobileNav)}>☰ Menu</button>
       <main className={"flex-1 flex flex-col overflow-hidden relative "+(draftSystem||draftTask?"nb-editing-profile":"")}>
-        <AccessChip user={access.user} onLogin={openLogin} onLogout={()=>{access.logout();if(activeTab==='administration')setActiveTab('overview');}} onManage={()=>setActiveTab('administration')}/>
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}

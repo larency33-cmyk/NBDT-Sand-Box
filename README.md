@@ -1,6 +1,8 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.46.** The four main workspaces now use one consistent 15px left content alignment (Weekly Tracker as the reference), including page titles and the first content block. Detailed notes: `RELEASE_NOTES_v0_6_46_RU.md`. System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
+**Current package: v0.6.48.** Guest / Admin / Super Admin access controls have moved from the upper-right of page content to the bottom of the left sidebar (above Collapse). The obsolete **Local UI sandbox** indicator was removed from the sidebar. Page action buttons no longer reserve space for the old floating role badge. Expanded and collapsed sidebar layouts are supported. See `RELEASE_NOTES_v0_6_48_RU.md` for details.
+
+The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 
 ## Requirements
 
@@ -37,7 +39,7 @@ The production build is written to `dist/` and must **not** be committed. The Ve
 
 ## Important data limitation
 
-The current application stores project data in the **browser's IndexedDB**. Data does **not** automatically synchronize across computers/users. Back up any important browser-local data before switching domain, browser, or clearing site storage. The UI's Edit mode is not a replacement for server-side authentication.
+The current application stores project data in the **browser's IndexedDB**. Data does **not** automatically synchronize across computers/users. Back up any important browser-local data before switching domain, browser, or clearing site storage. The local POC login/roles are not a replacement for server-side authentication.
 
 ## Cleanup note
 

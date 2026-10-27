@@ -1,0 +1,43 @@
+/* NBDT v0.6.48 — account controls live at the bottom of the common sidebar.
+   Page headers recover their original action area. Navigation stays fixed. */
+.nbdt-redesign.nb-app-root>aside { overflow:visible!important; }
+.nbdt-redesign.nb-app-root .nb-tracker>.nb45-primary-header .nb-actions,
+.nbdt-redesign.nb-app-root .nb-registry-page>.nb-registry-heading .nb-registry-actions,
+.nbdt-redesign.nb-app-root .nb34-heading-row .nb34-heading-actions { margin-right:0!important; }
+.nbdt-redesign.nb-app-root .nb-report-shell>.nb-report-top-actions { right:15px!important; }
+
+.nbdt-redesign.nb-app-root>aside .nb48-sidebar-bottom { min-height:0; gap:11px; }
+.nb48-account { position:relative;display:flex;flex-direction:column;gap:11px;padding:13px 11px 12px;border:1px solid rgba(132,168,222,.25);border-radius:12px;background:linear-gradient(155deg,rgba(30,76,129,.58),rgba(12,45,84,.42));color:#fff;min-width:0;box-shadow:inset 0 1px rgba(255,255,255,.035);}
+.nb48-account-eyebrow{color:#83a9d7;font-size:9px;line-height:1.1;letter-spacing:.135em;font-weight:800;}
+.nb48-account-identity{display:flex;align-items:center;gap:9px;min-width:0;}
+.nb48-account .nb47-role-icon{width:36px;height:36px;background:rgba(148,187,242,.14);color:#b9d8ff;}
+.nb48-account .nb47-role-icon-active{background:rgba(34,111,244,.24);color:#c6e2ff;}
+.nb48-account-details{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.nb48-account-details strong{font-size:12px;line-height:1.2;font-weight:750;color:#fff;white-space:nowrap;}
+.nb48-account-details small{font-size:10px;line-height:1.3;color:#a7c2e4;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
+.nb48-online-dot{width:7px;height:7px;flex-shrink:0;background:#41d9a0;border-radius:50%;box-shadow:0 0 0 3px rgba(65,217,160,.13)}
+.nb48-account-action{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:35px;border-radius:7px;font-size:11px;font-weight:760;cursor:pointer;transition:background .15s,border-color .15s;color:#f6fbff;}
+.nb48-signin{border:1px solid #1178fa;background:#0966e9;box-shadow:0 2px 9px rgba(0,80,200,.25)}
+.nb48-signin:hover{background:#1679fb;}
+.nb48-signout{border:1px solid rgba(169,198,236,.26);background:rgba(255,255,255,.055);color:#c5d8f2;}
+.nb48-signout:hover,.nb48-manage:hover{background:rgba(126,184,252,.18);color:white;}
+.nb48-manage{border:1px solid rgba(132,176,231,.25);background:rgba(18,103,225,.17);color:#d8eaff;}
+.nb48-account-collapsed{padding:0;border:0;background:transparent;box-shadow:none;align-items:center;}
+.nb48-account-compact{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;width:100%;}
+.nb48-avatar-button{width:43px;height:43px;display:flex;justify-content:center;align-items:center;position:relative;border:1px solid rgba(163,197,241,.25);background:rgba(54,110,179,.22);border-radius:12px;color:#bed8fb;cursor:pointer;}
+.nb48-avatar-button:hover{color:white;background:#12559f;border-color:#317cdc;}
+.nb48-avatar-admin{color:#dbebff;background:rgba(14,95,214,.35)}
+.nb48-avatar-presence{position:absolute;right:5px;bottom:5px;width:6px;height:6px;border-radius:50%;background:#7b9dbb;box-shadow:0 0 0 2px #102f55;}
+.nb48-avatar-admin .nb48-avatar-presence{background:#39d69d;}
+.nb48-account-popout{position:absolute;left:calc(100% + 11px);bottom:0;z-index:100;width:176px;padding:9px;background:#fff;border:1px solid #d6e5f7;border-radius:10px;box-shadow:0 10px 35px #07182d50;color:#112e58;display:flex;flex-direction:column;gap:3px;}
+.nb48-account-popout strong{font-size:12px;}
+.nb48-account-popout small{font-size:10px;color:#6782a5;margin-bottom:6px;}
+.nb48-account-popout button{display:flex;align-items:center;gap:8px;padding:9px 7px;border:0;border-radius:6px;background:transparent;color:#315a84;font-size:11px;text-align:left;cursor:pointer;}
+.nb48-account-popout button:hover{background:#edf4ff;}
+.nbdt-redesign.nb-app-root>aside .nb48-sidebar-bottom>button { flex-shrink:0; }
+@media(max-width:760px){
+  .nbdt-redesign.nb-app-root>aside .nb48-sidebar-bottom { padding-bottom:max(16px,env(safe-area-inset-bottom)); }
+  .nbdt-redesign.nb-app-root .nb-report-shell>.nb-report-top-actions { right:15px!important; }
+}
+/* Administration no longer needs reserved space for an upper-right account badge. */
+.nbdt-redesign.nb-app-root .nb47-console-header { padding-right:0!important; }

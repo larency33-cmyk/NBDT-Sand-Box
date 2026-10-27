@@ -1,0 +1,14 @@
+NBDT v0.6.48 — sidebar sign-in and role indicator
+
+GITHUB_CHANGELOG_v0_6_48.txt
+NBDT_v0_6_48_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_48_RU.md
+index.tsx
+nbdt-access-v048.css
+package.json
+src/access-control-v047.tsx
+tests/access-v047.test.mjs
+tests/access-v048-sidebar.test.mjs
+
+Removed files: none
