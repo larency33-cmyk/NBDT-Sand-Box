@@ -1,0 +1,38 @@
+{
+  "version": "0.6.41",
+  "baseline": "0.6.40",
+  "notes": "Apply paths relative to repository root; existing files not listed here stay in place.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_41.txt",
+    "README.md",
+    "RELEASE_NOTES_v0_6_41_RU.md",
+    "guide-interactive-v041.css",
+    "index.tsx",
+    "package.json",
+    "src/extended-model.mjs",
+    "src/guide-review.mjs",
+    "src/registry-metadata.mjs",
+    "src/workspace.tsx",
+    "tests/guide-approved-v040.test.mjs",
+    "tests/guide-interactive-v041.test.mjs",
+    "tests/guide-single-source-v039.test.mjs",
+    "tests/registry-metadata-v038.test.mjs"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_41.txt": "55f504642d82d7b10efc05d42cc2a36de3daf28b00fa3bb4d343a2b23f47935c",
+    "README.md": "e6eeb3b40e589201ff128b082121b56efba20d7790ae1c378b1c0342d5cfe93f",
+    "RELEASE_NOTES_v0_6_41_RU.md": "6fc93dad50dd5c540e298a50ea8a913eab638931333720200a741f07ed02bd4e",
+    "guide-interactive-v041.css": "59009cf1b51793a9af336338056e60818e353969ddf45b4dab1fcd3c3097431f",
+    "index.tsx": "c5f19d62fea39ca3daecd6f7a8bd26fa3e3e67b2875d7c4882a265008786868e",
+    "package.json": "1a21cf0e0e8a8582ba602f7da7db42f5239fa5f4afd5e9b60d44a12a7f99611b",
+    "src/extended-model.mjs": "a813de82accea30676a0af0578e08ebd7dae1c245395555c337495c9a11386b4",
+    "src/guide-review.mjs": "fb9420a4c637cd38dd1b311c4d95c14459c4115fe3fb9a8c01726c14709a3fd9",
+    "src/registry-metadata.mjs": "dd217c484f369e2fa7f4752290d047a4d61c4c5bcd9da47c78982a0cf9c99c1f",
+    "src/workspace.tsx": "12084bd6e3e2c10df04848e48f67b535a028d280890b3f255b41c5c01dca894a",
+    "tests/guide-approved-v040.test.mjs": "f4fe4aa816b74cdf61e57cc3ffd4546e18740dc07e377cc5c54738c3a0180b85",
+    "tests/guide-interactive-v041.test.mjs": "50e2e9326e1f0a2fb2c6caef77224737a10eb6ef16c852b108c83c43d82e98a9",
+    "tests/guide-single-source-v039.test.mjs": "fbd51c8d8834c9419c28a68845ca3b5ec0e33ad20a5c2082d06549a6ffbcce5f",
+    "tests/registry-metadata-v038.test.mjs": "0384ca516e40614e6af12e89448fea5e2b45d7f3af0028a4df22663587f42e28"
+  }
+}

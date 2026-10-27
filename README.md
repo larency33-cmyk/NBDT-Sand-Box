@@ -117,3 +117,12 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 - The search field includes a proper magnifier icon, and sortable table headers expose keyboard-accessible controls with `aria-sort`. The column-picker and filter logic are retained.
 - This is a **visual/layout change**, not replacement of actual device inventory with sample numbers from the reference. With two real systems and no devices the report will truthfully show two rows and no metric percentages.
 - No changes to Weekly Tracker, the navigation sidebar, System Registry, or Issue Tracker.
+
+
+## Configuration Guide · v0.6.41
+- Technical cards (Device, Network, Access & management) and Applications edit inline with their own pencil, Save, and Cancel. New technical values are stored in the same Guide snapshot that drives the Registry readout.
+- The System Registry pencil changes only the standalone Description, leaving Guide data untouched.
+- Lessons Learned stores `lessonsLearnedItems: [{id,text,checked}]`, supports long multiline descriptions and independent completion checkboxes. Legacy string notes are displayed as one lesson until edited.
+- Configuration checklist offers an independent, saveable guide-level verification (`guideReview`) when no physical device is selected. `Save checks` persists pending progress, `Accept … and continue` verifies each stage in sequence; later stages stay locked until prerequisites are accepted. Actual device runs continue using `deviceRuns` and do not mix with guide-level verification. Changes to checklist steps invalidate old guide-level verification.
+- Readable stages use connected chevron shapes, not rotated-square arrows.
+- This project is still a local-browser sandbox (IndexedDB), not a multi-user remote service; export backups before switching browsers or clearing storage.

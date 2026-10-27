@@ -26,7 +26,7 @@ test('legacy technical fields are only used as migration fallback before first g
  assert.equal(registryCardFields(sys).model,'Nino III');
 });
 test('existing pencil opens inline Guide editing; old SystemEditor is removed',()=>{
- assert.match(app,/onClick=\{\(\)=>openGuideForEdit\(sys\)\}/);
+ assert.match(app,/setEditingDescription\(true\)/);
  assert.match(app,/initialEdit=\{guideOpenEdit\}/);
  assert.doesNotMatch(app,/<SystemEditor\b/);
  assert.doesNotMatch(app,/Edit system \/ profile/);

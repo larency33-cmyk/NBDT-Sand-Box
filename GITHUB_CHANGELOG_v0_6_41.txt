@@ -1,0 +1,19 @@
+NBDT v0.6.41
+Original baseline: v0.6.40
+Changed/new files (paths relative to repository root):
+
+README.md
+RELEASE_NOTES_v0_6_41_RU.md
+guide-interactive-v041.css
+index.tsx
+package.json
+src/extended-model.mjs
+src/guide-review.mjs
+src/registry-metadata.mjs
+src/workspace.tsx
+tests/guide-approved-v040.test.mjs
+tests/guide-interactive-v041.test.mjs
+tests/guide-single-source-v039.test.mjs
+tests/registry-metadata-v038.test.mjs
+
+No original files deleted.

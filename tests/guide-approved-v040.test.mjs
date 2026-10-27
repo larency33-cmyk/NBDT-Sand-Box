@@ -11,12 +11,12 @@ test('Three guide detail groups use the guide technical data rather than mock ha
  assert.ok(guide.includes('guideTechnicalValues(sys)'));
 });
 test('Required applications are displayed in their own purple section with actual appList',()=>{
- assert.ok(guide.includes('<GuideApplications value={technicalValues.appList}/>'));
+ assert.ok(guide.includes('<GuideApplications value={technicalValues.appList}')); 
  assert.ok(guide.includes("String(value||'').split"));
  assert.ok(css.includes('.nb40-applications'));
 });
 test('Kiosk hero icon, heading icons and Values to confirm are absent while checklists remain',()=>{
- const page=guide.slice(guide.indexOf('return <section className="nb-guide-page nb40-guide-page"'),guide.indexOf('export function SystemCreate'));
+ const page=guide.slice(guide.indexOf('return <section className="nb-guide-page nb40-guide-page nb41-guide-page"'),guide.indexOf('export function SystemCreate'));
  assert.ok(!page.includes('Values to confirm'));
  assert.ok(!page.includes('fieldIcons[k]||Monitor'));
  assert.ok(page.includes('<h1>{editing?identity.name:sys.name}</h1>'));

@@ -7,6 +7,7 @@ import {clampWeekViewport,moveWeekViewport} from './week-navigation.mjs';
 import {weekHeaderTone} from './week-palette.mjs';
 import {setResult} from './model.mjs';
 import {guideTechnicalValues,DEVICE_TYPES} from './registry-metadata.mjs';
+import {guideReviewKey,loadGuideReview,changeGuideCheck,acceptGuideReviewStage} from './guide-review.mjs';
 import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
@@ -31,96 +32,173 @@ const GuideValue = ({value}: {value:any}) => {
  const text=String(value??'').trim();
  return <>{text && text!=='undefined' && text!=='null' ? text : 'Not specified'}</>;
 };
-const GuideDetailGroup = ({title,icon:Icon,fields}: {title:string,icon:any,fields:Array<[string,any]>}) =>
- <section className="nb40-detail-card" aria-label={title}>
-  <div className="nb40-detail-title"><span className="nb40-detail-icon" aria-hidden="true"><Icon size={27} strokeWidth={1.9}/></span><h3>{title}</h3></div>
-  <dl>{fields.map(([label,value])=><React.Fragment key={label}><dt>{label}</dt><dd><GuideValue value={value}/></dd></React.Fragment>)}</dl>
+/** The same three approved detail cards; individual fields turn into inputs in place. */
+const GuideDetailGroup = ({title,icon:Icon,fields,editing,onEdit,onSave,onCancel,isAdmin,saving}:any) =>
+ <section className={'nb40-detail-card'+(editing?' nb41-active-editor':'')} aria-label={title}>
+  <div className="nb40-detail-title"><span className="nb40-detail-icon" aria-hidden="true"><Icon size={27} strokeWidth={1.9}/></span><h3>{title}</h3>
+   {isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil" aria-label={'Edit '+title} title={'Edit '+title} onClick={onEdit}><Pencil size={16}/></button>}
+  </div>
+  <dl>{fields.map(([label,value,editor]:any)=><React.Fragment key={label}><dt>{label}</dt><dd>{editing?editor:<GuideValue value={value}/>}</dd></React.Fragment>)}</dl>
+  {editing&&<div className="nb41-inline-actions"><B primary disabled={saving} onClick={onSave}><Check size={15}/> Save</B><B disabled={saving} onClick={onCancel}>Cancel</B></div>}
  </section>;
-const GuideTechnicalReadout = ({values,owner}: {values:any,owner:string}) => {
+const GuideTechnicalReadout = ({values,owner,editingSection,isAdmin,field,ownerInput,identityName,onNameChange,documentationUrl,onDocumentationChange,onEdit,onSave,onCancel,saving}:any) => {
  const os=[values.os,values.osVersion].filter(Boolean).join(' ');
+ const common={isAdmin,onSave,onCancel,saving};
  return <div className="nb40-details-grid">
-   <GuideDetailGroup title="Device" icon={Monitor} fields={[["Endpoint",values.deviceType||values.deviceCategory],["OS",os],["Naming",values.namingConvention]]}/>
-   <GuideDetailGroup title="Network" icon={Network} fields={[["Connection",values.network],["VLAN",values.vlan],["IP scope",values.ipScope],["Reservation",values.ipReservation]]}/>
-   <GuideDetailGroup title="Access & management" icon={ShieldCheck} fields={[["Service account",values.serviceAccount],["Domain / OU",values.domainOU],["MDM / AirWatch",values.airWatchTags],["Owner",owner]]}/>
+   <GuideDetailGroup {...common} title="Device" icon={Monitor} editing={editingSection==='device'} onEdit={()=>onEdit('device')} fields={[
+    ["Endpoint",values.deviceType||values.deviceCategory,field('deviceType','Endpoint')],
+    ["OS",os,<div className="nb41-os-inputs" key="os">{field('os','Operating system',['Windows','Linux','iOS','iPadOS','Android','macOS','Other'])}{field('osVersion','OS version')}</div>],
+    ["Naming",values.namingConvention,field('namingConvention','Naming')],
+    ["Device type",values.deviceCategory,field('deviceCategory','Device type',DEVICE_TYPES)],
+    ["System name",'',<input aria-label="System name" value={identityName} onChange={e=>onNameChange(e.target.value)}/>]
+   ].filter((row:any)=>editingSection==='device'||!['Device type','System name'].includes(row[0]))}/>
+   <GuideDetailGroup {...common} title="Network" icon={Network} editing={editingSection==='network'} onEdit={()=>onEdit('network')} fields={[
+    ["Connection",values.network,field('network','Connection',['Wired','WiFi','Offline'])],["VLAN",values.vlan,field('vlan','VLAN')],
+    ["IP scope",values.ipScope,field('ipScope','IP scope')],["Reservation",values.ipReservation,field('ipReservation','Reservation')]]}/>
+   <GuideDetailGroup {...common} title="Access & management" icon={ShieldCheck} editing={editingSection==='access'} onEdit={()=>onEdit('access')} fields={[
+    ["Service account",values.serviceAccount,field('serviceAccount','Service account')],["Domain / OU",values.domainOU,field('domainOU','Domain / OU')],
+    ["MDM / AirWatch",values.airWatchTags,field('airWatchTags','MDM / AirWatch')],["Owner",owner,ownerInput],
+    ["Documentation URL",'',<input aria-label="Documentation URL" type="url" value={documentationUrl} onChange={e=>onDocumentationChange(e.target.value)}/>],
+    ["User account",'',field('userAccount','User account')],["Authentication",'',field('logonType','Authentication')]]
+    .filter((row:any)=>editingSection==='access'||!['Documentation URL','User account','Authentication'].includes(row[0]))}/>
   </div>;
 };
-const GuideApplications = ({value}:{value:any}) => {
+const GuideApplications = ({value,isAdmin,editing,onEdit,onSave,onCancel,onChange,saving}:any) => {
  const apps=String(value||'').split(/[,;\n\r]+/g).map(v=>v.trim()).filter(Boolean);
- return <section className="nb40-applications" aria-label="Applications">
+ return <section className={'nb40-applications'+(editing?' nb41-active-editor':'')} aria-label="Applications">
    <div className="nb40-apps-heading"><span className="nb40-apps-icon" aria-hidden="true"><LayoutGrid size={26} strokeWidth={2}/></span><div><h2>Applications</h2><p>{apps.length?'Required software':'No applications specified'}</p></div></div>
-   {apps.length>0 && <ul className="nb40-apps-list">{apps.map((name,i)=><li key={i}>{name}</li>)}</ul>}
+   {editing?<div className="nb41-apps-edit"><label htmlFor="nb41-apps-text">Applications · one per line</label><textarea id="nb41-apps-text" aria-label="Required applications" rows={4} value={String(value||'')} onChange={e=>onChange(e.target.value)}/><div className="nb41-inline-actions"><B primary disabled={saving} onClick={onSave}><Check size={15}/> Save</B><B disabled={saving} onClick={onCancel}>Cancel</B></div></div>
+   :apps.length>0&&<ul className="nb40-apps-list">{apps.map((name,i)=><li key={i}>{name}</li>)}</ul>}
+   {isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil nb41-apps-pencil" aria-label="Edit Applications" title="Edit applications" onClick={onEdit}><Pencil size={16}/></button>}
   </section>;
 };
-const TECH_EDIT_ROWS: Array<[string,string,(readonly string[])?]> = [
- ['deviceType','Hardware / model'],['deviceCategory','Device type',DEVICE_TYPES],
- ['os','Operating system',['Windows','Linux','iOS','iPadOS','Android','macOS','Other']],
- ['osVersion','OS version'],['network','Connection',['Wired','WiFi','Offline']],
- ['vlan','VLAN'],['ipScope','IP scope'],['ipReservation','IP reservation'],
- ['namingConvention','Naming convention'],['serviceAccount','Service account (no passwords)'],
- ['userAccount','User account'],['logonType','Authentication type'],
- ['domainOU','Domain / OU'],['airWatchTags','MDM / AirWatch'],['appList','Required applications'],
-];
+/** Section-scoped, spreadsheet-like editing with a separate Guide-verification checklist. */
 export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceId,initialStage,onNavigationChange,initialEdit=false,onDeleteSystem}:any){
- const [stage,setStage]=useState(initialStage||'configuration'),[deviceId]=useState(initialDeviceId||''),[technical,setTechnical]=useState(true),[message,setMessage]=useState('');const pending=useRef(false);
- const [editing,setEditing]=useState(!!initialEdit),[draft,setDraft]=useState<any>(()=>beginGuideEdit(sys)),[identity,setIdentity]=useState<any>(()=>guideIdentity(sys));
- const dirty=editing&&(JSON.stringify(draft)!==JSON.stringify(beginGuideEdit(sys))||JSON.stringify(identity)!==JSON.stringify(guideIdentity(sys)));
+ const [stage,setStage]=useState(initialStage||'configuration');
+ const [deviceId]=useState(initialDeviceId||'');
+ const [technical,setTechnical]=useState(true);
+ const [message,setMessage]=useState('');
+ const [editingSection,setEditingSection]=useState<string|null>(initialEdit?'device':null);
+ const [draft,setDraft]=useState<any>(()=>beginGuideEdit(sys));
+ const [identity,setIdentity]=useState<any>(()=>guideIdentity(sys));
+ const legacyLessons=()=>Array.isArray(sys.lessonsLearnedItems)?sys.lessonsLearnedItems:(sys.lessonsLearned?[{id:'legacy-lesson-'+sys.id,text:String(sys.lessonsLearned),checked:false}]:[]);
+ const [lessonDraft,setLessonDraft]=useState<any[]>(legacyLessons);
+ const [saving,setSaving]=useState(false);
+ const pending=useRef(false);
+ const device=(sys.devices||[]).find((d:any)=>d.id===deviceId);
+ const run=runFor(sys,device);
+ const guide=editingSection==='checklist'?draft:(run?.snapshot||beginGuideEdit(sys));
+ const guideKey=guideReviewKey(guide);
+ const savedReview=loadGuideReview(sys.guideReview,guide);
+ const [reviewDraft,setReviewDraft]=useState<any>(()=>savedReview);
+ const reviewDirty=!run&&JSON.stringify(reviewDraft)!==JSON.stringify(savedReview);
+ const sectionDirty=editingSection!==null&&(JSON.stringify(draft)!==JSON.stringify(beginGuideEdit(sys))||JSON.stringify(identity)!==JSON.stringify(guideIdentity(sys))||JSON.stringify(lessonDraft)!==JSON.stringify(legacyLessons()));
+ const dirty=sectionDirty||reviewDirty;
  useDirty(dirty);useUnsaved(dirty);
- const close=()=>{if(!dirty||confirm('Discard unsaved guide changes?'))onClose();};
- useEffect(()=>{const f=(e:KeyboardEvent)=>{if(e.key==='Escape')close();};window.addEventListener('keydown',f);return()=>window.removeEventListener('keydown',f);},[dirty,onClose]);
- const device=(sys.devices||[]).find((d:any)=>d.id===deviceId),run=runFor(sys,device),guide=editing?draft:(run?.snapshot||sys.guideDraft||sys.publishedGuide);
- const items=guide?.stages?.[stage]||[];const previewItems=guide?items:(sys.checkSheetData?.[stage]||[]);
- const technicalValues=editing?draft.technicalSnapshot:guideTechnicalValues(sys);
+ useEffect(()=>{if(!reviewDirty)setReviewDraft(loadGuideReview(sys.guideReview,guide));},[sys.guideReview,guideKey]);
+ const close=()=>{if(!dirty||confirm('Discard unsaved guide changes and checklist progress?'))onClose();};
+ useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape')close();};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[dirty,onClose]);
  const url=safeUrl(sys.documentationUrl);
- const update=async(next:any)=>{if(pending.current)return false;pending.current=true;try{await onUpdateSystem(next);setMessage('Saved in demo storage');return true;}catch(e:any){setMessage('Save failed: '+e.message);return false;}finally{pending.current=false;}};
+ const technicalValues=editingSection&&editingSection!=='lessons'?draft.technicalSnapshot:guideTechnicalValues(sys);
+ const owner=project.members.find((m:any)=>m.id===(editingSection==='access'?identity.assigneeId:sys.assigneeId))?.name||'Unassigned';
+ const items=guide?.stages?.[stage]||[];
+ const previewItems=items.length?items:(sys.checkSheetData?.[stage]||[]);
+ const reviewRun=run||{...reviewDraft,snapshot:guide};
+ const marked=previewItems.filter((item:any)=>reviewRun.checks?.[item.id]).length;
+ const update=async(next:any)=>{if(pending.current)return false;pending.current=true;setSaving(true);try{await onUpdateSystem(next);setMessage('Changes saved');return true;}catch(error:any){setMessage('Save failed: '+error.message);return false;}finally{pending.current=false;setSaving(false);}};
  const updateRun=(next:any)=>update({...sys,deviceRuns:[...(sys.deviceRuns||[]).filter((r:any)=>r.id!==next.id),next]});
- const owner=project.members.find((m:any)=>m.id===(editing?identity.assigneeId:sys.assigneeId))?.name||'Unassigned';
  const setTech=(key:string,value:string)=>setDraft((prev:any)=>({...prev,technicalSnapshot:{...prev.technicalSnapshot,[key]:value}}));
  const setMeta=(key:string,value:string)=>setIdentity((prev:any)=>({...prev,[key]:value}));
+ const inlineField=(key:string,label:string,options?:readonly string[])=>options?
+  <select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:
+  <input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>;
+ const ownerInput=<select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>;
+ const beginEdit=(section:string)=>{if(!isAdmin||editingSection)return;if(reviewDirty&&!confirm('Discard unsaved checklist progress?'))return;
+  setReviewDraft(savedReview);setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
+ };
+ const cancelEdit=()=>{if(sectionDirty&&!confirm('Discard unsaved section changes?'))return;setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setEditingSection(null);setMessage('');};
  const validateDetails=()=>{
   if(!identity.name.trim()){setMessage('System name is required.');return false;}
   if(identity.documentationUrl&&!safeUrl(identity.documentationUrl)){setMessage('Documentation URL must be a valid HTTPS link.');return false;}
-  if(technicalValues.os!==sys.os&&(sys.deviceRuns||[]).some((r:any)=>!r.archived)){setMessage('Platform changes require a new endpoint profile when device runs exist.');return false;}
+  if(draft.technicalSnapshot.os!==guideTechnicalValues(sys).os&&(sys.deviceRuns||[]).some((r:any)=>!r.archived)){setMessage('Platform changes require a new endpoint profile when device runs exist.');return false;}
   return true;
  };
  const updatedSystem=(guideChanges:any)=>({...sys,...guideChanges.technicalSnapshot,...identity,name:identity.name.trim(),description:identity.description,guideDraft:guideChanges});
- const saveDraft=async()=>{if(!validateDetails())return;if(await update(updatedSystem(draft)))setEditing(false);};
+ const saveSection=async()=>{if(!validateDetails())return;
+  if(editingSection==='checklist'){
+   const errors=validateGuide({...sys,os:draft.technicalSnapshot.os},draft);
+   if(errors.length){setMessage(errors.join('; '));return;}
+  }
+  const next=editingSection==='lessons'?{...sys,lessonsLearnedItems:lessonDraft.map(i=>({...i,text:i.text.trim()})).filter(i=>i.text),lessonsLearned:lessonDraft.map(i=>i.text.trim()).filter(Boolean).join('\n\n')}:updatedSystem(draft);
+  if(await update(next))setEditingSection(null);
+ };
  const publish=async()=>{
   if(!validateDetails())return;
-  const errors=validateGuide({...sys,os:technicalValues.os},draft);if(errors.length){setMessage(errors.join('; '));return;}
-  if(!confirm('Publish a new local guide version? Existing device runs keep their original guide snapshot and completion.'))return;
-  const next={...draft,platform:technicalValues.os,version:(sys.publishedGuide?.version||0)+1,publishedAt:new Date().toISOString(),publishedBy:'local-demo',technicalSnapshot:{...draft.technicalSnapshot},valueStates:sys.valueStates||{}};
-  if(await update({...updatedSystem(next),publishedGuide:next,guideDraft:null})){setDraft(next);setEditing(false);}
+  const errors=validateGuide({...sys,os:draft.technicalSnapshot.os},draft);
+  if(errors.length){setMessage(errors.join('; '));return;}
+  if(!confirm('Publish a reviewed guide version? Existing device runs keep their snapshots. Saved guide checklist verification will reset when steps change.'))return;
+  const next={...draft,platform:draft.technicalSnapshot.os,version:(sys.publishedGuide?.version||0)+1,publishedAt:new Date().toISOString(),publishedBy:'local-demo',technicalSnapshot:{...draft.technicalSnapshot},valueStates:sys.valueStates||{}};
+  if(await update({...updatedSystem(next),publishedGuide:next,guideDraft:null})){setDraft(next);setEditingSection(null);}
  };
- const editGuide=()=>{setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setTechnical(true);setMessage('');setEditing(true);};
- const abortEdit=()=>{if(!dirty||confirm('Discard unsaved guide changes?')){setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setEditing(false);setMessage('');}};
- const guideInput=(key:string,label:string,options?:readonly string[])=> <label key={key} className="nb-guide-input"><span>{label}</span>{options?<select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:key==='appList'?<textarea aria-label={label} rows={2} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>:<input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)} />}</label>;
- return <section className="nb-guide-page nb40-guide-page"><header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}{isAdmin&&!editing&&<B onClick={editGuide}>Edit guide</B>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
- <div className="nb-guide-body">
- <section className="nb-technical"><button className="nb-section-toggle" onClick={()=>setTechnical(!technical)} aria-expanded={technical}><span>Technical essentials</span> <span>{technical?'Collapse':'Expand'}</span></button>{technical&&(editing?<div className="nb-guide-inline-editor">
- <div className="nb-guide-identity-edit">
-  <label className="nb-guide-input"><span>System name</span><input aria-label="System name" value={identity.name} onChange={e=>setMeta('name',e.target.value)}/></label>
-  <label className="nb-guide-input"><span>Deployment owner</span><select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((member:any)=><option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-  <label className="nb-guide-input nb-guide-wide"><span>Description</span><textarea aria-label="Description" rows={2} value={identity.description} onChange={e=>setMeta('description',e.target.value)}/></label>
- </div>
- <div className="nb-guide-tech-fields">{TECH_EDIT_ROWS.map(([key,label,options])=>guideInput(key,label,options))}</div>
- <div className="nb-guide-identity-edit nb-guide-secondary-fields">
-  <label className="nb-guide-input"><span>Documentation URL (HTTPS)</span><input aria-label="Documentation URL" value={identity.documentationUrl} onChange={e=>setMeta('documentationUrl',e.target.value)}/></label>
-  <label className="nb-guide-input nb-guide-wide"><span>Lessons Learned</span><textarea aria-label="Lessons Learned" rows={2} value={identity.lessonsLearned} onChange={e=>setMeta('lessonsLearned',e.target.value)}/></label>
- </div>
- <div className="nb-guide-edit-actions"><B primary onClick={saveDraft}>Save guide changes</B><B onClick={abortEdit}>Cancel</B><span>Changes are saved to this system's guide; no separate profile editor.</span></div>
- </div>:<GuideTechnicalReadout values={technicalValues} owner={owner}/>)}</section>
- {!editing&&<GuideApplications value={technicalValues.appList}/>}
- {!editing&&<details className={'nb-lessons '+(!sys.lessonsLearned?'nb-neutral':'')}><summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {sys.lessonsLearned?'Notes available':'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary><p className="nb-note">{sys.lessonsLearned||'No lessons learned have been added.'}</p></details>}
- {editing&&<p className="nb-notice">Draft only. Review platform applicability before publishing. This is local workflow validation, not corporate approval.</p>}
- <section className="nb-config-workspace" aria-label="Configuration checklists"><div className="nb-config-header"><h2>Configuration checklist</h2><span>{run?Object.values(run.checks||{}).filter(Boolean).length+' steps completed':'Device completion not recorded'}</span></div>
- <div className="nb-stage-tabs" role="group" aria-label="Configuration stages">{STAGES.map((s:string,i:number)=><button type="button" aria-pressed={stage===s} className={stage===s?'selected':''} key={s} onClick={()=>{setStage(s);onNavigationChange?.({deviceId,stage:s});}}><span>{i+1}</span>{LABELS[s]}{run?.accepted?.[s]?' ✓':''}</button>)}</div>
- {guide?.preparationEnabled&&<details className="nb-panel"><summary>0 Preparation · Optional</summary>{(guide.preparationItems||[]).map((item:any)=><label className="nb-check-row" key={item.id}><input type="checkbox" disabled={!isAdmin||!run||editing} checked={!!run?.checks?.[item.id]} onChange={e=>updateRun({...run,checks:{...run.checks,[item.id]:e.target.checked}})}/>{item.label}</label>)}</details>}
- {isAdmin&&<Migration sys={sys} run={run} onSave={update}/>}
- <section className="nb-checklist"><div className="nb-section-heading"><h2>{LABELS[stage]}</h2><span>{run?items.filter((i:any)=>run.checks[i.id]).length+' / '+items.length+' completed':'Preview · no completion recorded'}</span></div>{previewItems.length===0&&<p className="nb-empty">No reviewed steps in this stage.</p>}{previewItems.map((item:any,i:number)=><div className="nb-check-row" key={item.id}>{editing?<><input aria-label={'Step '+(i+1)} value={item.label} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,label:e.target.value}:x)}})}/><label><input type="checkbox" checked={item.required!==false} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,required:e.target.checked}:x)}})}/>Required</label><label><input type="checkbox" checked={!!item.allowNA} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,allowNA:e.target.checked}:x)}})}/>Allow N/A</label><label><input type="checkbox" checked={!!item.evidenceRequired} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,evidenceRequired:e.target.checked}:x)}})}/>Evidence required</label><B disabled={i===0} onClick={()=>{const reordered=[...items];[reordered[i-1],reordered[i]]=[reordered[i],reordered[i-1]];setDraft({...draft,stages:{...draft.stages,[stage]:reordered}});}}>Move up</B><B onClick={()=>setDraft({...draft,stages:{...draft.stages,[stage]:items.filter((x:any)=>x.id!==item.id)}})}>Remove</B></>:<label><input type="checkbox" checked={!!run?.checks?.[item.id]} disabled={!isAdmin||!run||!STAGES.slice(0,STAGES.indexOf(stage)).every(s=>!!run.accepted?.[s])} onChange={e=>{if(run.accepted?.[stage]&&!confirm('Changing this accepted stage reopens it and all later stages. Continue?'))return;updateRun(setCheck(run,stage,item.id,e.target.checked));}}/><span>{item.label}<small>{!guide?'Legacy preview · Not recorded':item.required===false?'Optional':'Required'}</small></span></label>}{!editing&&run&&<details className="nb-result-details"><summary>Result details</summary><p>{run.results?.[item.id]?.state||'pending'}{run.results?.[item.id]?.reason?' · '+run.results[item.id].reason:''}</p><p>{run.results?.[item.id]?.evidenceReference||'No evidence reference'}</p>{isAdmin&&<B onClick={()=>{const evidence=prompt('Evidence reference (text only, no upload)',run.results?.[item.id]?.evidenceReference||'');if(evidence===null)return;const reason=item.allowNA?prompt('N/A reason, or leave empty for completed',run.results?.[item.id]?.reason||''):'';if(reason===null)return;try{updateRun(setResult(run,stage,item.id,{state:reason?.trim()?'not_applicable':run.checks[item.id]?'completed':'pending',reason:reason||'',evidenceReference:evidence}));}catch(e:any){setMessage(e.message);}}}>Record evidence / N/A</B>}</details>}</div>)}
- {editing&&<details className="nb-panel"><summary>Preparation settings · optional</summary><label><input type="checkbox" checked={!!draft.preparationEnabled} onChange={e=>setDraft({...draft,preparationEnabled:e.target.checked})}/> Enable Preparation</label>{draft.preparationEnabled&&<><textarea aria-label="Preparation items, one per line" value={(draft.preparationItems||[]).map((i:any)=>i.label).join('\n')} onChange={e=>setDraft({...draft,preparationItems:e.target.value.split('\n').map((label:string,i:number)=>({id:draft.preparationItems?.[i]?.id||uid(),label,required:false}))})}/><p>Optional preparation never blocks Base acceptance.</p></>}</details>}
- {editing?<div className="nb-toolbar"><B onClick={()=>setDraft({...draft,stages:{...draft.stages,[stage]:[...items,{id:uid(),label:'',required:true}]}})}>Add step</B><B onClick={saveDraft}>Save draft</B><B primary onClick={publish}>Publish reviewed version</B><B onClick={abortEdit}>Cancel</B>{onDeleteSystem&&<B className="nb-guide-delete-btn" onClick={()=>{if(confirm('Delete this system AND its entire device and guide history? This cannot be undone. Export a backup first.'))onDeleteSystem(sys.id);}}>Delete system</B>}</div>:<div className="nb-guide-footer"><B disabled={stage===STAGES[0]} onClick={()=>{const next=STAGES[STAGES.indexOf(stage)-1];setStage(next);onNavigationChange?.({deviceId,stage:next});}}>Previous stage</B><B primary disabled={!isAdmin||!run||!canAccept(run,stage)} onClick={async()=>{const saved=await updateRun(acceptStage(run,stage));if(saved){const n=STAGES.indexOf(stage);if(n<2){setStage(STAGES[n+1]);onNavigationChange?.({deviceId,stage:STAGES[n+1]});}}}}>Accept {LABELS[stage]}{stage!==STAGES[2]?' and continue':''}</B></div>}</section>
- </section>
- <p role="status" className="nb-save-state">{message}</p></div></section>;
+ const persistReview=async(next=reviewDraft)=>{const normalized=loadGuideReview(next,guide);if(await update({...sys,guideReview:normalized})){setReviewDraft(normalized);return true;}return false;};
+ const markCheck=async(item:any,value:boolean)=>{
+  try{
+   if(reviewRun.accepted?.[stage]&&!confirm('This stage was accepted. Reopen this and later stages?'))return;
+   if(run){await updateRun(setCheck(run,stage,item.id,value));}
+   else{setReviewDraft(changeGuideCheck(reviewDraft,guide,stage,item.id,value));setMessage('Unsaved checklist changes');}
+  }catch(error:any){setMessage(error.message);}
+ };
+ const acceptCurrentStage=async()=>{try{
+  if(run){const didSave=await updateRun(acceptStage(run,stage));if(!didSave)return;}
+  else{const next=acceptGuideReviewStage(reviewDraft,guide,stage);if(!await persistReview(next))return;}
+  const index=STAGES.indexOf(stage);if(index<STAGES.length-1){setStage(STAGES[index+1]);onNavigationChange?.({deviceId,stage:STAGES[index+1]});}
+ }catch(error:any){setMessage(error.message);}};
+ const displayedLessons=Array.isArray(sys.lessonsLearnedItems)?sys.lessonsLearnedItems:legacyLessons();
+ const toggleLesson=async(id:string,checked:boolean)=>{const next=displayedLessons.map((item:any)=>item.id===id?{...item,checked}:item);await update({...sys,lessonsLearnedItems:next});};
+ const editControls=(section:string)=>editingSection===section?<div className="nb41-inline-actions"><B primary disabled={saving} onClick={saveSection}><Check size={15}/> Save</B><B disabled={saving} onClick={cancelEdit}>Cancel</B></div>:null;
+ const editing=!!editingSection;
+ return <section className="nb-guide-page nb40-guide-page nb41-guide-page">
+  <header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
+  <div className="nb-guide-body">
+   <section className="nb-technical">
+    <button type="button" className="nb-section-toggle" onClick={()=>setTechnical(v=>!v)} aria-expanded={technical}><span>Technical essentials</span><span>{technical?'Collapse':'Expand'}</span></button>
+    {technical&&<GuideTechnicalReadout values={technicalValues} owner={owner} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} ownerInput={ownerInput} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
+   </section>
+   <GuideApplications value={technicalValues.appList} isAdmin={isAdmin&&!editing} editing={editingSection==='applications'} onEdit={()=>beginEdit('applications')} onChange={(v:string)=>setTech('appList',v)} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
+   <details className={'nb-lessons nb41-lessons '+(!displayedLessons.length?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
+    <summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {displayedLessons.length?`${displayedLessons.length} lesson${displayedLessons.length===1?'':'s'}`:'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary>
+    <div className="nb41-lessons-body">
+    {editingSection==='lessons'?<>
+     {lessonDraft.map((item:any,i:number)=><div key={item.id} className="nb41-lesson-edit-row"><label className="nb41-lesson-check"><input type="checkbox" checked={!!item.checked} onChange={e=>setLessonDraft(prev=>prev.map(v=>v.id===item.id?{...v,checked:e.target.checked}:v))}/><span>Completed</span></label><textarea aria-label={'Lesson '+(i+1)+' description'} placeholder="Describe the lesson, impact and recommended action..." rows={4} value={item.text} onChange={e=>setLessonDraft(prev=>prev.map(v=>v.id===item.id?{...v,text:e.target.value}:v))}/><button type="button" className="nb41-delete-step" aria-label={'Remove lesson '+(i+1)} onClick={()=>setLessonDraft(prev=>prev.filter(v=>v.id!==item.id))}><Trash2 size={17}/></button></div>)}
+     <div className="nb41-lesson-bottom"><B onClick={()=>setLessonDraft(prev=>[...prev,{id:uid(),text:'',checked:false}])}><Plus size={15}/> Add lesson</B>{editControls('lessons')}</div>
+    </>:displayedLessons.length?<ul className="nb41-lesson-list">{displayedLessons.map((item:any)=><li key={item.id}><label><input type="checkbox" aria-label={'Complete lesson '+item.id} disabled={!isAdmin||saving||!!editingSection} checked={!!item.checked} onChange={e=>toggleLesson(item.id,e.target.checked)}/><span className={item.checked?'nb41-lesson-done':''}>{item.text}</span></label></li>)}</ul>:<p className="nb-note">No lessons learned have been added.</p>}
+    </div>
+    {isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil nb41-lesson-pencil" aria-label="Edit Lessons Learned" title="Edit lessons" onClick={()=>beginEdit('lessons')}><Pencil size={16}/></button>}
+   </details>
+   <section className="nb-config-workspace" aria-label="Configuration checklists">
+    <div className="nb-config-header"><h2>Configuration checklist</h2><div className="nb41-config-tools"><span>{run?'Device verification': 'Guide verification'} · {marked} / {previewItems.length} checked</span>{isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil" title="Edit checklist steps" aria-label="Edit Configuration Checklist" onClick={()=>beginEdit('checklist')}><Pencil size={16}/></button>}</div></div>
+    <div className="nb-stage-tabs nb41-stage-arrows" role="group" aria-label="Configuration stages">{STAGES.map((s:string,i:number)=><button type="button" aria-pressed={stage===s} className={stage===s?'selected':''} key={s} onClick={()=>{setStage(s);onNavigationChange?.({deviceId,stage:s});}}><span>{i+1}</span>{LABELS[s]}{reviewRun?.accepted?.[s]?' ✓':''}</button>)}</div>
+    {guide?.preparationEnabled&&<details className="nb-panel"><summary>0 Preparation · Optional</summary>{(guide.preparationItems||[]).map((item:any)=><label className="nb-check-row" key={item.id}><input type="checkbox" disabled={!isAdmin||!run||editing} checked={!!run?.checks?.[item.id]} onChange={e=>updateRun({...run,checks:{...run.checks,[item.id]:e.target.checked}})}/>{item.label}</label>)}</details>}
+    {isAdmin&&<Migration sys={sys} run={run} onSave={update}/>}
+    <section className="nb-checklist">
+      <div className="nb-section-heading"><h2>{LABELS[stage]}</h2><span>{marked} / {previewItems.length} checked</span></div>
+      {previewItems.length===0&&<p className="nb-empty">No reviewed steps in this stage. Use the pencil icon to add steps.</p>}
+      {previewItems.map((item:any,i:number)=><div className={'nb-check-row'+(editingSection==='checklist'?' nb41-step-editor':'')} key={item.id}>
+        {editingSection==='checklist'?<><input aria-label={'Step '+(i+1)} value={item.label} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,label:e.target.value}:x)}})}/><label><input type="checkbox" checked={item.required!==false} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,required:e.target.checked}:x)}})}/>Required</label><label><input type="checkbox" checked={!!item.allowNA} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,allowNA:e.target.checked}:x)}})}/>Allow N/A</label><label><input type="checkbox" checked={!!item.evidenceRequired} onChange={e=>setDraft({...draft,stages:{...draft.stages,[stage]:items.map((x:any)=>x.id===item.id?{...x,evidenceRequired:e.target.checked}:x)}})}/>Evidence</label><B disabled={i===0} onClick={()=>{const reordered=[...items];[reordered[i-1],reordered[i]]=[reordered[i],reordered[i-1]];setDraft({...draft,stages:{...draft.stages,[stage]:reordered}});}}>↑</B><B aria-label={'Remove step '+(i+1)} onClick={()=>setDraft({...draft,stages:{...draft.stages,[stage]:items.filter((x:any)=>x.id!==item.id)}})}><Trash2 size={15}/></B></>:
+        <label className="nb41-check-label"><input type="checkbox" aria-label={item.label} checked={!!reviewRun.checks?.[item.id]} disabled={!isAdmin||saving||!!editingSection||!STAGES.slice(0,STAGES.indexOf(stage)).every(s=>!!reviewRun.accepted?.[s])} onChange={e=>markCheck(item,e.target.checked)}/><span>{item.label}<small>{item.required===false?'Optional':''}</small></span></label>}
+        {editingSection!=='checklist'&&run&&<details className="nb-result-details"><summary>Result details</summary><p>{run.results?.[item.id]?.state||'pending'}{run.results?.[item.id]?.reason?' · '+run.results[item.id].reason:''}</p><p>{run.results?.[item.id]?.evidenceReference||'No evidence reference'}</p>{isAdmin&&<B onClick={()=>{const evidence=prompt('Evidence reference (text only, no upload)',run.results?.[item.id]?.evidenceReference||'');if(evidence===null)return;const reason=item.allowNA?prompt('N/A reason, or leave empty for completed',run.results?.[item.id]?.reason||''):'';if(reason===null)return;try{updateRun(setResult(run,stage,item.id,{state:reason?.trim()?'not_applicable':run.checks[item.id]?'completed':'pending',reason:reason||'',evidenceReference:evidence}));}catch(e:any){setMessage(e.message);}}}>Record evidence / N/A</B>}</details>}
+       </div>)}
+      {editingSection==='checklist'&&<>
+       <div className="nb41-check-edit-footer"><B onClick={()=>setDraft({...draft,stages:{...draft.stages,[stage]:[...items,{id:uid(),label:'',required:true}]}})}><Plus size={15}/> Add step</B>{editControls('checklist')}<B disabled={saving} onClick={publish}>Publish reviewed guide</B></div>
+       <details className="nb-panel"><summary>Preparation settings · optional</summary><label><input type="checkbox" checked={!!draft.preparationEnabled} onChange={e=>setDraft({...draft,preparationEnabled:e.target.checked})}/> Enable Preparation</label>{draft.preparationEnabled&&<textarea aria-label="Preparation items, one per line" value={(draft.preparationItems||[]).map((i:any)=>i.label).join('\n')} onChange={e=>setDraft({...draft,preparationItems:e.target.value.split('\n').map((label:string,i:number)=>({id:draft.preparationItems?.[i]?.id||uid(),label,required:false}))})}/>}</details>
+       {onDeleteSystem&&<details className="nb41-destructive"><summary>Advanced</summary><B className="nb-guide-delete-btn" onClick={()=>{if(confirm('Delete this system AND its entire device and guide history? This cannot be undone. Export a backup first.'))onDeleteSystem(sys.id);}}>Delete system</B></details>}
+      </>}
+      {editingSection!=='checklist'&&<div className="nb-guide-footer"><B disabled={stage===STAGES[0]} onClick={()=>{const next=STAGES[STAGES.indexOf(stage)-1];setStage(next);onNavigationChange?.({deviceId,stage:next});}}><ChevronLeft size={16}/> Previous stage</B><div className="nb41-check-save-actions">{!run&&<B disabled={!isAdmin||!reviewDirty||saving||!!editingSection} onClick={()=>persistReview()}>Save checks</B>}<B primary disabled={!isAdmin||saving||!!editingSection||!canAccept(reviewRun,stage)} onClick={acceptCurrentStage}>Accept {LABELS[stage]}{stage!==STAGES[2]?' and continue':''} <ChevronRight size={16}/></B></div></div>}
+    </section>
+   </section>
+   <p role="status" className="nb-save-state">{message}</p>
+  </div>
+ </section>;
 }
 /** The only non-guide form: minimal creation of a new system. All technical
  * information is subsequently maintained through Guide > Edit guide. */

@@ -1,0 +1,73 @@
+/* NBDT v0.6.41 — scoped inline Guide editing / accurate connected chevrons. */
+.nb41-guide-page .nb40-detail-card,.nb41-guide-page .nb40-applications,.nb41-guide-page .nb-lessons{position:relative}
+.nb41-guide-page .nb40-detail-title{padding-right:28px}
+.nb41-edit-pencil{margin-left:auto;flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid transparent;border-radius:8px;color:#0872e8;background:transparent;transition:background .15s,border .15s}
+.nb41-edit-pencil:hover,.nb41-edit-pencil:focus-visible{background:#eaf4ff;border-color:#c7e1ff}
+.nb41-guide-page .nb40-detail-card dl dd>input,.nb41-guide-page .nb40-detail-card dl dd>select,.nb41-os-inputs input,.nb41-os-inputs select,.nb41-apps-edit textarea{width:100%;min-width:0;max-width:100%;min-height:31px;padding:6px 9px;border:1px solid #bcd9fa;border-radius:7px;background:#fff;color:#142956;font-size:13px;line-height:1.35}
+.nb41-os-inputs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:5px}
+.nb41-active-editor{outline:2px solid #b8ddff;outline-offset:0;background:#fbfdff!important}
+.nb41-inline-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nb41-inline-actions .nb-button{min-height:33px;padding:6px 11px;font-size:12px;border:1px solid #d4e6fa;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;color:#356091}
+.nb41-inline-actions .nb-button.nb-primary{background:#086bf0;color:#fff;border-color:#086bf0}
+.nb41-detail-card .nb41-inline-actions,.nb40-detail-card .nb41-inline-actions{margin-top:16px;justify-content:flex-end}
+.nb41-guide-page .nb40-applications{padding-right:56px}
+.nb41-apps-pencil{position:absolute;top:18px;right:14px;color:#7230d2}
+.nb41-apps-pencil:hover{background:#f0e4ff;border-color:#e3d4ff}
+.nb41-apps-edit{min-width:0;display:flex;flex-direction:column;gap:9px;padding-left:25px}
+.nb41-apps-edit label{font-size:12px;color:#9169c2;font-weight:550}
+.nb41-apps-edit textarea{min-height:95px;resize:vertical;color:#5218aa;border-color:#d8c3fb}
+.nb41-apps-edit .nb41-inline-actions{justify-content:flex-end}
+.nb41-guide-page .nb-lessons{position:relative}
+.nb41-guide-page .nb-lessons summary{padding-right:87px}
+.nb41-lesson-pencil{position:absolute;right:49px;top:11px;color:#ed751d}
+.nb41-lesson-pencil:hover{background:#fff0df;border-color:#ffd6af}
+.nb41-guide-page .nb-lessons summary .nb-lessons-chevron{margin-left:auto;position:absolute;right:17px;top:17px}
+.nb41-lessons-body{padding:1px 18px 15px 49px}
+.nb41-lesson-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.nb41-lesson-list li{padding:12px 13px;background:#fff;border:1px solid #ffe1c3;border-radius:9px}
+.nb41-lesson-list li label{display:flex;gap:12px;align-items:flex-start;color:#3f3850;font-size:13px;line-height:1.55}
+.nb41-lesson-list li input,.nb41-lesson-check input{width:19px;height:19px;min-width:19px;accent-color:#f28b31;flex:none;cursor:pointer}
+.nb41-lesson-list li span{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;flex:1}
+.nb41-lesson-done{opacity:.66}
+.nb41-lesson-edit-row{display:grid;grid-template-columns:106px minmax(0,1fr) 31px;gap:12px;align-items:start;padding:10px 0;border-bottom:1px solid #ffdfbf}
+.nb41-lesson-check{display:flex;flex-direction:column;gap:7px;align-items:flex-start;color:#a46d39;font-size:12px}
+.nb41-lesson-edit-row textarea{width:100%;min-height:100px;resize:vertical;max-width:100%;font-size:13px;line-height:1.55;color:#323455;background:#fff;border-color:#ffdfbf}
+.nb41-delete-step{display:grid;place-items:center;width:31px;height:31px;border:0;border-radius:7px;background:#fff2e7;color:#ad6c43}
+.nb41-delete-step:hover{background:#ffe3d2;color:#9d3928}
+.nb41-lesson-bottom{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.nb41-lesson-bottom>.nb-button,.nb41-check-edit-footer>.nb-button{display:flex;align-items:center;gap:6px}
+.nb41-config-tools{display:flex;align-items:center;justify-content:flex-end;gap:10px;color:#7d8bbb;font-size:12px;text-align:right}
+.nb41-guide-page .nb-config-header>div .nb41-edit-pencil{margin-left:4px}
+/* Stages are full, clipped chevrons — no rotated-square diamonds. The white
+   4px transition is produced by white panel background between solid shapes. */
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows{display:flex;align-items:stretch;gap:0;isolation:isolate;overflow:visible;border-radius:9px;max-width:100%;margin:0 2px 12px 0;background:#fff}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button{flex:1 1 0;min-width:0;width:auto;height:55px;position:relative;z-index:1;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:15px;overflow:hidden;text-align:left!important;border:none!important;border-radius:0!important;box-shadow:none!important;white-space:normal;background:#e6f3ff;color:#101b4d;padding:7px 16px 7px 34px;font-size:13px;font-weight:680;clip-path:polygon(0 0,calc(100% - 25px) 0,100% 50%,calc(100% - 25px) 100%,0 100%,25px 50%)}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:first-child{padding-left:35px;border-radius:8px 0 0 8px!important;clip-path:polygon(0 0,calc(100% - 25px) 0,100% 50%,calc(100% - 25px) 100%,0 100%)}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:last-child{border-radius:0 8px 8px 0!important;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,25px 50%)}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button+button{margin-left:-14px;padding-left:39px}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:not(:last-child)::after{display:none!important;content:none!important}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button.selected,.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button[aria-pressed="true"]{background:linear-gradient(180deg,#198dff,#0066ed);color:#fff;z-index:2}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button span{background:#fff;border:2px solid #0972f5;border-radius:50%;width:35px;height:35px;min-width:35px;font-size:17px}
+.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:hover:not(.selected){background:#d6eaff}
+.nb41-guide-page .nb-check-row .nb41-check-label{display:flex;min-height:25px;width:100%;flex:1;align-items:center;gap:14px}
+.nb41-guide-page .nb-check-row .nb41-check-label input{cursor:pointer}
+.nb41-guide-page .nb-check-row .nb41-check-label:has(input:disabled) input{cursor:not-allowed}
+.nb41-guide-page .nb-check-row .nb41-check-label small:empty{display:none}
+.nb41-guide-page .nb-config-workspace .nb41-check-save-actions{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.nb41-guide-page .nb-guide-footer .nb41-check-save-actions .nb-button{display:inline-flex;align-items:center;gap:6px}
+.nb41-guide-page .nb-check-row.nb41-step-editor{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px}
+.nb41-guide-page .nb-check-row.nb41-step-editor>input{flex:1 1 210px;min-width:160px;min-height:32px;padding:5px 8px;font-size:13px}
+.nb41-guide-page .nb-check-row.nb41-step-editor>label{flex:0 0 auto;display:flex;gap:5px;align-items:center;font-size:12px;min-height:32px}
+.nb41-guide-page .nb-check-row.nb41-step-editor label input{height:17px;width:17px;min-width:17px}
+.nb41-guide-page .nb-check-row.nb41-step-editor>.nb-button{font-size:12px;padding:5px 8px;min-height:31px}
+.nb41-check-edit-footer{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;padding:13px 0}
+.nb41-check-edit-footer .nb41-inline-actions{margin-left:auto}
+.nb41-destructive{padding-top:12px;color:#7890ad;font-size:12px}
+.nb41-destructive summary{cursor:pointer}
+.nb41-card-description-edit{border-radius:9px;border:1px solid #cddff5;background:#f0f8ff;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:120px;margin-top:10px}
+.nb41-card-description-edit label{font-size:12px;color:#5376a3;font-weight:650}
+.nb41-card-description-edit textarea{width:100%;resize:vertical;font-size:13px;line-height:1.45;min-height:80px;background:#fff;color:#18365b}
+.nb41-card-description-edit [role="alert"]{font-size:12px;color:#c33b44}
+.nb41-card-description-edit .nb41-inline-actions{justify-content:flex-end}
+@media(max-width:900px){.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button{font-size:12px;gap:8px;padding-left:25px}.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button+button{padding-left:32px}.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button span{width:30px;height:30px;min-width:30px;font-size:14px}.nb41-lesson-edit-row{grid-template-columns:72px minmax(0,1fr) 29px;gap:8px}}
+@media(max-width:610px){.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows{display:flex;flex-direction:column;gap:5px}.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button,.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:first-child,.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button:last-child{flex:auto;margin:0;width:100%;min-height:48px;height:auto;border-radius:7px!important;clip-path:none;padding:8px 14px;font-size:12px}.nb41-guide-page .nb-stage-tabs.nb41-stage-arrows button+button{margin-left:0;padding-left:14px}.nb41-apps-edit{padding-left:0}.nb41-lesson-edit-row{grid-template-columns:1fr 32px}.nb41-lesson-check{grid-column:1/-1;flex-direction:row}.nb41-lessons-body{padding-left:14px}.nb41-guide-page .nb-check-row.nb41-step-editor>label{flex:1 0 35%}.nb41-guide-page .nb-config-header{align-items:center}}

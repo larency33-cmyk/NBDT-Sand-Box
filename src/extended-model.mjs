@@ -7,7 +7,7 @@ export function mergeProfile(system,next){
  const otherRuns=(system.deviceRuns||[]).filter(r=>r.profileId!==next.id);
  const inventory={devices:[...otherDevices,...(next.devices||[])],deviceRuns:[...otherRuns,...(next.deviceRuns||[])]};
  if(next.id===system.id)return {...system,...next,id:system.id,name:next.name?.trim()||system.name,...inventory};
- const keys=[...TECH_FIELDS,'publishedGuide','guideDraft','valueStates','description','documentationUrl'];
+ const keys=[...TECH_FIELDS,'publishedGuide','guideDraft','valueStates','description','documentationUrl','lessonsLearnedItems','guideReview'];
  const changed=Object.fromEntries(keys.filter(k=>k in next).map(k=>[k,next[k]]));
  return {...system,endpointProfiles:(system.endpointProfiles||[]).map(p=>p.id===next.id?{...p,...changed,name:next.profileName||p.name}:p),...inventory};
 }

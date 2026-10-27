@@ -21,7 +21,7 @@ export function registryCardFields(system) {
     network: text(source.network) || '—',
     naming: text(source.namingConvention) || '—',
     category: text(source.deviceCategory) || text(system?.deviceCategory) || '',
-    description: text(system?.description) || text(system?.documentation) || '',
+    description: text(system?.description) || '',
   };
 }
 

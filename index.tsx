@@ -23,6 +23,7 @@ import './configuration-report-editable-v032.css';
 import './configuration-report-inline-v033.css';
 import './issue-tracker-v034.css';
 import './guide-approved-v040.css';
+import './guide-interactive-v041.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
@@ -1179,7 +1180,18 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
-const SystemRegistryCard = ({sys, project, isAdmin, openGuideForEdit, setActiveCheckSheetSys}: any) => {
+const SystemRegistryCard = ({sys, project, isAdmin, onUpdateDescription, setActiveCheckSheetSys}: any) => {
+  const [editingDescription,setEditingDescription]=useState(false);
+  const [descriptionDraft,setDescriptionDraft]=useState(String(sys.description||''));
+  const [descriptionSaving,setDescriptionSaving]=useState(false);
+  const [descriptionError,setDescriptionError]=useState('');
+  const saveDescription=async()=>{
+    setDescriptionSaving(true);setDescriptionError('');
+    try{await onUpdateDescription(sys.id,descriptionDraft);setEditingDescription(false);}
+    catch(error:any){setDescriptionError(error?.message||'Unable to save description');}
+    finally{setDescriptionSaving(false);}
+  };
+
   const url = safeDocumentationUrl(sys.documentationUrl);
   const fields = registryCardFields(sys);
   const visualType = registryVisualType(sys);
@@ -1189,10 +1201,15 @@ const SystemRegistryCard = ({sys, project, isAdmin, openGuideForEdit, setActiveC
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
-      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit ${sys.name}`} onClick={()=>openGuideForEdit(sys)}><Edit2 size={16}/></button>}
+      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setEditingDescription(true);}}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
-    <ExpandableRegistryDescription text={description} tone={tone} />
+    {editingDescription?<div className="nb41-card-description-edit">
+      <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
+      <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
+      {descriptionError&&<span role="alert">{descriptionError}</span>}
+      <div className="nb41-inline-actions"><button type="button" disabled={descriptionSaving} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button><button type="button" className="nb-button" disabled={descriptionSaving} onClick={()=>setEditingDescription(false)}>Cancel</button></div>
+    </div>:<ExpandableRegistryDescription text={description} tone={tone} />}
     <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
   </article>;
 };
@@ -2886,7 +2903,7 @@ const App = () => {
               {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
             <div className="nb-registry-meta-row">{filteredSystems.length>0 && <p className="nb-registry-inline-summary">Showing {Math.max(0, Math.min((systemPage + 1) * 6, filteredSystems.length) - systemPage * 6)} of {filteredSystems.length} systems</p>}</div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} openGuideForEdit={openGuideForEdit} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.slice(systemPage*6,systemPage*6+6).map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             <footer className="nb-registry-pagination">
               <p>{filteredSystems.length?`Showing ${systemPage*6+1}–${Math.min((systemPage+1)*6,filteredSystems.length)} of ${filteredSystems.length} systems`:'Showing 0 systems'}</p>
