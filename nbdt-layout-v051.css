@@ -1,0 +1,123 @@
+/* NBDT v0.6.51 — persistent navigation and filters on System Registry and
+   Configuration Report.  Only the system card grid or report rows scroll.
+   These rules are scoped to the two requested top-level screens: guides,
+   editors, Weekly Tracker, and the sidebar retain their existing behavior. */
+
+/* The app already constrains <main> to the viewport. Do not permit a second
+   outer scrollbar on either system listing screen. */
+.nbdt-redesign.nb-app-root > main:has(> .nb-registry-page),
+.nbdt-redesign.nb-app-root > main:has(> .nb-report-shell) {
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:hidden!important;
+}
+
+/* Registry: the title/actions, filter bar, and count stay in the viewport.
+   Move scrolling to the dedicated list instead of the whole page. */
+.nbdt-redesign.nb-app-root .nb-registry-page {
+  display:flex!important;
+  flex-direction:column;
+  flex:1 1 auto;
+  height:100%;
+  max-height:100%;
+  min-height:0;
+  min-width:0;
+  overflow:hidden!important;
+  margin-block:0!important;
+  padding-bottom:0!important;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page > .nb-registry-heading,
+.nbdt-redesign.nb-app-root .nb-registry-page > .nb-registry-filters,
+.nbdt-redesign.nb-app-root .nb-registry-page > .nb-registry-meta-row {
+  flex:0 0 auto;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page > .nb51-registry-scroll {
+  flex:1 1 auto;
+  min-height:0;
+  min-width:0;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain;
+  scrollbar-width:none!important;
+  padding-bottom:24px;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page > .nb51-registry-scroll > .nb-registry-grid {
+  margin-bottom:0;
+}
+
+/* Report: preserve the page name, KPI indicators, readiness controls, and
+   filter/search controls. Its independently scrolling table is the only
+   vertical scrolling region. Column names remain visible while rows move. */
+.nbdt-redesign.nb-app-root .nb-report-shell {
+  min-height:0!important;
+  height:100%;
+  overflow:hidden!important;
+  flex:1 1 auto;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell > .nb-report {
+  display:flex!important;
+  flex-direction:column;
+  flex:1 1 auto!important;
+  height:100%;
+  min-height:0;
+  overflow:hidden!important;
+  padding-bottom:14px!important;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-page-header,
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-kpis {
+  flex:0 0 auto;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-report-readiness-panel {
+  display:flex!important;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-readiness-heading,
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report-filters,
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report-continuous-footer {
+  flex:0 0 auto;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report-readiness-panel > .nb-report-table {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto!important;
+  overflow-x:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-width:none!important;
+}
+.nbdt-redesign.nb-app-root .nb-report-shell .nb-report-readiness-panel > .nb-report-table thead th {
+  position:sticky;
+  top:0;
+  z-index:2;
+  background:#edf4fb!important;
+}
+.nbdt-redesign.nb-app-root .nb51-registry-scroll::-webkit-scrollbar,
+.nbdt-redesign.nb-app-root .nb-report-readiness-panel > .nb-report-table::-webkit-scrollbar {
+  width:0!important;
+  height:0!important;
+  display:none!important;
+}
+
+/* The report's four KPIs naturally stack on mobile and would crowd the
+   data out of the viewport. Keep them compact and horizontally navigable,
+   still fixed above the list of systems. */
+@media(max-width:760px){
+  .nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-kpis {
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overscroll-behavior-x:contain;
+    gap:9px!important;
+    padding-bottom:5px;
+    scrollbar-width:none!important;
+  }
+  .nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-kpis > .nb-kpi {
+    min-width:205px;
+    flex:0 0 205px;
+    min-height:110px!important;
+  }
+  .nbdt-redesign.nb-app-root .nb-registry-page > .nb51-registry-scroll {padding-bottom:18px;}
+  .nbdt-redesign.nb-app-root .nb-report-shell .nb-report > .nb-report-readiness-panel {padding:12px 9px 9px!important;}
+}

@@ -33,6 +33,7 @@ import './nbdt-access-v047.css';
 import './nbdt-access-v048.css';
 import './nbdt-layout-v049.css';
 import './nbdt-layout-v050.css';
+import './nbdt-layout-v051.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -2857,9 +2858,12 @@ const App = () => {
               <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{project.members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</select></label>
               {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
-            <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>{filteredSystems.length>0 ? <div className="nb-registry-grid">
+            <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
+            <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
+            {filteredSystems.length>0 ? <div className="nb-registry-grid">
               {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={sys} project={project} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
+            </div>
           </section>
         )}
 

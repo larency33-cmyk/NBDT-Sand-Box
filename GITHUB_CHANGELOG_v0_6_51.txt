@@ -1,0 +1,12 @@
+NBDT v0.6.51 — fixed controls and independent system scrolling
+
+GITHUB_CHANGELOG_v0_6_51.txt
+NBDT_v0_6_51_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_51_RU.md
+index.tsx
+nbdt-layout-v051.css
+package.json
+tests/fixed-system-panels-v051.test.mjs
+
+Removed files: none

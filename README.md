@@ -166,3 +166,12 @@ The site starts in **Guest** role with read-only browsing. Use **Sign in** (uppe
 ## v0.6.50 — Issue Tracker heading frame fix
 
 The Issue Tracker title now shares the same `width: 100%; max-width: var(--content-max); margin-inline: auto` layout frame as its filter toolbar, summary, and issue board. This removes the header's leftward jump on wide/zoomed-out screens without arbitrary pixel offsets. See `RELEASE_NOTES_v0_6_50_RU.md`.
+
+
+## v0.6.51 — Fixed system-page controls with independent list scrolling
+
+- **System Registry:** the page title, Export/Add system, search and filters, and the "Showing all … systems" count stay visible; scroll only the system cards below them. Pagination remains removed.
+- **Configuration Report:** the title, Import/Export actions, four KPI indicators, readiness heading, tabs, search and filters stay visible. Only the table scrolls; table column headings remain sticky while scrolling through system records.
+- Scrollbar chrome stays hidden on both screens, but mouse wheel, touch gestures, keyboard focus/scroll and table horizontal scrolling still work.
+- Only these two overview routes change; Guide pages, Weekly Tracker, Issue Tracker, app state and persistence are untouched.
+- See `RELEASE_NOTES_v0_6_51_RU.md`.

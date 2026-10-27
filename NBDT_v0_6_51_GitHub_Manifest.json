@@ -1,0 +1,17 @@
+{
+  "release": "v0.6.51",
+  "base": "v0.6.50",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_51.txt",
+    "NBDT_v0_6_51_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_51_RU.md",
+    "index.tsx",
+    "nbdt-layout-v051.css",
+    "package.json",
+    "tests/fixed-system-panels-v051.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "294/294",
+  "note": "System Registry and Configuration Report keep titles, filters and indicators visible while only system records scroll; column headers sticky, scrollbar chrome hidden. Isolated Chromium fixtures passed at 1650 and 390px."
+}
