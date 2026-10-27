@@ -1,0 +1,239 @@
+/* NBDT v0.6.42 — distinct current/selected weeks, editable milestone stacks.
+   Scoped to the approved Weekly Tracker Overview. The existing table, employee
+   rows and aligned footer tracks retain their geometry. */
+
+/* Only the actual current project week receives a tinted footer card. Clicking
+   another week changes selection (stroke), never its background. These rules
+   deliberately follow *all* preexisting corporate/approved tracker CSS. */
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-selected:not(.nb-week-wide-current) {
+  background:#fff !important;
+  background-image:none !important;
+  border:1.5px solid #1680ee !important;
+  box-shadow:0 0 0 1px rgba(22,128,238,.07) !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-current {
+  background:linear-gradient(180deg,#eaf5ff,#dfeeff) !important;
+  border-color:#99c8fa !important;
+  box-shadow:inset 0 2px 0 #2c8bea !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-nav-shell .nb-week-wide-card.nb-week-wide-current.nb-week-wide-selected {
+  border:1.5px solid #0875ef !important;
+  background:linear-gradient(180deg,#eaf5ff,#dfeeff) !important;
+}
+
+/* The real table header remains the original fixed height. Expanded milestone
+   content is painted on a higher layer, over (rather than before) task rows.
+   The scrollable assignment area never has its width or height remeasured. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) {
+  position:relative !important;
+  z-index:1;
+  overflow:visible !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child):hover,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child):focus-within {
+  z-index:80 !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head {
+  overflow:visible !important;
+  isolation:auto !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-milestones.nb-milestone-stack {
+  position:absolute !important;
+  left:12px !important;
+  right:12px !important;
+  bottom:10px !important;
+  top:auto !important;
+  width:auto !important;
+  height:32px !important;
+  max-height:none !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  display:flex !important;
+  flex-flow:row nowrap !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:6px !important;
+  overflow:visible !important;
+  border:0 !important;
+  border-radius:8px !important;
+  background:transparent !important;
+  z-index:2 !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-entry {
+  display:flex;
+  min-width:0;
+  flex:1 1 0;
+  align-items:center;
+  gap:5px;
+  position:relative;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-entry:nth-child(n+2) {
+  display:none;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-chip {
+  width:100% !important;
+  height:30px !important;
+  min-height:30px !important;
+  max-width:100% !important;
+  margin:0 !important;
+  flex:1 1 0;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-chip span {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-more {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+  font-size:11px;
+  font-weight:700;
+  color:#376ba8;
+  background:rgba(255,255,255,.8);
+  border:1px solid rgba(100,156,220,.32);
+  border-radius:6px;
+  padding:4px 6px;
+  min-height:29px;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-edit {
+  display:none;
+  align-items:center;
+  justify-content:center;
+  min-width:25px;
+  height:27px;
+  color:#427db4;
+  border:1px solid #d8e8f8;
+  border-radius:6px;
+  background:#fff;
+  padding:0;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-add {
+  display:none !important;
+}
+/* Both pointer hover and focus/click expand the whole stack. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-stack.nb-milestone-multiple,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-stack.nb-milestone-multiple,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack.nb-milestone-expanded {
+  position:absolute !important;
+  left:-1px !important;
+  right:-1px !important;
+  bottom:auto !important;
+  top:calc(100% - 43px) !important;
+  width:calc(100% + 2px) !important;
+  height:auto !important;
+  max-height:min(335px,calc(100dvh - 250px)) !important;
+  min-height:55px !important;
+  padding:0 12px 11px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  gap:6px !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  background:linear-gradient(135deg,var(--week-bg-a,#eaf3ff),var(--week-bg-b,#d9eafd)) !important;
+  border:1px solid var(--week-accent-border,#bcd9f7) !important;
+  border-top:0 !important;
+  border-radius:0 0 12px 12px !important;
+  box-shadow:0 15px 23px rgba(21,65,117,.18) !important;
+  z-index:95 !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-stack .nb-milestone-entry,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-stack .nb-milestone-entry,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack.nb-milestone-expanded .nb-milestone-entry {
+  display:flex;
+  flex:0 0 auto;
+  width:100%;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-more,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-more,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack.nb-milestone-expanded .nb-milestone-more {
+  display:none;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-edit,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-edit,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack.nb-milestone-expanded .nb-milestone-edit {
+  display:inline-flex;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-add,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-add,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack.nb-milestone-expanded .nb-milestone-add {
+  display:inline-flex !important;
+  position:static !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+  align-self:flex-end !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 31px;
+  width:31px !important;
+  height:29px !important;
+  min-height:29px !important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-entry .nb-milestone-chip:focus-visible,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack .nb-milestone-more:focus-visible {
+  outline:2px solid #0876ec !important;
+  outline-offset:2px !important;
+}
+
+/* One or zero milestones do not need an expanded tray; the add button
+   appears in the regular fixed-height header without affecting tasks. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-stack:not(.nb-milestone-multiple) .nb-milestone-add,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-stack:not(.nb-milestone-multiple) .nb-milestone-add {
+  display:inline-flex !important;
+  position:absolute !important;
+  right:0 !important;
+  top:1px !important;
+  height:29px !important;
+  width:29px !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+  align-items:center;
+  justify-content:center;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:hover .nb-milestone-stack:not(.nb-milestone-multiple) .nb-milestone-entry,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:focus-within .nb-milestone-stack:not(.nb-milestone-multiple) .nb-milestone-entry {
+  padding-right:34px;
+}
+/* Single purpose editor, intentionally lighter than the assignment drawer. */
+.nb42-dialog-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:2500;
+  background:rgba(7,28,53,.4);
+  display:grid;
+  place-items:center;
+  padding:20px;
+}
+.nb42-milestone-dialog {
+  width:min(460px,100%);
+  background:#fff;
+  color:#133158;
+  border:1px solid #d6e6f8;
+  border-radius:15px;
+  box-shadow:0 24px 75px rgba(9,32,70,.22);
+  padding:22px;
+}
+.nb42-dialog-header {display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:23px}
+.nb42-dialog-eyebrow {font-size:12px;color:#6483a8;font-weight:650}
+.nb42-dialog-header h2 {font-size:20px;font-weight:750;margin-top:5px}
+.nb42-dialog-close {background:#f3f7fc;border:1px solid #e0eaf6;border-radius:7px;width:34px;height:34px;display:grid;place-items:center;color:#3c648b}
+.nb42-milestone-name-label {display:block;color:#425f7f;font-size:12px;font-weight:700;margin-bottom:7px}
+.nb42-milestone-dialog input {width:100%;height:43px;font-size:14px;border:1px solid #bfd5ed;border-radius:8px;padding:9px 12px}
+.nb42-milestone-error {margin-top:9px;font-size:12px;color:#b42c3f}
+.nb42-dialog-actions {display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:24px}
+.nb42-dialog-actions button {min-height:37px;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.nb42-dialog-cancel {border:1px solid #d9e4ef;color:#526c87;background:white}
+.nb42-dialog-save {background:#086af3;border:1px solid #086af3;color:white}
+.nb42-delete-action {background:#fff6f6;border:1px solid #f8d1d1;color:#b93447;margin-right:auto}
+.nb42-dialog-actions button:disabled {opacity:.55}
+@media (prefers-reduced-motion:reduce) {
+ .nb42-milestone-dialog,.nb-tracker[data-view="overview"] .nb-week-grid .nb-milestone-stack {transition:none!important}
+}

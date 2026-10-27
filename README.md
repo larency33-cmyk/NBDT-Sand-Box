@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.38.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
+**Current package: v0.6.42.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
 
 ## Requirements
 
@@ -126,3 +126,11 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 - Configuration checklist offers an independent, saveable guide-level verification (`guideReview`) when no physical device is selected. `Save checks` persists pending progress, `Accept … and continue` verifies each stage in sequence; later stages stay locked until prerequisites are accepted. Actual device runs continue using `deviceRuns` and do not mix with guide-level verification. Changes to checklist steps invalidate old guide-level verification.
 - Readable stages use connected chevron shapes, not rotated-square arrows.
 - This project is still a local-browser sandbox (IndexedDB), not a multi-user remote service; export backups before switching browsers or clearing storage.
+
+
+## v0.6.42 — Weekly Tracker milestones and week selection
+
+- The actual current project week is the only footer week card with a blue tint. A clicked non-current week has a fine blue border on a white background. The selected and current week states remain independent.
+- Two or more milestones in one top week header show the first milestone and an explicit `+N more` count at rest. Hover/focus opens a visually continuous, vertically expandable overlay above the assignment cards without changing the table or footer geometry. Long lists scroll inside the overlay.
+- Editing a milestone opens a compact dialog to rename or delete with confirmation. Creating also uses the same light dialog. Existing milestones are stored and deleted through the project's original IndexedDB action flow; ordinary tasks are not affected.
+- All other pages and approved UI patterns remain unchanged. See `RELEASE_NOTES_v0_6_42_RU.md`.

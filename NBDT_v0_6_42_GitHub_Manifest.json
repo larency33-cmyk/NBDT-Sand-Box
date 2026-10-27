@@ -1,0 +1,29 @@
+{
+  "version": "0.6.42",
+  "baseline": "0.6.41",
+  "notes": "Extract into the root of the same GitHub repo; paths are relative and unchanged source files are omitted.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_42.txt",
+    "NBDT_v0_6_42_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_42_RU.md",
+    "index.tsx",
+    "package.json",
+    "src/tracker-actions.mjs",
+    "src/workspace.tsx",
+    "tests/milestone-interactions-v042.test.mjs",
+    "weekly-tracker-milestones-v042.css"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_42.txt": "d4123326154df045b6ec4a9eaaf21c5a7f014c4c3e10746bb0c324bdf7914fd1",
+    "README.md": "f3d9510c56d99f97a02815be476742282695abe04c9a9a3c6d36427bd662fb83",
+    "RELEASE_NOTES_v0_6_42_RU.md": "3bcfba4616d46a6bbb23fbe6c93cc1534e44a533090d8934662dc2d2f031b7f7",
+    "index.tsx": "cf8aa0217dae62a848aad57b71dd143601885dcc8d51b168374bbdcf941ce819",
+    "package.json": "4687a3460d525aa086cd3cb7e014d80dee3d3328e200f2e0bc551fa53f535b15",
+    "src/tracker-actions.mjs": "eae229e3b06911213b6b8afe608fc3545e32c4eaeda18dbd02932de626b75600",
+    "src/workspace.tsx": "173bf15893429e233efb90ba158fbdaf47045b1734dcff045fc891b64ac94362",
+    "tests/milestone-interactions-v042.test.mjs": "716512eac9876878fd402e078a618b5d0950c2ed1cc761a111ad3e8f090870bf",
+    "weekly-tracker-milestones-v042.css": "3bd0a925d327b908452979103c3d8144136bcf18b2cb6b5e9f7d3311f485e360"
+  }
+}

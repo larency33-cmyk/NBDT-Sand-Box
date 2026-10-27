@@ -268,7 +268,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  </article>;
 }
 
-export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
+export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -314,6 +314,13 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
  const [memberError,setMemberError]=useState('');
  const [memberToDelete,setMemberToDelete]=useState<string|null>(null);
  const memberDialogRef=useRef<HTMLElement|null>(null);
+ // A milestone is an independent project record. The editor is deliberately
+ // light-weight and does not alter the surrounding tracker or its scroll state.
+ const [milestoneEditor,setMilestoneEditor]=useState<any>(null);
+ const [milestoneDraft,setMilestoneDraft]=useState('');
+ const [milestoneBusy,setMilestoneBusy]=useState(false);
+ const [milestoneError,setMilestoneError]=useState('');
+ const [expandedMilestoneWeek,setExpandedMilestoneWeek]=useState<number|null>(null);
  const [showMobileMatrix,setShowMobileMatrix]=useState(false);
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false),[dateError,setDateError]=useState('');
@@ -432,8 +439,37 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
  const blockedCount=new Set(currentWeekTasks.filter((t:any)=>t.status==='Blocked').map((t:any)=>t.id)).size;
  const totalAssignments=currentWeekTasks.length;
  const totalMilestones=weeks.reduce((n:number,w:number)=>n+milestonesAt(w).length,0);
- const editMilestone=(ms:any)=>{if(!isAdmin)return;const label=window.prompt('Milestone name',ms.label||'New milestone');if(label===null)return;const value=label.trim();if(!value)return void window.alert('Milestone name is required.');void onMilestoneSave({...ms,label:value},ms.id).catch((e:any)=>window.alert(e?.message||'Could not save milestone.'));};
- const createMilestone=(w:number)=>editMilestone({id:uid(),label:'New milestone',startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
+ const editMilestone=(ms:any)=>{
+  if(!isAdmin)return;
+  setMilestoneEditor({...ms,creating:!project.tasks.some((task:any)=>task.id===ms.id)});
+  setMilestoneDraft(ms.creating?'':String(ms.label||''));
+  setMilestoneError('');setExpandedMilestoneWeek(null);
+ };
+ const createMilestone=(w:number)=>editMilestone({id:uid(),label:'',creating:true,startWeek:w,duration:1,status:'Planned',description:'',memberId:'milestones',isMilestone:true,date:weekDate(w)});
+ const saveMilestone=async(event:React.FormEvent)=>{
+  event.preventDefault();if(!milestoneEditor||milestoneBusy)return;
+  const label=milestoneDraft.trim();if(!label||label.length>160){setMilestoneError('Milestone name must be 1–160 characters.');return;}
+  setMilestoneBusy(true);setMilestoneError('');
+  try{await onMilestoneSave(Object.fromEntries(Object.entries({...milestoneEditor,label}).filter(([key])=>key!=='creating')),milestoneEditor.id);setMilestoneEditor(null);}
+  catch(error:any){setMilestoneError(error?.message||'Unable to save milestone.');}
+  finally{setMilestoneBusy(false);}
+ };
+ const deleteMilestone=async()=>{
+  if(!milestoneEditor||milestoneEditor.creating||milestoneBusy||!isAdmin)return;
+  if(!window.confirm(`Delete milestone “${milestoneEditor.label}”? This cannot be undone.`))return;
+  setMilestoneBusy(true);setMilestoneError('');
+  try{await onMilestoneDelete(milestoneEditor.id);setMilestoneEditor(null);}
+  catch(error:any){setMilestoneError(error?.message||'Unable to delete milestone.');}
+  finally{setMilestoneBusy(false);}
+ };
+ useEffect(()=>{
+  if(!milestoneEditor)return;
+  const closeOnEscape=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'&&!milestoneBusy){event.preventDefault();setMilestoneEditor(null);}
+  };
+  document.addEventListener('keydown',closeOnEscape);
+  return()=>document.removeEventListener('keydown',closeOnEscape);
+ },[milestoneEditor,milestoneBusy]);
  const startMemberRename=(m:any)=>{setMemberError('');setAddingMember(false);setEditingMemberId(m.id);setMemberDraft(m.name);};
  const saveMemberRename=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberRename(editingMemberId,memberDraft);setEditingMemberId(null);}catch(error:any){setMemberError(error?.message||'Could not rename team member.');}finally{setMemberBusy(false);}};
  const createMember=async(e:React.FormEvent)=>{e.preventDefault();if(memberBusy)return;setMemberError('');setMemberBusy(true);try{await onMemberCreate(newMemberName);setAddingMember(false);setNewMemberName('');}catch(error:any){setMemberError(error?.message||'Could not add team member.');}finally{setMemberBusy(false);}};
@@ -555,8 +591,21 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
            <div className="nb-week-head-title"><button type="button" className="nb-week-header-label" aria-label={`Select ${weekIso(w)}`} aria-pressed={selectedWeek===w} onClick={()=>selectWeek(w)} title={`Select ${weekIso(w)}`}>{weekIso(w)}</button></div>
            <span className="nb-week-range-hint" aria-hidden="true"><CalendarDays size={17}/></span>
           </div>
-          <div className="nb-week-milestones">
-           {columnMilestones.length?columnMilestones.map((ms:any)=><button type="button" key={ms.id} title={isAdmin?'Edit milestone':'Project milestone'} className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')} onClick={()=>isAdmin?editMilestone(ms):void 0}><Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span></button>):<span className="nb-milestone-empty">No milestone</span>}
+          <div className={'nb-week-milestones nb-milestone-stack '+(columnMilestones.length>1?'nb-milestone-multiple ':'')+(expandedMilestoneWeek===w?'nb-milestone-expanded':'')}
+               onMouseLeave={()=>setExpandedMilestoneWeek(previous=>previous===w?null:previous)}>
+           {columnMilestones.length?columnMilestones.map((ms:any)=><div className="nb-milestone-entry" key={ms.id}>
+             <button type="button" title={isAdmin?'Edit milestone':'Project milestone'}
+              className={'nb-milestone-chip nb-ms-'+milestoneTone(ms)+' '+(isAdmin?'editable':'')}
+              onClick={()=>isAdmin?editMilestone(ms):void 0}>
+              <Flag size={15} fill="currentColor" aria-hidden="true"/><span>{ms.label}</span>
+             </button>
+             {isAdmin&&<button type="button" className="nb-milestone-edit" title={'Edit '+ms.label}
+              aria-label={'Edit milestone '+ms.label} onClick={()=>editMilestone(ms)}><Pencil size={13} aria-hidden="true"/></button>}
+            </div>):<span className="nb-milestone-empty">No milestone</span>}
+           {columnMilestones.length>1&&<button type="button" className="nb-milestone-more"
+             aria-label={`Show all ${columnMilestones.length} milestones in ${weekIso(w)}`}
+             aria-expanded={expandedMilestoneWeek===w}
+             onClick={()=>setExpandedMilestoneWeek(expandedMilestoneWeek===w?null:w)}>+{columnMilestones.length-1} more</button>}
            {isAdmin&&<button type="button" className="nb-milestone-add" aria-label={'Add milestone to '+weekIso(w)} title={'Add milestone to '+weekIso(w)} onClick={()=>createMilestone(w)}>+</button>}
           </div>
 
@@ -706,6 +755,23 @@ export function Tracker({project,isAdmin,onAuth,onQuickTaskEdit,onQuickTaskDelet
     </div>
    </div>
   </footer>
+  {milestoneEditor&&createPortal(<div className="nb42-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!milestoneBusy)setMilestoneEditor(null);}}>
+   <section role="dialog" aria-modal="true" aria-labelledby="nb42-milestone-title" className="nb42-milestone-dialog">
+    <div className="nb42-dialog-header"><div><span className="nb42-dialog-eyebrow">{weekIso(milestoneEditor.startWeek)} · Project milestone</span><h2 id="nb42-milestone-title">{milestoneEditor.creating?'Add milestone':'Edit milestone'}</h2></div>
+     <button type="button" className="nb42-dialog-close" aria-label="Close milestone editor" disabled={milestoneBusy} onClick={()=>setMilestoneEditor(null)}><X size={19}/></button>
+    </div>
+    <form onSubmit={saveMilestone}>
+     <label className="nb42-milestone-name-label" htmlFor="nb42-milestone-name">Milestone name</label>
+     <input autoFocus id="nb42-milestone-name" required maxLength={160} value={milestoneDraft} disabled={milestoneBusy} placeholder="Enter milestone title" onChange={event=>{setMilestoneDraft(event.target.value);setMilestoneError('');}}/>
+     {milestoneError&&<p role="alert" className="nb42-milestone-error">{milestoneError}</p>}
+     <div className="nb42-dialog-actions">
+      {!milestoneEditor.creating&&<button type="button" className="nb42-delete-action" disabled={milestoneBusy} onClick={deleteMilestone}><Trash2 size={15}/> Delete</button>}
+      <button type="button" className="nb42-dialog-cancel" disabled={milestoneBusy} onClick={()=>setMilestoneEditor(null)}>Cancel</button>
+      <button type="submit" className="nb42-dialog-save" disabled={milestoneBusy||!milestoneDraft.trim()}><Check size={16}/>{milestoneBusy?'Saving…':'Save milestone'}</button>
+     </div>
+    </form>
+   </section>
+  </div>,document.body)}
  </section>;
 }
 

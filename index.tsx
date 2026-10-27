@@ -6,7 +6,7 @@ import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhanceme
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
-import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone} from './src/tracker-actions.mjs';
+import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
@@ -24,6 +24,7 @@ import './configuration-report-inline-v033.css';
 import './issue-tracker-v034.css';
 import './guide-approved-v040.css';
 import './guide-interactive-v041.css';
+import './weekly-tracker-milestones-v042.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
@@ -2865,6 +2866,9 @@ const App = () => {
         }} onMilestoneSave={async(values:any,id:string)=>{
           if(!isAdmin)throw Error('Enable Edit mode to change milestones.');
           await handleAction(prev=>quickSaveMilestone(prev,values,id));
+        }} onMilestoneDelete={async(id:string)=>{
+          if(!isAdmin)throw Error('Enable Edit mode to delete milestones.');
+          await handleAction(prev=>quickDeleteMilestone(prev,id));
         }} onQuickTaskSave={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Enable Edit mode to change a task.');
           await handleAction(prev=>quickSetTaskStatus(prev,taskId,changes));

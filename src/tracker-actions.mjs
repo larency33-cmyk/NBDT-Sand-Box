@@ -90,6 +90,12 @@ export function quickMoveTaskToPreviousWeek(project,taskId,selectedWeek,newId,co
  if(afterLength>0)preserved.push({...task,id:continuationId,startWeek:afterStart,duration:afterLength,version:1});
  return {...project,tasks:[...project.tasks.filter(t=>t.id!==taskId),...preserved,moved]};
 }
+/** Remove only an actual milestone, never an ordinary team assignment. */
+export function quickDeleteMilestone(project,id){
+ const previous=project.tasks.find(task=>task.id===id);
+ if(!previous||!previous.isMilestone)throw Error('Milestone no longer exists. Refresh the project.');
+ return {...project,tasks:project.tasks.filter(task=>task.id!==id)};
+}
 export function quickSaveMilestone(project,values,id){
  const label=String(values.label||'').trim();
  if(!label||label.length>160)throw Error('Milestone name must be 1–160 characters.');

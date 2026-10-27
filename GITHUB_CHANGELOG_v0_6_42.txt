@@ -1,0 +1,6 @@
+NBDT v0.6.42 (base v0.6.41)
+- Only actual current week has the blue-filled footer. Clicked non-current week is blue-outline only.
+- Milestones now have a compact edit/delete dialog, with explicit deletion confirmation.
+- Additional milestones are accessible via an on-hover overlay that does not shift task rows.
+- Storage, other screens and prior guide changes retained.
+- Read RELEASE_NOTES_v0_6_42_RU.md for details, tests and build caveat.
