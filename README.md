@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.48.** Guest / Admin / Super Admin access controls have moved from the upper-right of page content to the bottom of the left sidebar (above Collapse). The obsolete **Local UI sandbox** indicator was removed from the sidebar. Page action buttons no longer reserve space for the old floating role badge. Expanded and collapsed sidebar layouts are supported. See `RELEASE_NOTES_v0_6_48_RU.md` for details.
+**Current package: v0.6.49.** Unified Issue Tracker heading alignment with Weekly Tracker, System Registry, and Configuration Report; move Sign in modal to a document-level portal so its dim/blur covers the entire browser viewport; remove the upper-right Share view and Add task buttons from Weekly Tracker (contextual task editing/creation stays available). See `RELEASE_NOTES_v0_6_49_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 

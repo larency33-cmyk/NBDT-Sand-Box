@@ -1,0 +1,19 @@
+{
+  "release": "v0.6.49",
+  "base": "v0.6.48",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_49.txt",
+    "NBDT_v0_6_49_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_49_RU.md",
+    "index.tsx",
+    "nbdt-layout-v049.css",
+    "package.json",
+    "src/workspace.tsx",
+    "tests/header-login-v049.test.mjs",
+    "tests/independent-week-states-v069.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "288/288",
+  "note": "Align Issue Tracker heading, use viewport-wide body portal for Sign in, remove Weekly Tracker top-right action buttons. Browser-local POC."
+}

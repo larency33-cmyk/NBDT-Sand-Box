@@ -1,0 +1,34 @@
+/* NBDT v0.6.49 — Issue Tracker header parity + truly viewport-wide sign-in scrim. */
+/* Force the issue page to the same left/title origin as the other workspaces,
+   even when older Issue Tracker styles are present in an incremental deploy. */
+.nbdt-redesign.nb-app-root .nb34-issues {
+  padding-left:var(--nb46-workspace-inset, 15px)!important;
+  padding-right:var(--nb46-workspace-inset, 15px)!important;
+  padding-top:33px!important;
+}
+.nbdt-redesign.nb-app-root .nb34-issues>.nb34-hero {
+  margin-inline:0!important;
+  padding-inline:0!important;
+}
+.nbdt-redesign.nb-app-root .nb34-issues>.nb34-hero .nb34-heading-row.nb45-primary-header {
+  padding-inline:0!important;
+  margin-inline:0!important;
+  transform:none!important;
+}
+@media (max-width:760px) {
+  .nbdt-redesign.nb-app-root .nb34-issues {padding-top:17px!important;}
+}
+/* Login is portaled directly into document.body, not the clipped/scrolled main.
+   The scrim must cover the sidebar, all content and the far right viewport. */
+body>.nb47-modal-scrim {
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-width:none!important;
+  max-height:none!important;
+  box-sizing:border-box!important;
+  z-index:10000!important;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif;
+}

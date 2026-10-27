@@ -31,6 +31,7 @@ import './nbdt-layout-v045.css';
 import './nbdt-layout-v046.css';
 import './nbdt-access-v047.css';
 import './nbdt-access-v048.css';
+import './nbdt-layout-v049.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -39,6 +40,7 @@ import {isoWeek} from './src/extended-model.mjs';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -3253,7 +3255,7 @@ const App = () => {
         {/* --- Dialogs & Modals --- */}
 
         {draftSystem && <SystemCreate key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await saveSystem(next);openGuideForEdit(next);}}/>}
-        {showAdminAuthModal&&<LoginModal onClose={()=>setShowAdminAuthModal(false)} onLogin={access.login}/>}
+        {showAdminAuthModal&&createPortal(<LoginModal onClose={()=>setShowAdminAuthModal(false)} onLogin={access.login}/>,document.body)}
 
         {/* Global Task Popover */}
         <AnimatePresence>

@@ -1,0 +1,14 @@
+NBDT v0.6.49 — Issue heading, full-screen login overlay, clean Tracker title
+
+GITHUB_CHANGELOG_v0_6_49.txt
+NBDT_v0_6_49_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_49_RU.md
+index.tsx
+nbdt-layout-v049.css
+package.json
+src/workspace.tsx
+tests/header-login-v049.test.mjs
+tests/independent-week-states-v069.test.mjs
+
+Removed files: none

@@ -69,9 +69,9 @@ test('active week fills only real current week; selection is outline-only',()=>{
  assert.match(ux,/\.nb-week-grid tbody td\.nb-current-week-cell\{/);
  assert.match(ux,/\.nb-week-card-scroller\{[^}]*overflow-x:hidden!important/s);
 });
-test('shared URLs retain both visible range and chosen week; anchor change removes stale selection',()=>{
+test('selected week deep links survive without the removed Share view toolbar button',()=>{
  assert.match(tracker,/url.searchParams.set\('selectedWeek',String\(next\+1\)\)/);
- assert.match(tracker,/url.searchParams.set\('selectedWeek',String\(selectedWeek\+1\)\)/);
+ assert.doesNotMatch(tracker,/>Share view<\/B>/);
  assert.match(app,/url.searchParams.delete\('selectedWeek'\)/);
  assert.match(tracker,/anchorChanged\?null:new URLSearchParams\(location.search\).get\('selectedWeek'\)/);
 });

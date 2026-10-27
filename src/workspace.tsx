@@ -525,10 +525,6 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
    <div>
     <h1>Weekly Tracker</h1>
    </div>
-   <div className="nb-actions">
-    <B onClick={async()=>{try{const url=new URL(location.href);url.searchParams.set('week',String(week+1));url.searchParams.delete('view');url.searchParams.set('selectedWeek',String(selectedWeek+1));await navigator.clipboard.writeText(url.href);alert('Private local link copied. No message was sent.');}catch{alert('Clipboard unavailable. Copy the address from your browser.');}}}>Share view</B>
-    {isAdmin&&<B primary onClick={()=>{const member=project.members.find((m:any)=>m.id===person)||project.members[0];if(!member)return;openQuickPanel(member.id,selectedWeek);setAddingAssignment(true);}}>Add task</B>}
-   </div>
   </header>
 
   <div className="nb-toolbar">
