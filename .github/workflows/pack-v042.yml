@@ -1,0 +1,21 @@
+name: NBDT v0.6.42 Packaging
+on:
+  push:
+    branches: [nbdt-v0.6.42-weekly-milestones]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Archive source
+        run: |
+          mkdir -p "$RUNNER_TEMP/nbdt"
+          git archive HEAD | tar -x -C "$RUNNER_TEMP/nbdt"
+          cd "$RUNNER_TEMP/nbdt" && zip -qr "$RUNNER_TEMP/NBDT_source.zip" . -x '.github/workflows/pack-v042.yml'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nbdt-v042-source
+          path: ${{ runner.temp }}/NBDT_source.zip
+          retention-days: 7
