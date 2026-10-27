@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.42.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
+**Current package: v0.6.43.** System Registry uses the approved card design, with circular device icons in each card and an interactive **Device Type** filter (Phone, Tablet, PC, Laptop, Kiosk, POS, App only). The primary card specifications are read from the same published guide technical snapshot shown by Configuration Guide, falling back to profile technical values where no guide is published. Legacy field-status dropdowns are hidden; historical data remains intact.
 
 ## Requirements
 
@@ -134,3 +134,7 @@ Drawer task menu now supports Move to previous week (disabled on Week 1). Inline
 - Two or more milestones in one top week header show the first milestone and an explicit `+N more` count at rest. Hover/focus opens a visually continuous, vertically expandable overlay above the assignment cards without changing the table or footer geometry. Long lists scroll inside the overlay.
 - Editing a milestone opens a compact dialog to rename or delete with confirmation. Creating also uses the same light dialog. Existing milestones are stored and deleted through the project's original IndexedDB action flow; ordinary tasks are not affected.
 - All other pages and approved UI patterns remain unchanged. See `RELEASE_NOTES_v0_6_42_RU.md`.
+
+## v0.6.43 — seamless Milestone expansion
+
+Multiple Milestones expand the entire week header as a single themed card; the border encompasses the whole open list. The current week always uses blue palette variables and all other weeks inherit their existing color. Milestone buttons and status chips use matching tones. The table, task cells and lower navigation do not move.

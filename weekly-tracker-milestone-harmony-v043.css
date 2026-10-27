@@ -1,0 +1,116 @@
+/* NBDT v0.6.43 — milestone expansion is part of the SAME week card.
+   No new layout tracks or heights are allocated in the table, and no task
+   content is moved. Keep all palette decisions within the existing th tokens.
+
+   In v0.6.42 the header of the current week was forced blue, but its
+   underlying `nb-week-tone-*` CSS variables remained a different hue. That
+   mismatch painted the expanded milestone tray apricot/violet under a blue
+   header. In v0.6.43 the header and its children always use one palette. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column {
+  --week-bg-a:#d8ebff;
+  --week-bg-b:#badbfe;
+  --week-orb:rgba(35,128,234,.13);
+  --week-orb-soft:rgba(35,128,234,.075);
+  --week-accent:#1177ec;
+  --week-accent-border:#1177ec;
+  --week-chip-bg:#e8f3ff;
+  --week-chip-border:#a7cef7;
+  --week-text:#205c9d;
+}
+
+/* The expansion happens to the WEEK CARD itself, not to a different-colored
+   panel stuck underneath it. Repositioning it out of the table flow keeps the
+   4 aligned week columns and every employee row entirely stationary. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head:is(:hover,:focus-within):has(.nb-milestone-multiple),
+.nb-tracker[data-view="overview"] .nb-week-grid thead th:not(:first-child) .nb-week-head:has(.nb-milestone-multiple.nb-milestone-expanded) {
+  position:absolute!important;
+  top:0!important;
+  left:calc(var(--nb-week-space) / 2)!important;
+  right:calc(var(--nb-week-space) / 2)!important;
+  width:auto!important;
+  height:auto!important;
+  /* The original min-height, gradient, border and padding stay in force. */
+  overflow:visible!important;
+  border:1px solid var(--week-accent-border)!important;
+  border-radius:12px!important;
+  box-shadow:0 13px 26px rgba(20,61,111,.18)!important;
+  z-index:100!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head:is(:hover,:focus-within):has(.nb-milestone-multiple),
+.nb-tracker[data-view="overview"] .nb-week-grid thead th.nb-current-week-column .nb-week-head:has(.nb-milestone-multiple.nb-milestone-expanded) {
+  border:2px solid #1177ec!important;
+  box-shadow:inset 0 2px 0 #087bf6,0 13px 27px rgba(23,105,201,.18)!important;
+}
+
+/* The stack is now an ordinary part of the expanded card. The card's single
+   outer border surrounds the heading, ALL milestones and the add action. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:is(:hover,:focus-within) .nb-milestone-stack.nb-milestone-multiple,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head .nb-milestone-stack.nb-milestone-multiple.nb-milestone-expanded {
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:min(335px,calc(100dvh - 250px))!important;
+  min-height:0!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  flex-flow:column nowrap!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  margin:0!important;
+  padding:0 0 2px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+
+/* Every milestone and every action follows the actual visible week color,
+   regardless of a milestone's former orange/green status tint. Status data
+   remains unchanged; only the presentation is harmonized here. */
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip:is(.nb-ms-complete,.nb-ms-critical,.nb-ms-review) {
+  background:color-mix(in srgb,var(--week-bg-a) 68%,white 32%)!important;
+  color:var(--week-text)!important;
+  border:1px solid var(--week-chip-border)!important;
+  border-left:3px solid var(--week-accent)!important;
+  box-shadow:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip svg,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip:is(.nb-ms-complete,.nb-ms-critical,.nb-ms-review) svg {
+  color:var(--week-accent)!important;
+  opacity:1!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip:hover {
+  background:color-mix(in srgb,var(--week-bg-b) 64%,white 36%)!important;
+  border-color:var(--week-accent)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack :is(.nb-milestone-edit,.nb-milestone-add,.nb-milestone-more) {
+  background:color-mix(in srgb,var(--week-bg-a) 44%,white 56%)!important;
+  border:1px solid var(--week-chip-border)!important;
+  color:var(--week-accent)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack :is(.nb-milestone-edit,.nb-milestone-add,.nb-milestone-more):hover {
+  background:color-mix(in srgb,var(--week-bg-b) 62%,white 38%)!important;
+  border-color:var(--week-accent)!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack .nb-milestone-chip:focus-visible,
+.nb-tracker[data-view="overview"] .nb-week-grid thead th .nb-milestone-stack :is(.nb-milestone-edit,.nb-milestone-add,.nb-milestone-more):focus-visible {
+  outline:2px solid var(--week-accent)!important;
+  outline-offset:1px!important;
+}
+
+/* When the header is expanded, the browser's focus and hover styling should
+   never substitute the old peach tray or introduce a second inside border. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head:is(:hover,:focus-within) .nb-milestone-stack.nb-milestone-multiple .nb-milestone-entry,
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-week-head .nb-milestone-stack.nb-milestone-multiple.nb-milestone-expanded .nb-milestone-entry {
+  width:100%!important;
+  flex:0 0 auto!important;
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.6.43",
+  "baseline": "0.6.42",
+  "notes": "Unzip changed-files archive into the root of the existing GitHub repository. Relative paths are retained; untouched sources are excluded.",
+  "changed_or_new_files": [
+    "GITHUB_CHANGELOG_v0_6_43.txt",
+    "NBDT_v0_6_43_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_43_RU.md",
+    "index.tsx",
+    "package.json",
+    "tests/milestone-palette-v043.test.mjs",
+    "weekly-tracker-milestone-harmony-v043.css"
+  ],
+  "deleted_files": [],
+  "sha256": {
+    "GITHUB_CHANGELOG_v0_6_43.txt": "d05b25251b3967fca9abe7955cdf198a93c677e85c3b4b994920f032d15c5f86",
+    "README.md": "f3dd6741355a9817085464ab962d5bba2e4b31de2d688c8876eb3a60cd06dd72",
+    "RELEASE_NOTES_v0_6_43_RU.md": "90417a0be581743de961bf5d11daf06a4c6f3fdd20d53cdfd61a91c928518d59",
+    "index.tsx": "43f477734a5d18bd3b7a0c173a53e4783ff2c216b74b54e0e360b40afb24dd3d",
+    "package.json": "fe910b53786a486e6ff5604a6f67961ab8e9944777bc00a0b06089a2d8315841",
+    "tests/milestone-palette-v043.test.mjs": "7ef1e0c8cf47396240e85abf5f6b04e19bd90d278051c3e39808758ff28cebb0",
+    "weekly-tracker-milestone-harmony-v043.css": "c0f74b689806941cbf8aaa325f19362a06a068a9eb17bc779e8d1c4a356deb68"
+  }
+}

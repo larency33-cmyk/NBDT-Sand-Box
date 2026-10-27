@@ -1,0 +1,6 @@
+NBDT v0.6.43 (base v0.6.42)
+- Expanding the week header now enlarges the same colored, bordered week card rather than painting a separate tray.
+- Current week's milestone controls inherit blue design even when its repeating week tone class is orange/violet.
+- Milestone chips, flags, edit/add actions follow the week's palette.
+- Week columns, task rows and bottom week navigation are unchanged.
+- See RELEASE_NOTES_v0_6_43_RU.md for verification details.
