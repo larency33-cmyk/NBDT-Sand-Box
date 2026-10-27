@@ -1,0 +1,60 @@
+/* NBDT v0.6.40 — Approved System Configuration Guide (read-only layout) */
+.nb40-guide-page{--g40-ink:#101b4d;--g40-muted:#6076aa;--g40-border:#d7e8fd;background:linear-gradient(135deg,#f0faff 0%,#f6fbff 58%,#f0f8ff 100%);min-height:100%;color:var(--g40-ink)}
+.nb40-guide-page *{box-sizing:border-box}
+.nb40-guide-page .nb-page-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:26px clamp(16px,2.4vw,38px) 19px;max-width:none;border:0!important;background:transparent;text-align:left}
+.nb40-guide-page .nb-page-header>div:first-child{flex:1;min-width:0;text-align:left;margin:0}
+.nb40-guide-page .nb-page-header h1{font-size:clamp(26px,2.5vw,38px)!important;line-height:1.13!important;letter-spacing:-.035em;font-weight:750!important;text-align:left!important;margin:0;color:var(--g40-ink)}
+.nb40-guide-page .nb-page-header p{font-size:14px!important;margin-top:5px!important;color:#4c62a0!important;text-align:left!important;line-height:1.4}
+.nb40-guide-page .nb-page-header .nb-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-shrink:0}
+.nb40-guide-page .nb-page-header .nb-actions .nb-button{border:1px solid #bdd9fc;border-radius:10px;background:#fff;color:#0068e9;box-shadow:0 6px 12px #246ca30d;min-height:46px;padding:10px 16px;font-weight:650;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.nb40-guide-page .nb-page-header a.nb-button{background:#fff!important;color:#0068e9!important;border-color:#bdd9fc!important}
+.nb40-guide-page .nb-guide-body{padding:0 clamp(16px,2.4vw,38px) 34px;max-width:none}
+.nb40-guide-page .nb-technical{background:#fff;border:1px solid var(--g40-border);border-radius:14px;padding:13px 13px 12px;box-shadow:0 7px 20px #3988bd12;overflow:visible}
+.nb40-guide-page .nb-technical .nb-section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:35px;padding:0 5px 13px;margin:0;background:transparent;border:0!important;color:var(--g40-ink);font-size:20px!important;line-height:1.2;font-weight:740!important;text-align:left!important}
+.nb40-guide-page .nb-technical .nb-section-toggle>span:first-child{text-align:left}
+.nb40-guide-page .nb-technical .nb-section-toggle>span:last-child{color:#006df1;font-size:13px;font-weight:650;text-align:right}
+.nb40-details-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%;align-items:stretch}
+.nb40-detail-card{min-width:0;border:1px solid #d9eafb;border-radius:13px;background:#fff;box-shadow:0 5px 15px #174f910b;min-height:205px;padding:16px 19px 19px}
+.nb40-detail-title{display:flex;align-items:center;gap:13px;margin-bottom:16px;justify-content:flex-start;text-align:left}
+.nb40-detail-icon{width:43px;height:43px;min-width:43px;display:grid;place-items:center;border-radius:50%;color:#0879ed;background:#e8f4ff}
+.nb40-detail-title h3{color:var(--g40-ink);font-size:18px!important;font-weight:730!important;letter-spacing:-.02em!important;line-height:1.2!important;margin:0;text-align:left!important}
+.nb40-detail-card dl{display:grid;grid-template-columns:minmax(95px,37%) minmax(0,1fr);gap:9px 9px;align-items:start;margin:0}
+.nb40-detail-card dt,.nb40-detail-card dd{margin:0;font-size:14px;line-height:1.45;text-align:left!important;min-width:0}
+.nb40-detail-card dt{color:#7488bd;font-weight:500}
+.nb40-detail-card dd{color:#152154;font-weight:560;overflow-wrap:anywhere}
+.nb40-applications{display:grid;grid-template-columns:260px minmax(0,1fr);gap:0;min-height:125px;margin:14px 0 0;padding:18px 23px 18px 18px;border:1px solid #ddcfff;border-radius:13px;background:linear-gradient(110deg,#fbf8ff,#f6f1ff 65%,#f9f6ff);color:#641dc1}
+.nb40-apps-heading{display:flex;align-items:center;gap:15px;text-align:left;padding-right:22px;border-right:1px solid #ddcef8}
+.nb40-apps-icon{width:46px;height:46px;min-width:46px;display:grid;place-items:center;border-radius:50%;background:#f0e4ff;color:#7436d7}
+.nb40-apps-heading h2{font-size:20px!important;color:#6122c2!important;letter-spacing:-.025em;font-weight:730!important;margin:0;text-align:left!important}
+.nb40-apps-heading p{font-size:13px;color:#9d72d4;margin-top:4px;text-align:left}
+.nb40-apps-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px 18px;list-style:none;align-content:center;align-items:start;margin:0;padding:0 0 0 26px}
+.nb40-apps-list li{font-size:14px;line-height:1.35;min-width:0;overflow-wrap:anywhere;color:#5d1cb9;text-align:left}
+.nb40-guide-page .nb-lessons{border:1px solid #ffdbb0!important;border-left:5px solid #ff730f!important;background:linear-gradient(105deg,#fff8f0,#fff9f3)!important;border-radius:12px;margin:14px 0;overflow:hidden;box-shadow:0 2px 8px #ad730514}
+.nb40-guide-page .nb-lessons summary{display:flex;align-items:center;gap:12px;min-height:54px;padding:10px 18px;color:#fa700a;text-align:left;cursor:pointer}
+.nb40-guide-page .nb-lessons summary svg:first-child{color:#fa700a!important;flex:none}
+.nb40-guide-page .nb-lessons summary strong{font-size:19px!important;color:#e96d0c!important;font-weight:730!important;text-align:left!important}
+.nb40-guide-page .nb-lessons summary span{font-size:13px;color:#a94d13;margin-left:7px;text-align:left}
+.nb40-guide-page .nb-lessons .nb-lessons-chevron{color:#f47714!important;margin-left:auto}
+.nb40-guide-page .nb-lessons .nb-note{font-size:14px;line-height:1.5;padding:0 17px 16px 48px}
+.nb40-guide-page .nb-config-workspace{border:1px solid var(--g40-border);background:#fff;border-radius:14px;padding:17px 18px 15px;box-shadow:0 7px 20px #3988bd0f;margin-top:14px}
+.nb40-guide-page .nb-config-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 12px;text-align:left}
+.nb40-guide-page .nb-config-header h2{color:var(--g40-ink);font-size:20px!important;line-height:1.25;font-weight:730!important;margin:0;text-align:left!important}
+.nb40-guide-page .nb-config-header>span{font-size:13px;color:#7889bb;text-align:right}
+.nb40-guide-page .nb-stage-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:0 2px 12px;border-radius:10px;overflow:visible}
+.nb40-guide-page .nb-stage-tabs button{height:55px;justify-content:flex-start;gap:17px;padding:8px clamp(11px,2.6vw,40px);text-align:left!important;background:#e8f4ff;color:var(--g40-ink);border-color:#c4defb;font-size:14px;font-weight:680}
+.nb40-guide-page .nb-stage-tabs button span{display:grid;place-items:center;width:36px;height:36px;min-width:36px;border-radius:50%;background:#fff;border:2px solid #006bf2;color:#006bf2;font-size:17px;font-weight:740}
+.nb40-guide-page .nb-stage-tabs button.selected,.nb40-guide-page .nb-stage-tabs button[aria-pressed="true"]{background:linear-gradient(#188bff,#0064eb);color:#fff}
+.nb40-guide-page .nb-checklist>.nb-section-heading{display:none}
+.nb40-guide-page .nb-check-row{display:flex;align-items:center;min-height:37px;gap:12px;padding:5px 14px;border:none;border-radius:7px;background:#edf7ff;margin:4px 0;color:#14265b;font-size:14px}
+.nb40-guide-page .nb-check-row>label{display:flex;align-items:center;min-height:25px;gap:14px;padding:0;line-height:1.4;flex:1;min-width:0;font-size:14px;font-weight:430;text-align:left}
+.nb40-guide-page .nb-check-row label span{text-align:left;min-width:0}
+.nb40-guide-page .nb-check-row label input[type="checkbox"]{width:21px;height:21px;min-width:21px;accent-color:#006ff4}
+.nb40-guide-page .nb-check-row label span small{display:none}
+.nb40-guide-page .nb-check-row>.nb-result-details{margin-left:auto}
+.nb40-guide-page .nb-config-workspace .nb-guide-footer{display:flex;justify-content:space-between;gap:12px;margin-top:16px}
+.nb40-guide-page .nb-guide-footer .nb-button{border-radius:9px;min-height:44px;padding:9px 15px;font-weight:630}
+.nb40-guide-page .nb-guide-footer .nb-button:last-child:not(:disabled){background:#0070f4;color:#fff}
+.nb40-guide-page .nb-guide-body .nb-save-state{font-size:12px;color:#5075a1}
+@media(max-width:1080px){.nb40-detail-card{padding:14px 12px}.nb40-detail-card dl{grid-template-columns:1fr;gap:3px}.nb40-detail-card dd{margin-bottom:8px}.nb40-applications{grid-template-columns:200px 1fr}.nb40-apps-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.nb40-guide-page .nb-page-header{flex-wrap:wrap}.nb40-guide-page .nb-page-header .nb-actions{justify-content:flex-start;flex-wrap:wrap}.nb40-details-grid{grid-template-columns:1fr}.nb40-detail-card{min-height:0}.nb40-detail-card dl{grid-template-columns:120px minmax(0,1fr)}.nb40-applications{grid-template-columns:1fr;gap:13px}.nb40-apps-heading{border-right:0;border-bottom:1px solid #ddcef8;padding:0 0 13px}.nb40-apps-list{padding:0;grid-template-columns:repeat(2,minmax(0,1fr))}.nb40-guide-page .nb-stage-tabs button{padding:6px 9px;gap:7px;font-size:11px}.nb40-guide-page .nb-stage-tabs button span{width:25px;height:25px;min-width:25px;font-size:13px}.nb40-guide-page .nb-guide-footer{flex-wrap:wrap}}
+@media(max-width:440px){.nb40-apps-list{grid-template-columns:1fr}.nb40-guide-page .nb-config-header{flex-wrap:wrap}.nb40-guide-page .nb-stage-tabs button{font-size:10px;gap:5px}.nb40-guide-page .nb-stage-tabs button span{width:22px;height:22px;min-width:22px}}

@@ -25,7 +25,7 @@ test('configuration guide removes the six obsolete preview and demo sections',()
  for(const text of ['Technical essentials','Lessons Learned','Configuration checklists'])assert.ok(guide.includes(text),text);
 });
 test('visual guide uses accessible labeled icons and three stages',()=>{
- assert.ok(ui.includes('fieldIcons[k]||Monitor'));assert.ok(ui.includes('Configuration checklists'));assert.ok(css.includes('.nb-stage-tabs button.selected'));
+ assert.ok(ui.includes('GuideDetailGroup'));assert.ok(ui.includes('GuideApplications'));assert.ok(ui.includes('Configuration checklist'));assert.ok(css.includes('.nb-stage-tabs button.selected'));
 });
 test('week tracker has owner/helper drilldown and smartphone by-person cards',()=>{
  for(const token of ['nb-week-grid','nb-mobile-week-cards','nb-quick-metrics','nb-quick-add-form','Helper','Show matrix'])assert.ok(ui.includes(token),token);

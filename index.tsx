@@ -22,6 +22,7 @@ import './configuration-report-approved-v031.css';
 import './configuration-report-editable-v032.css';
 import './configuration-report-inline-v033.css';
 import './issue-tracker-v034.css';
+import './guide-approved-v040.css';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';

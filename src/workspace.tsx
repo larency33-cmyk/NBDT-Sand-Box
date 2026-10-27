@@ -11,7 +11,6 @@ import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
-const fieldIcons:any={'Endpoint':Monitor,'Operating system':AppWindow,'Connection':Plug,'VLAN':Network,'IP scope':Globe,'Reservation':LockKeyhole,'Service account reference':UserRoundKey,'Domain / OU':Workflow,'MDM / AirWatch':ShieldCheck,'Applications':LayoutGrid,'Naming convention':Tag,'Owner':UserRound};
 import {STAGES,LABELS,uid,weekRange,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
 const Badge=({value}:any)=><span className={'nb-badge nb-status-'+String(value).toLowerCase().replaceAll(' ','-')}>{({'In Progress':'Active','Completed':'Done'} as any)[value]||value}</span>;
@@ -27,6 +26,31 @@ const guideIdentity = (sys:any) => ({
  name:sys.name||'',description:sys.description||'',assigneeId:sys.assigneeId||'',
  documentationUrl:sys.documentationUrl||'',lessonsLearned:sys.lessonsLearned||'',
 });
+/** Approved read-only Guide layout; all values come from the same Guide snapshot used by Registry. */
+const GuideValue = ({value}: {value:any}) => {
+ const text=String(value??'').trim();
+ return <>{text && text!=='undefined' && text!=='null' ? text : 'Not specified'}</>;
+};
+const GuideDetailGroup = ({title,icon:Icon,fields}: {title:string,icon:any,fields:Array<[string,any]>}) =>
+ <section className="nb40-detail-card" aria-label={title}>
+  <div className="nb40-detail-title"><span className="nb40-detail-icon" aria-hidden="true"><Icon size={27} strokeWidth={1.9}/></span><h3>{title}</h3></div>
+  <dl>{fields.map(([label,value])=><React.Fragment key={label}><dt>{label}</dt><dd><GuideValue value={value}/></dd></React.Fragment>)}</dl>
+ </section>;
+const GuideTechnicalReadout = ({values,owner}: {values:any,owner:string}) => {
+ const os=[values.os,values.osVersion].filter(Boolean).join(' ');
+ return <div className="nb40-details-grid">
+   <GuideDetailGroup title="Device" icon={Monitor} fields={[["Endpoint",values.deviceType||values.deviceCategory],["OS",os],["Naming",values.namingConvention]]}/>
+   <GuideDetailGroup title="Network" icon={Network} fields={[["Connection",values.network],["VLAN",values.vlan],["IP scope",values.ipScope],["Reservation",values.ipReservation]]}/>
+   <GuideDetailGroup title="Access & management" icon={ShieldCheck} fields={[["Service account",values.serviceAccount],["Domain / OU",values.domainOU],["MDM / AirWatch",values.airWatchTags],["Owner",owner]]}/>
+  </div>;
+};
+const GuideApplications = ({value}:{value:any}) => {
+ const apps=String(value||'').split(/[,;\n\r]+/g).map(v=>v.trim()).filter(Boolean);
+ return <section className="nb40-applications" aria-label="Applications">
+   <div className="nb40-apps-heading"><span className="nb40-apps-icon" aria-hidden="true"><LayoutGrid size={26} strokeWidth={2}/></span><div><h2>Applications</h2><p>{apps.length?'Required software':'No applications specified'}</p></div></div>
+   {apps.length>0 && <ul className="nb40-apps-list">{apps.map((name,i)=><li key={i}>{name}</li>)}</ul>}
+  </section>;
+};
 const TECH_EDIT_ROWS: Array<[string,string,(readonly string[])?]> = [
  ['deviceType','Hardware / model'],['deviceCategory','Device type',DEVICE_TYPES],
  ['os','Operating system',['Windows','Linux','iOS','iPadOS','Android','macOS','Other']],
@@ -70,7 +94,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const editGuide=()=>{setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setTechnical(true);setMessage('');setEditing(true);};
  const abortEdit=()=>{if(!dirty||confirm('Discard unsaved guide changes?')){setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setEditing(false);setMessage('');}};
  const guideInput=(key:string,label:string,options?:readonly string[])=> <label key={key} className="nb-guide-input"><span>{label}</span>{options?<select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:key==='appList'?<textarea aria-label={label} rows={2} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>:<input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)} />}</label>;
- return <section className="nb-guide-page"><header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>{editing?identity.description||'System configuration guide':sys.description||'System configuration guide'} · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {technicalValues.os||''} {technicalValues.osVersion||''}</p></div><div className="nb-actions">{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}{isAdmin&&!editing&&<B onClick={editGuide}>Edit guide</B>}<B onClick={close}>Back to systems</B></div></header>
+ return <section className="nb-guide-page nb40-guide-page"><header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}{isAdmin&&!editing&&<B onClick={editGuide}>Edit guide</B>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
  <div className="nb-guide-body">
  <section className="nb-technical"><button className="nb-section-toggle" onClick={()=>setTechnical(!technical)} aria-expanded={technical}><span>Technical essentials</span> <span>{technical?'Collapse':'Expand'}</span></button>{technical&&(editing?<div className="nb-guide-inline-editor">
  <div className="nb-guide-identity-edit">
@@ -84,10 +108,11 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   <label className="nb-guide-input nb-guide-wide"><span>Lessons Learned</span><textarea aria-label="Lessons Learned" rows={2} value={identity.lessonsLearned} onChange={e=>setMeta('lessonsLearned',e.target.value)}/></label>
  </div>
  <div className="nb-guide-edit-actions"><B primary onClick={saveDraft}>Save guide changes</B><B onClick={abortEdit}>Cancel</B><span>Changes are saved to this system's guide; no separate profile editor.</span></div>
- </div>:<dl className="nb-technical-grid">{[['Endpoint',technicalValues.deviceType],['Operating system',technicalValues.os+' '+technicalValues.osVersion],['Connection',technicalValues.network],['VLAN',technicalValues.vlan],['IP scope',technicalValues.ipScope],['Reservation',technicalValues.ipReservation],['Service account reference',technicalValues.serviceAccount],['Domain / OU',technicalValues.domainOU],['MDM / AirWatch',technicalValues.airWatchTags],['Naming convention',technicalValues.namingConvention],['Applications',technicalValues.appList],['Owner',owner]].map(([k,v])=><div key={k}><span className="nb-tech-icon">{React.createElement(fieldIcons[k]||Monitor,{size:22,strokeWidth:1.85,'aria-hidden':true})}</span><div><dt>{k}</dt><dd>{v||'Not specified'}</dd></div></div>)}</dl>)}</section>
+ </div>:<GuideTechnicalReadout values={technicalValues} owner={owner}/>)}</section>
+ {!editing&&<GuideApplications value={technicalValues.appList}/>}
  {!editing&&<details className={'nb-lessons '+(!sys.lessonsLearned?'nb-neutral':'')}><summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {sys.lessonsLearned?'Notes available':'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary><p className="nb-note">{sys.lessonsLearned||'No lessons learned have been added.'}</p></details>}
  {editing&&<p className="nb-notice">Draft only. Review platform applicability before publishing. This is local workflow validation, not corporate approval.</p>}
- <section className="nb-config-workspace" aria-label="Configuration checklists"><div className="nb-config-header"><h2>Configuration checklists</h2><span>{run?Object.values(run.checks||{}).filter(Boolean).length+' steps completed':'Device completion not recorded'}</span></div>
+ <section className="nb-config-workspace" aria-label="Configuration checklists"><div className="nb-config-header"><h2>Configuration checklist</h2><span>{run?Object.values(run.checks||{}).filter(Boolean).length+' steps completed':'Device completion not recorded'}</span></div>
  <div className="nb-stage-tabs" role="group" aria-label="Configuration stages">{STAGES.map((s:string,i:number)=><button type="button" aria-pressed={stage===s} className={stage===s?'selected':''} key={s} onClick={()=>{setStage(s);onNavigationChange?.({deviceId,stage:s});}}><span>{i+1}</span>{LABELS[s]}{run?.accepted?.[s]?' ✓':''}</button>)}</div>
  {guide?.preparationEnabled&&<details className="nb-panel"><summary>0 Preparation · Optional</summary>{(guide.preparationItems||[]).map((item:any)=><label className="nb-check-row" key={item.id}><input type="checkbox" disabled={!isAdmin||!run||editing} checked={!!run?.checks?.[item.id]} onChange={e=>updateRun({...run,checks:{...run.checks,[item.id]:e.target.checked}})}/>{item.label}</label>)}</details>}
  {isAdmin&&<Migration sys={sys} run={run} onSave={update}/>}
