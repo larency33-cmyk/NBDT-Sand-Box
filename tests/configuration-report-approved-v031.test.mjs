@@ -32,7 +32,8 @@ test('Top actions match mockup: export/import; report supports explicitly gated 
  assert.doesNotMatch(top,/View Mode|Admin Mode/);
  assert.match(report,/onRequestAdmin/);
  assert.match(report,/Add system/);
- assert.match(report,/Edit systems/);
+ assert.doesNotMatch(report,/>Edit systems<|>Done editing</); // role-based access superseded the old edit-mode switch
+ assert.match(report,/isAdmin&&<B onClick/);
 });
 test('The six reference systems use live aggregation, with an explicitly labelled illustrative baseline',()=>{
  assert.match(report,/reportCounts\(project,counts\)/);

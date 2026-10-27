@@ -1,0 +1,21 @@
+{
+  "release": "v0.6.47",
+  "base": "v0.6.46",
+  "changed_files": [
+    "README.md",
+    "RELEASE_NOTES_v0_6_47_RU.md",
+    "index.tsx",
+    "nbdt-access-v047.css",
+    "package.json",
+    "src/access-control-v047.tsx",
+    "src/issue-tracker-v034.tsx",
+    "src/navigation.mjs",
+    "src/poc-auth.mjs",
+    "src/workspace.tsx",
+    "tests/access-v047.test.mjs",
+    "tests/configuration-report-approved-v031.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "280/280",
+  "note": "Role login is local-browser POC; server-side auth required before corporate use."
+}

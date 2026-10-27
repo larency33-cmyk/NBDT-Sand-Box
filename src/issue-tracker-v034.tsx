@@ -100,7 +100,7 @@ function SortableCard({issue,project,onOpen}:any){
  return <div ref={setNodeRef} style={{transform:CSS.Translate.toString(transform),transition,opacity:isDragging?.35:1}} className="nb34-sortable" {...attributes} {...listeners}><IssueCard issue={issue} project={project} onOpen={onOpen}/></div>;
 }
 export function IssueTrackerBoard(props:any){
- const {project,isAdmin,setIsAdmin,setShowAdminAuthModal,setAdminPassInput,setDraftIssue,issueSearch,setIssueSearch,issueSeverityFilter,setIssueSeverityFilter,assigneeFilter,setAssigneeFilter,filteredIssues,sensors,handleIssueDragStart,handleIssueDragEnd,activeIssueId}=props;
+ const {project,isAdmin,setShowAdminAuthModal,setAdminPassInput,setDraftIssue,issueSearch,setIssueSearch,issueSeverityFilter,setIssueSeverityFilter,assigneeFilter,setAssigneeFilter,filteredIssues,sensors,handleIssueDragStart,handleIssueDragEnd,activeIssueId}=props;
  const active=filteredIssues.filter((i:any)=>i.status!=='Resolved');
  const critical=active.filter((i:any)=>i.severity==='Critical').length,high=active.filter((i:any)=>i.severity==='High').length;
  const last=Math.max(0,...project.issues.map((i:any)=>i.updatedAt||i.createdAt||0));
@@ -109,8 +109,8 @@ export function IssueTrackerBoard(props:any){
  return <main className="nb34-issues">
  <header className="nb34-hero">
  <div className="nb34-heading-row nb45-primary-header"><div><h1>Issue Tracker</h1><p>Track system issues from report to resolution</p></div><div className="nb34-heading-actions">
- <button type="button" className="nb34-mode-btn" onClick={()=>{if(isAdmin)setIsAdmin(false);else{setShowAdminAuthModal(true);setAdminPassInput('');}}}><Eye size={19}/>{isAdmin?'Edit mode':'View mode'}<ChevronDown size={17}/></button>
- <button className="nb34-add-btn" onClick={createIssue}><Plus size={22}/> New issue</button></div></div></header>
+ 
+ {isAdmin&&<button className="nb34-add-btn" onClick={createIssue}><Plus size={22}/> New issue</button>}</div></div></header>
  <section className="nb34-toolbar" aria-label="Issue filters">
   <div className="nb34-search">
    <Search size={21} className="nb34-search-icon" aria-hidden="true"/>

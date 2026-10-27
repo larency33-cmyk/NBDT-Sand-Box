@@ -29,6 +29,8 @@ import './weekly-tracker-milestone-harmony-v043.css';
 import './weekly-tracker-project-calendar-v044.css';
 import './nbdt-layout-v045.css';
 import './nbdt-layout-v046.css';
+import './nbdt-access-v047.css';
+import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
@@ -1524,7 +1526,7 @@ const ProjectPanel: React.FC<{
 const StatusBadge = ({status}: {status: string}) => <span className={'nb-badge nb-status-' + status.toLowerCase().replaceAll(' ','-')}>{status}</span>;
 const App = () => {
   // Secure Access startup screen disabled: users open the application directly.
-  const [activeTab, setActiveTabRaw] = useState<'overview' | 'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report'>(() => {
+  const [activeTab, setActiveTabRaw] = useState<'overview' | 'roadmap' | 'systems' | 'sync' | 'issues' | 'config-report' | 'administration'>(() => {
     const route = readAppRoute(window.location.href);
     if (route.projectId) return route.tab as any;
     const hash = window.location.hash.replace('#', '');
@@ -1757,12 +1759,13 @@ const App = () => {
   const [hoveredTaskInfo, setHoveredTaskInfo] = useState<{ task: RoadmapTask, memberName: string, config: any, isMilestone: boolean, rect: DOMRect } | null>(null);
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
-  const [adminPassInput, setAdminPassInput] = useState('');
-
-
-  const ADMIN_PASSWORD = ''; // No production credentials in this demo.
+  const access=usePocAccess();
+  const isAdmin=Boolean(access.user);
+  const isSuperAdmin=access.user?.role==='super_admin';
+  const showAdminAuthModal=access.showLogin;
+  const setShowAdminAuthModal=access.setShowLogin;
+  const setAdminPassInput=(_ignored:string)=>{};
+  const openLogin=()=>access.setShowLogin(true);
   useEffect(() => {
     const styleId = 'nbdt-typography-standards';
     let style = document.getElementById(styleId) as HTMLStyleElement | null;
@@ -2076,6 +2079,7 @@ const App = () => {
   };
 
   const createNewProject = (name: string) => {
+    if (!isSuperAdmin) return;
     const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-4);
     const newMeta = { id, name };
     
@@ -2105,6 +2109,7 @@ const App = () => {
   };
 
   const copyProject = (id: string) => {
+    if (!isSuperAdmin) return;
     const sourceMeta = projects.find(p => p.id === id);
     if (!sourceMeta) return;
 
@@ -2145,6 +2150,7 @@ const App = () => {
   };
 
   const renameProject = (id: string, newName: string) => {
+    if (!isSuperAdmin) return;
     const updatedProjectsList = projects.map(p => p.id === id ? { ...p, name: newName } : p);
     setProjects(updatedProjectsList);
     
@@ -2165,6 +2171,7 @@ const App = () => {
   };
 
   const deleteProject = (id: string) => {
+    if (!isSuperAdmin) return;
     if (projects.length <= 1) return;
 
     const remainingProjects = projects.filter(p => p.id !== id);
@@ -2597,36 +2604,6 @@ const App = () => {
       {/* Sync Status Overlay Removed - Moved to Sidebar */}
 
 
-      {/* Admin Toggle */}
-      <div className={cn(
-        "fixed top-6 right-6 z-[100] transition-opacity duration-300",
-        (activeTab === 'roadmap' || activeTab === 'issues' || activeTab === 'systems' || activeTab === 'config-report') && "opacity-0 pointer-events-none"
-      )}>
-        <button 
-          onClick={() => {
-            if (isAdmin) {
-              setIsAdmin(false);
-            } else {
-              setShowAdminAuthModal(true);
-              setAdminPassInput('');
-            }
-          }}
-          className={`flex items-center gap-3 px-4 py-2 rounded-xl border transition-all duration-300 cursor-pointer ${
-            isAdmin 
-              ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' 
-              : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:border-slate-700 backdrop-blur-md'
-          }`}
-        >
-          {isAdmin ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-          <span className="text-[10px] font-black tracking-widest uppercase">
-            {isAdmin ? 'Admin Mode' : 'View Mode'}
-          </span>
-          <div className={`w-8 h-4 rounded-full relative transition-colors duration-300 ${isAdmin ? 'bg-indigo-400' : 'bg-slate-700'}`}>
-            <div className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all duration-300 ${isAdmin ? 'left-5' : 'left-1'}`} />
-          </div>
-        </button>
-      </div>
-
       <aside data-open={mobileNav} data-expanded={isSidebarExpanded} className={`${isSidebarExpanded ? 'w-72' : 'w-20'} border-r border-slate-900 bg-[#020617] flex flex-col py-6 gap-8 shrink-0 z-50 transition-all duration-300 ease-in-out overflow-hidden`}>
          <div className="relative px-4">
             <button 
@@ -2677,7 +2654,7 @@ const App = () => {
                           <div className={`w-2 h-2 rounded-full ${p.id === project.id ? 'bg-indigo-400' : 'bg-slate-700'}`} />
                           <span className="text-xs font-bold truncate flex-1 text-left">{p.name}</span>
                           
-                          {isAdmin && (
+                          {isSuperAdmin && (
                             <div className="hidden group-hover:flex items-center gap-1">
                               {deletingProjectId === p.id ? (
                                 <div className="flex items-center gap-1 animate-in fade-in zoom-in-95">
@@ -2710,7 +2687,7 @@ const App = () => {
                     </div>
                   ))}
                 </div>
-                {isAdmin && (
+                {isSuperAdmin && (
                   <div className="p-2 border-t border-slate-800 bg-slate-900/50">
                     {isCreatingProject ? (
                       <div className="p-2 flex flex-col gap-2">
@@ -2794,6 +2771,7 @@ const App = () => {
                   {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Collab Hub</span>}
                </button>
              )}
+           {isSuperAdmin && <button onClick={()=>setActiveTab('administration')} className={'nb47-sidebar-admin '+(activeTab==='administration'?'nb47-sidebar-admin-selected':'')}><ShieldCheck size={20}/>{isSidebarExpanded&&<span>Administration</span>}</button>}
          </nav>
 
          <div className="mt-auto px-3 pb-4 flex flex-col gap-4">
@@ -2848,41 +2826,43 @@ const App = () => {
 
       <button className="nb-mobile-menu" type="button" aria-label="Toggle navigation" aria-expanded={mobileNav} onClick={()=>setMobileNav(!mobileNav)}>☰ Menu</button>
       <main className={"flex-1 flex flex-col overflow-hidden relative "+(draftSystem||draftTask?"nb-editing-profile":"")}>
+        <AccessChip user={access.user} onLogin={openLogin} onLogout={()=>{access.logout();if(activeTab==='administration')setActiveTab('overview');}} onManage={()=>setActiveTab('administration')}/>
         <StoreStatus/>
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
-        {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} onAuth={()=>{if(isAdmin)setIsAdmin(false);else {setShowAdminAuthModal(true);setAdminPassInput('');}}} onQuickTaskEdit={async(taskId:string,changes:any)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to edit a task.');
+        {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
+        {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={project} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
+          if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));
         }} onQuickTaskDelete={async(taskId:string)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to delete a task.');
+          if(!isAdmin)throw Error('Sign in as Admin to delete a task.');
           await handleAction(prev=>quickDeleteTask(prev,taskId));
         }} onQuickTaskMove={async(taskId:string,sourceWeek:number,direction:'next'|'previous')=>{
-          if(!isAdmin)throw Error('Enable Edit mode to move a task.');
+          if(!isAdmin)throw Error('Sign in as Admin to move a task.');
           if(direction==='previous'){
             await handleAction(prev=>quickMoveTaskToPreviousWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
           }else{
             await handleAction(prev=>quickMoveTaskToNextWeek(prev,taskId,sourceWeek,crypto.randomUUID(),crypto.randomUUID()));
           }
         }} onMilestoneSave={async(values:any,id:string)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to change milestones.');
+          if(!isAdmin)throw Error('Sign in as Admin to change milestones.');
           await handleAction(prev=>quickSaveMilestone(prev,values,id));
         }} onMilestoneDelete={async(id:string)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to delete milestones.');
+          if(!isAdmin)throw Error('Sign in as Admin to delete milestones.');
           await handleAction(prev=>quickDeleteMilestone(prev,id));
         }} onQuickTaskSave={async(taskId:string,changes:any)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to change a task.');
+          if(!isAdmin)throw Error('Sign in as Admin to change a task.');
           await handleAction(prev=>quickSetTaskStatus(prev,taskId,changes));
         }} onQuickTaskCreate={async(data:any)=>{
-          if(!isAdmin)throw Error('Enable Edit mode to add a task.');
+          if(!isAdmin)throw Error('Sign in as Admin to add a task.');
           await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
         }} onMemberRename={async(id:string,name:string)=>{
-          if(!isAdmin)throw Error('Edit mode required');await handleAction(prev=>renameMember(prev,id,name));
+          if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>renameMember(prev,id,name));
         }} onMemberCreate={async(name:string)=>{
-          if(!isAdmin)throw Error('Edit mode required');await handleAction(prev=>addMember(prev,crypto.randomUUID(),name));
+          if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>addMember(prev,crypto.randomUUID(),name));
         }} onMemberDelete={async(id:string)=>{
-          if(!isAdmin)throw Error('Edit mode required');await handleAction(prev=>removeMember(prev,id));
-        }} onProjectStartChange={async(value:string)=>{if(!isAdmin)throw Error('Edit mode required');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');url.searchParams.delete('selectedWeek');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{const start=clampWeekViewport(w);setCurrentStartWeek(start+1);const url=new URL(location.href);url.searchParams.set('week',String(start+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
+          if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>removeMember(prev,id));
+        }} onProjectStartChange={async(value:string)=>{if(!isSuperAdmin)throw Error('Super Admin required to change project start date');if(!validDate(value))throw Error('Enter a valid project start date');if(value===projectRef.current.startDate)return;const offset=Math.round((Date.parse(value+'T12:00:00Z')-Date.parse(projectRef.current.startDate+'T12:00:00Z'))/DAY_MS);await handleAction(p=>({...p,startDate:value,tasks:p.tasks.map(t=>t.isMilestone&&t.date?{...t,date:shiftISODate(t.date,offset)}:t)}));setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(value,project.timezone||'Europe/Paris')||0)+1)));const url=new URL(location.href);url.searchParams.delete('week');url.searchParams.delete('selectedWeek');window.history.replaceState({nbdt:true},'',url.pathname+url.search);}} week={focusedWeekIndex} setWeek={(w:number)=>{const start=clampWeekViewport(w);setCurrentStartWeek(start+1);const url=new URL(location.href);url.searchParams.set('week',String(start+1));window.history.replaceState({nbdt:true},'',url.pathname+url.search);}}/> }
         {activeTab === 'systems' && !activeCheckSheetSys && !draftSystem && (
           <section className="nb-registry-page" aria-label="System Registry">
             <header className="nb-registry-heading nb45-primary-header">
@@ -2896,7 +2876,7 @@ const App = () => {
                   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
                 }}><Download size={18}/> Export</button>
                 {isAdmin&&<button type="button" className="nb-button nb-primary" onClick={()=>setDraftSystem({id:`sys-${Date.now()}`,name:'',deviceType:'',deviceCategory:'PC',os:'Windows',osVersion:'',network:'Wired',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',assigneeId:''})}><Plus size={18}/> Add system</button>}
-                <button type="button" className="nb-button nb-registry-mode" onClick={()=>{if(isAdmin)setIsAdmin(false);else{setShowAdminAuthModal(true);setAdminPassInput('');}}}>{isAdmin?'Exit edit mode':'Edit mode'}</button>
+
               </div>
             </header>
             <div className="nb-registry-filters" role="search" aria-label="Filter system registry">
@@ -2913,7 +2893,7 @@ const App = () => {
           </section>
         )}
 
-        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={project.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={project} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -3144,7 +3124,6 @@ const App = () => {
           <IssueTrackerBoard
             project={project}
             isAdmin={isAdmin}
-            setIsAdmin={setIsAdmin}
             setShowAdminAuthModal={setShowAdminAuthModal}
             setAdminPassInput={setAdminPassInput}
             setDraftIssue={setDraftIssue}
@@ -3183,16 +3162,16 @@ const App = () => {
                 >
                   <Download size={16} /> Export data
                 </button>
-                <button 
-                  disabled={!isAdmin} onClick={() => fileInputRef.current?.click()}
+                {isAdmin&&<button 
+                  onClick={() => fileInputRef.current?.click()}
                   className="flex items-center gap-3 px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-slate-950 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 uppercase tracking-widest text-[11px] font-black"
                 >
                   <Upload size={16} /> Import Report
-                </button>
+                </button>}
 
               </div>
             </header>
-            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onDisableAdmin={()=>setIsAdmin(false)} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Edit mode required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
+            <Report project={project} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
           </div>
         )}
 
@@ -3306,43 +3285,8 @@ const App = () => {
 
         {/* --- Dialogs & Modals --- */}
 
-        {draftSystem && <SystemCreate key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Edit mode is required');await saveSystem(next);openGuideForEdit(next);}}/>}
-        {showAdminAuthModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-2xl" onClick={() => setShowAdminAuthModal(false)} />
-            <div className="relative w-full max-w-sm bg-[#080d1a] border border-slate-800 rounded-[2.5rem] shadow-2xl p-10 animate-fadeIn text-center">
-              <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400 mx-auto mb-6 shadow-inner">
-                <ShieldCheck size={32} />
-              </div>
-              <h2 className="text-2xl font-black uppercase tracking-tight mb-2 text-white">Local edit mode</h2>
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8">{LOCAL_UI_MODE ? 'Local preview only. Not production authentication.' : 'Enter Authorization Key'}</p>
-              
-              <p className="nb-notice">Editing changes only this browser's demo data. No identity verification or server authorization is connected.</p>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowAdminAuthModal(false)}
-                  className="flex-1 py-4 bg-slate-900 text-slate-400 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={() => {
-                    if (LOCAL_UI_MODE) {
-                      setIsAdmin(true);
-                      setShowAdminAuthModal(false);
-                    } else {
-                      alert('Access Denied: Incorrect Key');
-                      setAdminPassInput('');
-                    }
-                  }}
-                  className="flex-1 py-4 bg-indigo-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
-                >
-                  Verify
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {draftSystem && <SystemCreate key={draftSystem.id} sys={draftSystem} project={project} isAdmin={isAdmin} onClose={()=>setDraftSystem(null)} onSave={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await saveSystem(next);openGuideForEdit(next);}}/>}
+        {showAdminAuthModal&&<LoginModal onClose={()=>setShowAdminAuthModal(false)} onLogin={access.login}/>}
 
         {/* Global Task Popover */}
         <AnimatePresence>

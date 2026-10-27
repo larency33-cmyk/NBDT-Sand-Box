@@ -156,3 +156,7 @@ Multiple Milestones expand the entire week header as a single themed card; the b
 - Native scrollbar chrome is hidden across application scrollports without disabling actual vertical/horizontal scrolling.
 - Corrected the tracker-only sidebar override (223px) so the expanded menu remains 232px on all desktop routes (72px when collapsed).
 - See `RELEASE_NOTES_v0_6_45_RU.md` for technical details and verification limitations.
+
+## v0.6.47 — Guest / Admin / Super Admin (POC)
+
+The site starts in **Guest** role with read-only browsing. Use **Sign in** (upper-right) for the local-only proof-of-concept. Test Super Admin: username `superadmin`, password `NBDT-POC-2026!`. Under **Administration**, create and disable Admin accounts or reset their passwords. Admins can edit project records via existing contextual pencils, without any global Edit mode. For first tests, stay in the same browser profile: accounts are stored in localStorage and project data in IndexedDB. **Not secure authentication and not multi-user:** never use this local auth for production. See `RELEASE_NOTES_v0_6_47_RU.md` for migration/security details.
