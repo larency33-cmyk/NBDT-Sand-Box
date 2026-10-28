@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.52.** New Assignment page with the provided 13-person / 108-system matrix, editable and draggable assignment cells for Admin/Super Admin, and central exact-name system-owner lookup across Registry, Guide, Configuration Report and task details. Global browser-local Assignment registry lives in IndexedDB. See `RELEASE_NOTES_v0_6_52_RU.md`.
+**Current package: v0.6.53 (critical startup hotfix).** New Assignment page with the provided 13-person / 108-system matrix, editable and draggable assignment cells for Admin/Super Admin, and central exact-name system-owner lookup across Registry, Guide, Configuration Report and task details. Global browser-local Assignment registry lives in IndexedDB. See `RELEASE_NOTES_v0_6_53_RU.md` and `RELEASE_NOTES_v0_6_52_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 
@@ -27,7 +27,7 @@ npm run lint
 npm run build
 ```
 
-The production build is written to `dist/` and must **not** be committed. The Vercel project can be imported from the repository root and uses the settings in `vercel.json` (Vite / `dist`).
+The production build now runs a missing-symbol preflight first (`scripts/check-symbols.cjs`), which catches undefined JSX icons such as the unimported `Users` symbol that broke v0.6.52. The production build is written to `dist/` and must **not** be committed. The Vercel project can be imported from the repository root and uses the settings in `vercel.json` (Vite / `dist`).
 
 ## Repository layout
 

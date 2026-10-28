@@ -1,0 +1,17 @@
+{
+  "release": "v0.6.53",
+  "base": "v0.6.52",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_53.txt",
+    "NBDT_v0_6_53_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_53_RU.md",
+    "index.tsx",
+    "package.json",
+    "scripts/check-symbols.cjs",
+    "tests/entrypoint-v053.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "302/302",
+  "note": "Fix missing lucide-react Users import in app sidebar causing blank screen; add TypeScript undefined-symbol preflight to Vite build. POC data unaffected. Live production Vite build not verified due network limits."
+}

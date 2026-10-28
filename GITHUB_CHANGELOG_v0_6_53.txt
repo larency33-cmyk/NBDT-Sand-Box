@@ -1,0 +1,12 @@
+NBDT v0.6.53 — emergency blank-screen hotfix
+
+GITHUB_CHANGELOG_v0_6_53.txt
+NBDT_v0_6_53_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_53_RU.md
+index.tsx
+package.json
+scripts/check-symbols.cjs
+tests/entrypoint-v053.test.mjs
+
+Removed files: none

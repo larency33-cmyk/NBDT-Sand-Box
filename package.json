@@ -1,11 +1,11 @@
 {
   "name": "nbdt",
   "private": true,
-  "version": "0.6.52",
+  "version": "0.6.53",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/check-symbols.cjs && vite build",
     "lint": "tsc --noEmit",
     "preview": "vite preview",
     "test": "node --test tests/*.test.mjs",
