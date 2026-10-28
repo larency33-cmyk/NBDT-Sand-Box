@@ -1,0 +1,10 @@
+NBDT v0.6.56 — whole-employee-column drag and swap in Assignment
+
+- Add employee header drag handle and separate column drop targets.
+- Swap entire column positions while retaining all system ownership identities.
+- Highlight source and destination columns; overlay preview and landing animation.
+- Preserve per-system drag-and-drop and all Guest/Admin access restrictions.
+- Add five regression tests including compiled TSX drag-handler execution.
+- Update README and Russian release notes.
+
+Removed files: none

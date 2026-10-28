@@ -1,8 +1,16 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.55 (Assignment white-screen fix + release protection).** Corrected the Assignment component's hook dependency references to variables before declaration. All functionality added in v0.6.54 is retained: editable team members, Add person, refined drag-and-drop and horizontal scrollbar, no Positions filter, Assignment below Configuration Report. Original 13 people and 108 system assignments preserved. See `RELEASE_NOTES_v0_6_55_RU.md`.
+**Current package: v0.6.56 (Assignment employee-column drag & swap).** Admin and Super Admin may drag an employee column by the **Move column** grip in its header and drop it on another employee header to exchange the two complete columns. All original personnel, dates and 108 system assignments remain intact; only the display order is stored. Guest has no rearrangement controls. All v0.6.55 fixes and safety gates are retained. See `RELEASE_NOTES_v0_6_56_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
+
+## Assignment column ordering (v0.6.56)
+
+- Sign in as Admin or Super Admin; open **Assignment**.
+- Grab the **Move column** handle under an employee's start date and drop it on **another employee header**. The two employee columns swap positions, including their displayed system rows.
+- The drag preview names both employees and the full source/destination columns are highlighted. Dropping elsewhere cancels without changes.
+- This is only a display-order change, **not an ownership transfer**: employee IDs and system-to-owner relationships remain untouched. Ownership changes still use per-system drag handles.
+- The updated ordering saves in the same browser-local Assignment roster. Export CSV uses the saved order. The separate **Add person** column stays at the right end.
 
 ## Requirements
 

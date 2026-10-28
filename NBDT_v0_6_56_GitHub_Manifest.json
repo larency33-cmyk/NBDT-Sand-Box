@@ -1,0 +1,23 @@
+{
+  "version": "0.6.56",
+  "base_version": "0.6.55",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_56.txt",
+    "NBDT_v0_6_56_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_56_RU.md",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "src/assignment-page-v052.tsx",
+    "src/assignment-roster.mjs",
+    "tests/assignment-column-swap-v056.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_56.txt",
+    "NBDT_v0_6_56_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_56_RU.md",
+    "tests/assignment-column-swap-v056.test.mjs"
+  ],
+  "total_file_count": 197
+}

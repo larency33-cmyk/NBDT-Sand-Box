@@ -79,6 +79,18 @@ export function editAssignmentPerson(roster,id,details){
  const person=validatePerson(roster,details,id);
  return {...roster,people:roster.people.map(p=>p.id===id?{...p,...person}:p)};
 }
+/** Swap the displayed positions of two complete employee columns.
+ * Only the people array order changes: system IDs, owner IDs and task history stay intact.
+ */
+export function swapAssignmentPeople(roster,sourcePersonId,targetPersonId){
+ const sourceIndex=(roster?.people||[]).findIndex(person=>person.id===sourcePersonId);
+ const targetIndex=(roster?.people||[]).findIndex(person=>person.id===targetPersonId);
+ if(sourceIndex<0||targetIndex<0)throw Error('Team member not found.');
+ if(sourceIndex===targetIndex)return roster;
+ const people=[...roster.people];
+ [people[sourceIndex],people[targetIndex]]=[people[targetIndex],people[sourceIndex]];
+ return {...roster,people};
+}
 export function addAssignment(roster,personId,name){
  if(!roster.people.some(p=>p.id===personId))throw Error('Unknown assignment owner');
  const clean=String(name||'').trim();if(!clean||clean.length>180)throw Error('Enter a system name (1–180 characters)');
