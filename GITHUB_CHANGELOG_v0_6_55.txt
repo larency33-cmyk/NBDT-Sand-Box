@@ -1,0 +1,10 @@
+NBDT v0.6.55 — Emergency startup fix and release safety gates
+
+- Fix Assignment boot crash: useMemo values are declared before useEffect dependencies.
+- Extend build preflight to TS2448/TS2454 temporal dead zones and all TSX syntax errors.
+- Add offline Assignment render smoke tests for Guest and Admin.
+- Add React visible render-error fallback instead of a silent white page.
+- Add production-route Chromium smoke script and GitHub Actions release gate.
+- Document mandatory release process in README and release notes.
+
+Removed files: none

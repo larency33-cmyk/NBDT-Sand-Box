@@ -46,6 +46,11 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const gridRef=useRef<HTMLDivElement>(null);
  const railRef=useRef<HTMLDivElement>(null);
  const [scrollbar,setScrollbar]=useState({visible:false,width:100,left:0,value:0});
+ const people=useMemo(()=>roster.people.filter((person:any)=>{
+  const search=query.trim().toLowerCase();return !search||person.name.toLowerCase().includes(search)||roster.items.some((item:any)=>item.personId===person.id&&item.name.toLowerCase().includes(search));
+ }),[roster,query]);
+ const itemsByPerson=useMemo(()=>Object.fromEntries(roster.people.map((p:any)=>[p.id,roster.items.filter((i:any)=>i.personId===p.id).sort((a:any,b:any)=>a.order-b.order)])),[roster]);
+ const rowCount=Math.max(13,...people.map((p:any)=>itemsByPerson[p.id]?.length||0));
  const syncScrollbar=()=>{
   const el=gridRef.current;if(!el)return;
   const total=el.scrollWidth,viewport=el.clientWidth,max=Math.max(0,total-viewport);
@@ -79,11 +84,6 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
   else if(steps[e.key]!==undefined){e.preventDefault();el.scrollLeft+=steps[e.key];}
  };
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:7}}),useSensor(KeyboardSensor));
- const people=useMemo(()=>roster.people.filter((person:any)=>{
-  const search=query.trim().toLowerCase();return !search||person.name.toLowerCase().includes(search)||roster.items.some((item:any)=>item.personId===person.id&&item.name.toLowerCase().includes(search));
- }),[roster,query]);
- const itemsByPerson=useMemo(()=>Object.fromEntries(roster.people.map((p:any)=>[p.id,roster.items.filter((i:any)=>i.personId===p.id).sort((a:any,b:any)=>a.order-b.order)])),[roster]);
- const rowCount=Math.max(13,...people.map((p:any)=>itemsByPerson[p.id]?.length||0));
  const beginEdit=(item:any)=>{if(!isAdmin)return;setEditor({id:item.id,personId:item.personId,original:item.name});setDraft(item.name);setError('');};
  const beginAdd=(person:any)=>{if(!isAdmin)return;setEditor({personId:person.id,creating:true});setDraft('');setError('');};
  const beginPersonEdit=(person:any)=>{if(!isAdmin)return;setPersonEditor({id:person.id});setPersonDraft({name:person.name,position:person.position,startDate:person.startDate});setError('');};

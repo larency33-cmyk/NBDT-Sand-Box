@@ -1,0 +1,31 @@
+{
+  "version": "0.6.55",
+  "base_version": "0.6.54",
+  "changed_files": [
+    ".github/workflows/release-gate.yml",
+    ".gitignore",
+    "GITHUB_CHANGELOG_v0_6_55.txt",
+    "NBDT_v0_6_55_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_55_RU.md",
+    "index.tsx",
+    "package.json",
+    "scripts/check-symbols.cjs",
+    "scripts/smoke-production.cjs",
+    "src/assignment-page-v052.tsx",
+    "tests/assignment-render-v055.test.mjs",
+    "tests/runtime-release-gate-v055.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    ".github/workflows/release-gate.yml",
+    ".gitignore",
+    "GITHUB_CHANGELOG_v0_6_55.txt",
+    "NBDT_v0_6_55_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_55_RU.md",
+    "scripts/smoke-production.cjs",
+    "tests/assignment-render-v055.test.mjs",
+    "tests/runtime-release-gate-v055.test.mjs"
+  ],
+  "total_file_count": 193
+}

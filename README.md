@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.54 (Assignment usability).** Added editable team-member headers (name, position, joining date), Add person column, improved owner drag and drop, one-border search field, and a thin custom horizontal scrollbar. Assignment now appears below Configuration Report; Collab Hub is absent from the menu. The original 13-person / 108-assignment roster remains intact. See `RELEASE_NOTES_v0_6_54_RU.md` and prior notes for v0.6.52–53.
+**Current package: v0.6.55 (Assignment white-screen fix + release protection).** Corrected the Assignment component's hook dependency references to variables before declaration. All functionality added in v0.6.54 is retained: editable team members, Add person, refined drag-and-drop and horizontal scrollbar, no Positions filter, Assignment below Configuration Report. Original 13 people and 108 system assignments preserved. See `RELEASE_NOTES_v0_6_55_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 
@@ -27,7 +27,30 @@ npm run lint
 npm run build
 ```
 
-The production build now runs a missing-symbol preflight first (`scripts/check-symbols.cjs`), which catches undefined JSX icons such as the unimported `Users` symbol that broke v0.6.52. The production build is written to `dist/` and must **not** be committed. The Vercel project can be imported from the repository root and uses the settings in `vercel.json` (Vite / `dist`).
+## Mandatory release gate: prevent blank screens
+
+Two real outages established this policy: **v0.6.52** rendered blank because the `Users` icon was not imported; **v0.6.54** rendered blank because `people` and `rowCount` were used in `useEffect` dependencies before their `const` declarations. Unit tests and syntax-only tests missed those runtime failures.
+
+**Never describe a new ZIP as production-verified until all release gates pass:**
+
+```bash
+npm install --no-audit --no-fund
+npm run check:syntax
+npm test
+npm run build
+npx playwright install chromium
+npm run smoke:production
+```
+
+1. `npm run build` runs `scripts/check-symbols.cjs` *before* Vite. It now fails for undefined symbols (`TS2304`/`TS2552`), use-before-declaration (`TS2448`/`TS2454`) and syntax errors in all TSX sources. This gate also runs as part of Vercel's configured build command.
+2. `npm test` now exercises the compiled **Assignment** render function in Guest and Admin modes and runs a deliberately broken TSX fixture to confirm the preflight fails.
+3. `npm run smoke:production` starts the **actual built Vite application** in Chromium and visits Overview, Weekly Tracker, System Registry, Issue Tracker, Configuration Report and Assignment. It fails on JavaScript page errors, missing headings or the React error fallback. This is required because isolated component tests alone are insufficient.
+4. `.github/workflows/release-gate.yml` automatically executes all these checks on pull requests and pushes to `main`. Configure GitHub branch protection to **require** this check before merging; without branch protection, it cannot block direct pushes or Vercel deployments.
+5. A `NBDTRenderBoundary` now displays an error screen with a Reload button if a React render fails, instead of silently leaving a blank page.
+
+**If installation, Vite build or Chromium tests cannot run, report the release as UNVERIFIED, do not claim the site was tested.** A passing source preflight is useful but not equivalent to a real production boot. Never clear or reset user IndexedDB as a debugging shortcut.
+
+The production build is written to `dist/` and must **not** be committed. The Vercel project can be imported from the repository root and uses `vercel.json` (Vite / `dist`).
 
 ## Repository layout
 

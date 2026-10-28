@@ -3479,6 +3479,23 @@ const App = () => {
   );
 };
 
+/** Visible fallback for render failures: prevent an opaque white screen. */
+class NBDTRenderBoundary extends React.Component<{children:React.ReactNode},{error:Error|null}> {
+  constructor(props:{children:React.ReactNode}){super(props);this.state={error:null};}
+  static getDerivedStateFromError(error:Error){return {error};}
+  componentDidCatch(error:Error,info:React.ErrorInfo){console.error('NBDT render failed',error,info);}
+  render(){
+    if(this.state.error)return <main role="alert" data-testid="nbdt-render-error" style={{minHeight:'100vh',background:'#f2f7ff',display:'flex',alignItems:'center',justifyContent:'center',padding:24,fontFamily:'Arial,sans-serif',color:'#09244e'}}>
+      <div style={{width:'100%',maxWidth:520,background:'white',border:'1px solid #cfe0fb',borderRadius:16,padding:28,boxShadow:'0 12px 32px rgba(11,44,91,.09)'}}>
+        <h1 style={{fontSize:23,margin:'0 0 10px'}}>NBDT couldn’t open this page</h1>
+        <p style={{lineHeight:1.6,margin:'0 0 12px'}}>An application error prevented the page from loading. Your locally saved project records have not been cleared.</p>
+        <p style={{fontSize:12,overflowWrap:'anywhere',color:'#637895'}}>{this.state.error.message}</p>
+        <button type="button" style={{border:0,background:'#0866ea',color:'white',borderRadius:8,padding:'11px 20px',cursor:'pointer'}} onClick={()=>location.reload()}>Reload NBDT</button>
+      </div>
+    </main>;
+    return this.props.children;
+  }
+}
 const root = createRoot(document.getElementById('root')!);
 root.render(<div className="nb-notice" role="status">Opening local demo storage…</div>);
-initDemoStore().then(()=>root.render(<App/>)).catch((error:Error)=>root.render(<section className="nb-notice" role="alert"><h1>Demo storage unavailable</h1><p>{error.message}</p><button type="button" onClick={()=>location.reload()}>Retry</button><p>No server or localStorage fallback was activated.</p></section>));
+initDemoStore().then(()=>root.render(<NBDTRenderBoundary><App/></NBDTRenderBoundary>)).catch((error:Error)=>root.render(<section className="nb-notice" role="alert"><h1>Demo storage unavailable</h1><p>{error.message}</p><button type="button" onClick={()=>location.reload()}>Retry</button><p>No server or localStorage fallback was activated.</p></section>));
