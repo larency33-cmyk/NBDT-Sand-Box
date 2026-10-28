@@ -1,14 +1,14 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.56 (Assignment employee-column drag & swap).** Admin and Super Admin may drag an employee column by the **Move column** grip in its header and drop it on another employee header to exchange the two complete columns. All original personnel, dates and 108 system assignments remain intact; only the display order is stored. Guest has no rearrangement controls. All v0.6.55 fixes and safety gates are retained. See `RELEASE_NOTES_v0_6_56_RU.md`.
+**Current package: v0.6.57 (Assignment employee-column insertion).** Admin and Super Admin can drag a column by its **Move column** handle and drop it in the left or right half of another employee header to insert it before or after that person. Neighboring columns shift without exchanging owners or individual system assignments. Guest access, all v0.6.55 crash-prevention gates, and the rest of v0.6.56 are retained. See `RELEASE_NOTES_v0_6_57_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 
-## Assignment column ordering (v0.6.56)
+## Assignment column ordering (v0.6.57)
 
 - Sign in as Admin or Super Admin; open **Assignment**.
-- Grab the **Move column** handle under an employee's start date and drop it on **another employee header**. The two employee columns swap positions, including their displayed system rows.
-- The drag preview names both employees and the full source/destination columns are highlighted. Dropping elsewhere cancels without changes.
+- Grab the **Move column** handle below the employee's start date, drag it onto the **left half** of a different employee header to insert **before**, or onto the **right half** to insert **after**. Other columns shift to make room; no two-person swap occurs.
+- A blue vertical insertion guide shows the exact boundary, from header through all project rows, and the drag preview says **Insert before/after**. Dropping outside a header or onto an unchanged position cancels without modifying data.
 - This is only a display-order change, **not an ownership transfer**: employee IDs and system-to-owner relationships remain untouched. Ownership changes still use per-system drag handles.
 - The updated ordering saves in the same browser-local Assignment roster. Export CSV uses the saved order. The separate **Add person** column stays at the right end.
 

@@ -79,16 +79,22 @@ export function editAssignmentPerson(roster,id,details){
  const person=validatePerson(roster,details,id);
  return {...roster,people:roster.people.map(p=>p.id===id?{...p,...person}:p)};
 }
-/** Swap the displayed positions of two complete employee columns.
- * Only the people array order changes: system IDs, owner IDs and task history stay intact.
+/** Insert an employee column immediately before or after another one.
+ * Only the order of people changes; IDs, ownership, assignments and audit history are untouched.
+ * Return the original roster if the drop does not change the visible order.
  */
-export function swapAssignmentPeople(roster,sourcePersonId,targetPersonId){
+export function moveAssignmentPerson(roster,sourcePersonId,targetPersonId,placement='before'){
+ if(placement!=='before'&&placement!=='after')throw Error('Invalid insertion side.');
  const sourceIndex=(roster?.people||[]).findIndex(person=>person.id===sourcePersonId);
  const targetIndex=(roster?.people||[]).findIndex(person=>person.id===targetPersonId);
  if(sourceIndex<0||targetIndex<0)throw Error('Team member not found.');
  if(sourceIndex===targetIndex)return roster;
  const people=[...roster.people];
- [people[sourceIndex],people[targetIndex]]=[people[targetIndex],people[sourceIndex]];
+ const [moved]=people.splice(sourceIndex,1);
+ const anchorIndex=people.findIndex(person=>person.id===targetPersonId);
+ const insertionIndex=anchorIndex+(placement==='after'?1:0);
+ if(insertionIndex===sourceIndex)return roster;
+ people.splice(insertionIndex,0,moved);
  return {...roster,people};
 }
 export function addAssignment(roster,personId,name){

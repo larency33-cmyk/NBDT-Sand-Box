@@ -2,17 +2,17 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {DndContext,PointerSensor,KeyboardSensor,useDraggable,useDroppable,useSensor,useSensors,DragOverlay,pointerWithin,rectIntersection} from '@dnd-kit/core';
 import {Pencil,Plus,Check,X,Search,Users,ClipboardList,ArrowRightLeft,GripVertical,LockKeyhole,Download,UserRoundPlus,MoveRight} from 'lucide-react';
-import {assignmentRows,addAssignment,editAssignment,removeAssignment,moveAssignment,addAssignmentPerson,editAssignmentPerson,swapAssignmentPeople} from './assignment-roster.mjs';
+import {assignmentRows,addAssignment,editAssignment,removeAssignment,moveAssignment,addAssignmentPerson,editAssignmentPerson,moveAssignmentPerson} from './assignment-roster.mjs';
 
 const PALETTE=['blue','violet','teal','orange','purple','blue','mint','amber','pink','lavender','sky','cyan','rose'];
 const prettyDate=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
 const createEmptyPerson=()=>({name:'',position:'ITO',startDate:''});
 
-function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwner,justMoved,draggingPersonId,columnTarget,justSwappedColumns}:any){
+function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwner,justMoved,draggingPersonId,columnTarget,justReorderedColumns}:any){
  const targetId=`slot:${person.id}:${position}`;
  const {setNodeRef:isDropRef,isOver}=useDroppable({id:targetId,disabled:!isAdmin});
  const {attributes,listeners,setNodeRef:isDragRef,isDragging}=useDraggable({id:`item:${item?.id||targetId}`,disabled:!isAdmin||!item||busy});
- return <td className={'nb52-cell '+(isOver?'nb52-cell-drop ':'')+(isDragging?'nb52-cell-dragging ':'')+(dropOwner===person.id?'nb54-target-column ':'')+(justMoved===item?.id?'nb54-landed ':'')+(draggingPersonId===person.id?'nb56-column-source ':'')+(columnTarget===person.id?'nb56-column-destination ':'')+(justSwappedColumns?.includes(person.id)?'nb56-column-landed ':'')} ref={isDropRef} data-owner={person.name}>
+ return <td className={'nb52-cell '+(isOver?'nb52-cell-drop ':'')+(isDragging?'nb52-cell-dragging ':'')+(dropOwner===person.id?'nb54-target-column ':'')+(justMoved===item?.id?'nb54-landed ':'')+(draggingPersonId===person.id?'nb56-column-source ':'')+(columnTarget?.personId===person.id?'nb56-column-destination ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='before'?'nb57-insert-before ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='after'?'nb57-insert-after ':'')+(justReorderedColumns?.includes(person.id)?'nb56-column-landed ':'')} ref={isDropRef} data-owner={person.name}>
   {item?<div className="nb52-assignment-item" ref={isDragRef} title={`${item.name}\nOwner: ${person.name}`}>
    {isAdmin&&<button type="button" className="nb52-drag-handle" {...listeners} {...attributes} aria-label={`Move ${item.name} from ${person.name}`} title="Drag to another owner"><GripVertical size={14}/></button>}
    <span className="nb52-assignment-name">{item.name}</span>
@@ -20,14 +20,16 @@ function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwne
   </div>:isAdmin?<button className="nb52-add-in-cell" type="button" aria-label={`Add system to ${person.name}`} title={`Add system for ${person.name}`} onClick={()=>onAdd(person)}><Plus size={13}/></button>:<span className="nb52-empty">—</span>}
  </td>;
 }
-function PersonColumnHeader({person,index,isAdmin,busy,onAdd,onEdit,dropOwner,draggingPersonId,columnTarget,justSwappedColumns}:any){
+function PersonColumnHeader({person,index,isAdmin,busy,onAdd,onEdit,dropOwner,draggingPersonId,columnTarget,justReorderedColumns}:any){
  const {setNodeRef:setItemTarget,isOver:itemIsOver}=useDroppable({id:`slot:${person.id}:head`,disabled:!isAdmin});
- const {setNodeRef:setPersonTarget,isOver:personIsOver}=useDroppable({id:`person-target:${person.id}`,disabled:!isAdmin||busy});
+ const {setNodeRef:setBeforeTarget}=useDroppable({id:`person-insert:${person.id}:before`,disabled:!isAdmin||busy});
+ const {setNodeRef:setAfterTarget}=useDroppable({id:`person-insert:${person.id}:after`,disabled:!isAdmin||busy});
  const {attributes,listeners,setNodeRef:setPersonDrag,isDragging}=useDraggable({id:`person:${person.id}`,disabled:!isAdmin||busy});
- const attachColumn=(element:HTMLElement|null)=>{setPersonTarget(element);setPersonDrag(element);};
  const source=isDragging||draggingPersonId===person.id;
- const destination=(personIsOver||columnTarget===person.id)&&!!draggingPersonId&&!source;
- return <th ref={attachColumn} scope="col" data-person-id={person.id} className={`nb52-person nb52-person-${PALETTE[index%PALETTE.length]} ${(dropOwner===person.id||itemIsOver)?'nb54-person-target':''} ${source?'nb56-column-source':''} ${destination?'nb56-column-destination':''} ${justSwappedColumns?.includes(person.id)?'nb56-column-landed':''}`}>
+ const destination=columnTarget?.personId===person.id&&!!draggingPersonId&&!source;
+ const insertionSide=destination?columnTarget.placement:null;
+ return <th ref={setPersonDrag} scope="col" data-person-id={person.id} className={`nb52-person nb52-person-${PALETTE[index%PALETTE.length]} ${(dropOwner===person.id||itemIsOver)?'nb54-person-target':''} ${source?'nb56-column-source':''} ${destination?'nb56-column-destination':''} ${insertionSide==='before'?'nb57-insert-before':''} ${insertionSide==='after'?'nb57-insert-after':''} ${justReorderedColumns?.includes(person.id)?'nb56-column-landed':''}`}>
+  {isAdmin&&<><div ref={setBeforeTarget} className="nb57-insertion-zone nb57-insertion-before" aria-hidden="true"/><div ref={setAfterTarget} className="nb57-insertion-zone nb57-insertion-after" aria-hidden="true"/></>}
   <div ref={setItemTarget} className="nb56-header-inner">
    <div className="nb52-avatar" aria-hidden="true">{person.name[0]}</div>
    <strong title={person.name}>{person.name}</strong><span className="nb52-position">{person.position}</span><small>{prettyDate(person.startDate)}</small>
@@ -36,7 +38,7 @@ function PersonColumnHeader({person,index,isAdmin,busy,onAdd,onEdit,dropOwner,dr
    <button type="button" className="nb54-person-edit" aria-label={`Edit team member ${person.name}`} title={`Edit name, position and date for ${person.name}`} onClick={()=>onEdit(person)}><Pencil size={12}/></button>
    <button type="button" className="nb52-column-plus" aria-label={`Add system to ${person.name}`} title={`Add system to ${person.name}`} onClick={()=>onAdd(person)}><Plus size={12}/></button>
   </div>}
-  {isAdmin&&<button type="button" className="nb56-column-grip" {...attributes} {...listeners} disabled={busy} aria-label={`Move entire column for ${person.name}`} title={`Drag ${person.name}'s column onto another employee to swap columns`}><GripVertical size={15}/><span>Move column</span></button>}
+  {isAdmin&&<button type="button" className="nb56-column-grip" {...attributes} {...listeners} disabled={busy} aria-label={`Move entire column for ${person.name}`} title={`Drag ${person.name} and drop on the left or right half of another employee header`}><GripVertical size={15}/><span>Move column</span></button>}
  </th>;
 }
 
@@ -52,8 +54,8 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const [dropTarget,setDropTarget]=useState<any>(null);
  const [justMoved,setJustMoved]=useState<any>(null);
  const [draggingPersonId,setDraggingPersonId]=useState<string|null>(null);
- const [columnTarget,setColumnTarget]=useState<string|null>(null);
- const [justSwappedColumns,setJustSwappedColumns]=useState<string[]>([]);
+ const [columnTarget,setColumnTarget]=useState<{personId:string,placement:'before'|'after'}|null>(null);
+ const [justReorderedColumns,setJustReorderedColumns]=useState<string[]>([]);
  const gridRef=useRef<HTMLDivElement>(null);
  const railRef=useRef<HTMLDivElement>(null);
  const [scrollbar,setScrollbar]=useState({visible:false,width:100,left:0,value:0});
@@ -117,23 +119,25 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
    window.setTimeout(()=>setJustMoved((previous:any)=>previous===id?null:previous),850);
   }catch(e:any){setError(e?.message||'Could not move assignment.');setEditor({moveError:true});}finally{setBusy(false);}
  };
- const swapColumns=async(event:any)=>{
+ const reorderColumn=async(event:any)=>{
   const source=String(event.active?.id||'').slice('person:'.length);
-  const target=String(event.over?.id||'').slice('person-target:'.length);
-  if(!isAdmin||busy||!String(event.active?.id||'').startsWith('person:')||!String(event.over?.id||'').startsWith('person-target:')||source===target)return;
-  if(!roster.people.some((person:any)=>person.id===source)||!roster.people.some((person:any)=>person.id===target))return;
+  const targetMatch=String(event.over?.id||'').match(/^person-insert:(.+):(before|after)$/);
+  if(!isAdmin||busy||!String(event.active?.id||'').startsWith('person:')||!targetMatch)return;
+  const [,target,placement]=targetMatch;
+  if(source===target||!roster.people.some((person:any)=>person.id===source)||!roster.people.some((person:any)=>person.id===target))return;
+  if(moveAssignmentPerson(roster,source,target,placement)===roster)return;
   setBusy(true);setError('');
   try{
-   await onChange((current:any)=>swapAssignmentPeople(current,source,target));
-   setJustSwappedColumns([source,target]);
-   window.setTimeout(()=>setJustSwappedColumns([]),900);
+   await onChange((current:any)=>moveAssignmentPerson(current,source,target,placement));
+   setJustReorderedColumns([source,target]);
+   window.setTimeout(()=>setJustReorderedColumns([]),900);
   }catch(e:any){setError(e?.message||'Could not reorder columns.');setEditor({moveError:true});}
   finally{setBusy(false);}
  };
  const onDragFinished=(event:any)=>{
   const isPerson=String(event.active?.id||'').startsWith('person:');
   setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);
-  if(isPerson){void swapColumns(event);return;}
+  if(isPerson){void reorderColumn(event);return;}
   void move(event);
  };
  const onDraggingStarted=(event:any)=>{
@@ -143,11 +147,14 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  };
  const onDraggingOver=(event:any)=>{
   const id=String(event.over?.id||'');
-  if(String(event.active?.id||'').startsWith('person:'))setColumnTarget(id.startsWith('person-target:')?id.slice(14):null);
+  if(String(event.active?.id||'').startsWith('person:')){
+   const target=id.match(/^person-insert:(.+):(before|after)$/);
+   setColumnTarget(target?{personId:target[1],placement:target[2] as 'before'|'after'}:null);
+  }
   else setDropTarget(id.startsWith('slot:')?id.split(':')[1]:null);
  };
  const assignmentCollision=(args:any)=>{
-  const prefix=String(args.active?.id||'').startsWith('person:')?'person-target:':'slot:';
+  const prefix=String(args.active?.id||'').startsWith('person:')?'person-insert:':'slot:';
   const eligible=args.droppableContainers.filter((container:any)=>String(container.id).startsWith(prefix));
   const scope={...args,droppableContainers:eligible};
   const direct=pointerWithin(scope);
@@ -165,16 +172,16 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const sourcePerson=dragged?roster.people.find((p:any)=>p.id===dragged.personId):null;
  const dropPerson=dropTarget?roster.people.find((p:any)=>p.id===dropTarget):null;
  const columnPerson=draggingPersonId?roster.people.find((p:any)=>p.id===draggingPersonId):null;
- const columnDestination=columnTarget?roster.people.find((p:any)=>p.id===columnTarget):null;
+ const columnDestination=columnTarget?roster.people.find((p:any)=>p.id===columnTarget.personId):null;
  const seen=new Set<string>();const sharedNames=new Set<string>();roster.items.forEach((i:any)=>{const key=i.name.trim().toLowerCase();if(seen.has(key))sharedNames.add(key);seen.add(key);});
  return <section className="nb52-page nb54-page" aria-label="Assignment">
   <header className="nb52-header nb45-primary-header"><div><h1>Assignment</h1><p>System ownership · Team responsibilities</p></div><div className="nb52-kpis"><span><Users size={17}/>{roster.people.length} people</span><span><ClipboardList size={17}/>{roster.items.length} assignments</span></div></header>
-  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><button type="button" className="nb52-export" onClick={exportRoster}><Download size={15}/> Export CSV</button><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers to swap columns':'System owners are managed here'}</span></div>
+  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><button type="button" className="nb52-export" onClick={exportRoster}><Download size={15}/> Export CSV</button><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span></div>
   <div className="nb52-matrix-frame">
    <div ref={gridRef} className="nb52-grid-scroll" role="region" aria-label="Assignment matrix — scroll horizontally to explore all team members" tabIndex={0}>
     <DndContext sensors={sensors} collisionDetection={assignmentCollision} onDragStart={onDraggingStarted} onDragOver={onDraggingOver} onDragCancel={()=>{setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);}} onDragEnd={onDragFinished}>
-     <table className="nb52-table" style={{'--nb54-rows':rowCount} as React.CSSProperties}><thead><tr><th className="nb52-project-th" scope="col"><div className="nb52-project-heading">Project <small>Assigned systems</small></div></th>{people.map((p:any)=><PersonColumnHeader key={p.id} person={p} index={roster.people.findIndex((x:any)=>x.id===p.id)} isAdmin={isAdmin} busy={busy} onEdit={beginPersonEdit} onAdd={beginAdd} dropOwner={dropTarget} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justSwappedColumns={justSwappedColumns}/>)}{isAdmin&&<th scope="col" className="nb54-new-person"><button type="button" onClick={beginPersonAdd} aria-label="Add new team member"><span className="nb54-new-avatar"><UserRoundPlus size={19}/></span><strong>Add person</strong><small>Name · Position · Start date</small><span className="nb54-new-plus"><Plus size={14}/> New team member</span></button></th>}</tr></thead><tbody>{Array.from({length:rowCount},(_,row)=><tr key={row}><th scope="row" className="nb52-project-row">Project {row}</th>{people.map((p:any)=><AssignmentCell key={p.id+':'+row} person={p} item={itemsByPerson[p.id]?.[row]} isAdmin={isAdmin} busy={busy} position={row} onEdit={beginEdit} onAdd={beginAdd} dropOwner={dropTarget} justMoved={justMoved} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justSwappedColumns={justSwappedColumns}/>)}{isAdmin&&<td className="nb54-new-empty"/>}</tr>)}</tbody></table>
-     {createPortal(<DragOverlay dropAnimation={{duration:240,easing:'cubic-bezier(.2,.9,.2,1)'}}>{dragged?<div className="nb52-drag-preview"><GripVertical size={15}/><div><strong>{dragged.name}</strong><span>{sourcePerson?.name||'Current owner'} <MoveRight size={12}/> {dropPerson?.name||'Choose new owner'}</span></div></div>:null}{columnPerson?<div className="nb56-column-preview"><span className="nb56-column-preview-avatar">{columnPerson.name[0]}</span><div><strong>{columnPerson.name}</strong><small>{roster.items.filter((item:any)=>item.personId===columnPerson.id).length} systems · Entire column</small><span><ArrowRightLeft size={13}/> {columnDestination&&columnDestination.id!==columnPerson.id?`Swap with ${columnDestination.name}`:'Drop onto another employee'}</span></div></div>:null}</DragOverlay>,document.body)}
+     <table className="nb52-table" style={{'--nb54-rows':rowCount} as React.CSSProperties}><thead><tr><th className="nb52-project-th" scope="col"><div className="nb52-project-heading">Project <small>Assigned systems</small></div></th>{people.map((p:any)=><PersonColumnHeader key={p.id} person={p} index={roster.people.findIndex((x:any)=>x.id===p.id)} isAdmin={isAdmin} busy={busy} onEdit={beginPersonEdit} onAdd={beginAdd} dropOwner={dropTarget} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<th scope="col" className="nb54-new-person"><button type="button" onClick={beginPersonAdd} aria-label="Add new team member"><span className="nb54-new-avatar"><UserRoundPlus size={19}/></span><strong>Add person</strong><small>Name · Position · Start date</small><span className="nb54-new-plus"><Plus size={14}/> New team member</span></button></th>}</tr></thead><tbody>{Array.from({length:rowCount},(_,row)=><tr key={row}><th scope="row" className="nb52-project-row">Project {row}</th>{people.map((p:any)=><AssignmentCell key={p.id+':'+row} person={p} item={itemsByPerson[p.id]?.[row]} isAdmin={isAdmin} busy={busy} position={row} onEdit={beginEdit} onAdd={beginAdd} dropOwner={dropTarget} justMoved={justMoved} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<td className="nb54-new-empty"/>}</tr>)}</tbody></table>
+     {createPortal(<DragOverlay dropAnimation={{duration:240,easing:'cubic-bezier(.2,.9,.2,1)'}}>{dragged?<div className="nb52-drag-preview"><GripVertical size={15}/><div><strong>{dragged.name}</strong><span>{sourcePerson?.name||'Current owner'} <MoveRight size={12}/> {dropPerson?.name||'Choose new owner'}</span></div></div>:null}{columnPerson?<div className="nb56-column-preview"><span className="nb56-column-preview-avatar">{columnPerson.name[0]}</span><div><strong>{columnPerson.name}</strong><small>{roster.items.filter((item:any)=>item.personId===columnPerson.id).length} systems · Entire column</small><span><ArrowRightLeft size={13}/> {columnDestination&&columnDestination.id!==columnPerson.id?`Insert ${columnTarget?.placement} ${columnDestination.name}`:'Drop at a column edge'}</span></div></div>:null}</DragOverlay>,document.body)}
     </DndContext>
    </div>
    <div ref={railRef} className={'nb54-horizontal-rail '+(scrollbar.visible?'is-active':'')} role="scrollbar" tabIndex={scrollbar.visible?0:-1} aria-label="Scroll Assignment columns horizontally" aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={scrollbar.value} onPointerDown={onRailPointerDown} onPointerMove={e=>{if(e.currentTarget.hasPointerCapture(e.pointerId))scrollToPointer(e.clientX);}} onKeyDown={onRailKeyDown}>

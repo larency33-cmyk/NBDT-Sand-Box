@@ -94,3 +94,21 @@
 .nb56-column-preview div>span{display:flex;align-items:center;gap:5px;color:#146dd1;font-size:10px;margin-top:6px;font-weight:650}
 @media(hover:none){.nb56-column-grip{opacity:1}}
 @media(prefers-reduced-motion:reduce){.nb56-column-landed{animation:none}}
+
+/* v0.6.57 — reorder entire employee columns by inserting at the left/right edge.
+   The guide line runs through the header and all assignment rows. */
+.nb57-insertion-zone{position:absolute;top:0;bottom:0;width:50%;pointer-events:none;z-index:1}
+.nb57-insertion-before{left:0}
+.nb57-insertion-after{right:0}
+.nb54-page .nb52-person.nb57-insert-before,.nb54-page .nb52-person.nb57-insert-after{outline:none;z-index:9!important}
+.nb54-page .nb52-person.nb57-insert-before::before,.nb54-page .nb52-cell.nb57-insert-before::before,
+.nb54-page .nb52-person.nb57-insert-after::after,.nb54-page .nb52-cell.nb57-insert-after::after{
+ content:"";position:absolute;top:0;bottom:0;width:3px;background:#096aef;
+ box-shadow:0 0 0 1px #ecf5ff,0 0 9px #268cff6b;z-index:10;pointer-events:none;
+}
+.nb54-page .nb52-person.nb57-insert-before::before,.nb54-page .nb52-cell.nb57-insert-before::before{left:-2px}
+.nb54-page .nb52-person.nb57-insert-after::after,.nb54-page .nb52-cell.nb57-insert-after::after{right:-2px}
+.nb54-page .nb52-person.nb57-insert-before::before,.nb54-page .nb52-person.nb57-insert-after::after{width:4px;background:#005fec}
+.nb54-page .nb52-person.nb57-insert-before::before{box-shadow:0 0 0 1px white,0 0 12px #227cf68a}
+.nb54-page .nb52-person.nb57-insert-after::after{box-shadow:0 0 0 1px white,0 0 12px #227cf68a}
+@media(prefers-reduced-motion:reduce){.nb54-page .nb56-column-landed{animation:none}}
