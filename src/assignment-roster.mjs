@@ -56,6 +56,29 @@ export function assignmentRows(roster){
  const counts=(roster?.people||[]).map(p=>(roster?.items||[]).filter(i=>i.personId===p.id).length);
  return Math.max(13,0,...counts);
 }
+/** Team members are managed independently from system assignments. Existing person IDs never change. */
+function validatePerson(roster,details,editingId=null){
+ const name=String(details?.name||'').trim().replace(/\s+/g,' ');
+ const position=String(details?.position||'').trim().toUpperCase();
+ const startDate=String(details?.startDate||'').trim();
+ if(!name||name.length>100)throw Error('Enter a person name (1–100 characters).');
+ if(!position||position.length>40)throw Error('Enter a position (1–40 characters).');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(startDate)||Number.isNaN(Date.parse(startDate))||new Date(startDate+'T12:00:00Z').toISOString().slice(0,10)!==startDate)
+  throw Error('Choose a valid start date.');
+ if(roster.people.some(person=>person.id!==editingId&&assignmentKey(person.name)===assignmentKey(name)))
+  throw Error('A team member with this name already exists.');
+ return {name,position,startDate};
+}
+export function addAssignmentPerson(roster,details){
+ const person=validatePerson(roster,details);
+ const id=globalThis.crypto?.randomUUID?.()||`assignment-person-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+ return {...roster,people:[...roster.people,{id,...person}]};
+}
+export function editAssignmentPerson(roster,id,details){
+ if(!roster.people.some(p=>p.id===id))throw Error('Team member not found.');
+ const person=validatePerson(roster,details,id);
+ return {...roster,people:roster.people.map(p=>p.id===id?{...p,...person}:p)};
+}
 export function addAssignment(roster,personId,name){
  if(!roster.people.some(p=>p.id===personId))throw Error('Unknown assignment owner');
  const clean=String(name||'').trim();if(!clean||clean.length>180)throw Error('Enter a system name (1–180 characters)');

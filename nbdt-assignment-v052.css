@@ -18,3 +18,60 @@
 .nb52-export{height:43px;padding:0 12px;display:flex;align-items:center;gap:7px;border:1px solid #d4e4fb;border-radius:10px;background:#fff;color:#2669b8;font-size:11px;font-weight:700;cursor:pointer}.nb52-export:hover{background:#eaf3ff}
 /* Prevent the new page's own padding from expanding the app viewport. */
 .nb52-page{box-sizing:border-box}
+
+/* v0.6.54 — editable team headers, responsive filling matrix and visible, subtle horizontal navigation */
+.nb54-page .nb52-search{outline:0;box-shadow:none;flex:1 1 420px}
+.nb54-page .nb52-search input,.nb54-page .nb52-search input:focus,.nb54-page .nb52-search input:focus-visible{
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;
+ padding:0!important;margin:0!important;min-height:0!important;height:auto!important;appearance:none; -webkit-appearance:none;
+}
+.nb54-page .nb52-grid-scroll{overflow:auto;scrollbar-width:thin;scrollbar-color:#a3bfe5 transparent;padding-bottom:1px}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar{display:block;width:0;height:7px}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar:vertical{width:0;height:0}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar:horizontal{height:7px}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar-track{background:#edf4fd;border-radius:10px}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar-thumb{background:#a8c4e8;border-radius:10px;border:1px solid #edf4fd}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar-thumb:hover{background:#478be9}
+.nb54-page .nb52-table{height:100%;min-height:100%;}
+.nb54-page .nb52-table tbody tr{height:max(49px,calc((100% - 111px)/var(--nb54-rows,13)))}
+.nb54-page .nb52-cell{height:auto;min-height:49px}
+.nb54-page .nb52-assignment-item{min-height:49px;height:100%}
+.nb54-page .nb52-cell-drop{background:#d8eaff!important;box-shadow:inset 0 0 0 2px #0a6bea,0 0 0 1px #7bb0fc;}
+.nb54-page .nb54-target-column:not(.nb52-cell-drop){background:#f1f7ff!important;box-shadow:inset 0 0 0 1px #d8eafb}
+.nb54-page .nb54-person-target{box-shadow:inset 0 -3px 0 #1674f1,inset 0 0 0 2px #80baff;filter:saturate(1.13)}
+.nb54-page .nb52-cell-dragging .nb52-assignment-item{opacity:.20;transform:scale(.97)}
+.nb54-page .nb52-assignment-item{transition:opacity .2s ease,transform .2s ease,background .2s ease}
+.nb54-page .nb54-landed .nb52-assignment-item{animation:nb54-land .55s cubic-bezier(.22,.8,.2,1)}
+@keyframes nb54-land{0%{background:#b7dbff;box-shadow:inset 0 0 0 2px #1875ed;transform:scale(.95)}65%{transform:scale(1.025)}100%{background:transparent;box-shadow:none;transform:scale(1)}}
+.nb52-drag-preview{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #2484f8;box-shadow:0 18px 40px #0d3f7a55;border-radius:10px;min-width:165px;max-width:250px;padding:10px 12px;transform:rotate(-1.5deg);pointer-events:none}
+.nb52-drag-preview strong{font-size:11px;color:#153d76;line-height:1.25;display:block;overflow-wrap:anywhere}
+.nb52-drag-preview span{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:500;color:#4f78a6;margin-top:4px}
+.nb54-page .nb52-person{position:sticky;}
+.nb54-person-actions{position:absolute;top:4px;right:4px;display:flex;gap:3px;align-items:center;z-index:1}
+.nb54-person-actions .nb52-column-plus,.nb54-person-edit{position:static;width:20px;height:20px;border:1px solid #cbdff9;border-radius:5px;background:#ffffffec;color:#2775d4;opacity:0;display:grid;place-items:center;cursor:pointer;padding:2px}
+.nb54-page .nb52-person:hover .nb54-person-actions button,.nb54-page .nb52-person:focus-within .nb54-person-actions button{opacity:1}
+.nb54-page .nb54-person-actions button:hover{background:#dcecff;color:#0357c0}
+.nb54-page .nb54-person-actions button:focus-visible{opacity:1;outline:2px solid #0a6ef3;outline-offset:2px}
+.nb54-page .nb52-person strong{padding:0 5px;max-width:100%}
+.nb54-new-person{width:167px;min-width:167px;max-width:167px;background:#edf5ff;vertical-align:middle!important;}
+.nb54-new-person>button{height:100%;width:100%;min-height:108px;border:1px dashed #87bafa;background:#f5faff;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:6px;cursor:pointer;color:#146bdb;padding:8px}
+.nb54-new-person>button:hover,.nb54-new-person>button:focus-visible{background:#e7f2ff;outline:2px solid #479dff;outline-offset:-2px}
+.nb54-new-person strong{font-size:11px;font-weight:750}
+.nb54-new-person small{font-size:9px;color:#6486ae}
+.nb54-new-avatar{height:29px;width:29px;border-radius:50%;background:#dcecff;display:grid;place-items:center;color:#1276ef}
+.nb54-new-plus{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:700}
+.nb54-new-empty{min-width:167px;width:167px;background:#f6faff!important;}
+.nb54-person-editor label{margin-top:13px}
+.nb54-person-editor input[type="date"]{color-scheme:light}
+@media(max-width:850px){.nb54-page .nb54-new-person,.nb54-page .nb54-new-empty{min-width:158px;width:158px;max-width:158px}}
+@media(hover:none){.nb54-person-actions .nb52-column-plus,.nb54-person-edit{opacity:1}}
+@media(prefers-reduced-motion:reduce){.nb54-page .nb54-landed .nb52-assignment-item{animation:none}.nb54-page .nb52-assignment-item{transition:none}}
+/* v0.6.54: the app suppresses native scrollbars globally; provide a dedicated horizontal track instead. */
+.nb54-page .nb52-matrix-frame{display:flex;flex-direction:column}
+.nb54-page .nb52-grid-scroll{height:auto;flex:1 1 auto;min-height:0;scrollbar-width:none!important;padding-bottom:0}
+.nb54-page .nb52-grid-scroll::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+.nb54-horizontal-rail{position:relative;flex:0 0 9px;height:9px;background:#f0f6fe;border-top:1px solid #e4eefc;cursor:ew-resize;touch-action:none;user-select:none;outline-offset:-3px}
+.nb54-horizontal-rail:not(.is-active){visibility:hidden}
+.nb54-horizontal-thumb{position:absolute;top:2px;bottom:2px;display:block;min-width:16px;border-radius:20px;background:#9bbbe6;box-shadow:0 0 0 1px #c0d8f5;transition:background .16s}
+.nb54-horizontal-rail:hover .nb54-horizontal-thumb,.nb54-horizontal-rail:focus-visible .nb54-horizontal-thumb{background:#3484e9}
+.nb54-horizontal-rail:focus-visible{outline:2px solid #2575dd}

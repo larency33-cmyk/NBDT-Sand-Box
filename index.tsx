@@ -2790,20 +2790,14 @@ const App = () => {
                <AlertCircle className="w-6 h-6 shrink-0" />
                {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Issues</span>}
             </button>
-            <button onClick={() => setActiveTab('assignment')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'assignment' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
-               <Users className="w-6 h-6 shrink-0" />
-               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Assignment</span>}
-            </button>
             <button onClick={() => setActiveTab('config-report')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'config-report' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
                <FileBarChart className="w-6 h-6 shrink-0" />
                {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Configuration Report</span>}
             </button>
-             {isAdmin && (
-               <button onClick={() => setActiveTab('sync')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'sync' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
-                  <Cloud className="w-6 h-6 shrink-0" />
-                  {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Collab Hub</span>}
-               </button>
-             )}
+            <button onClick={() => setActiveTab('assignment')} className={`flex items-center gap-4 p-2 rounded-lg transition-all ${activeTab === 'assignment' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'}`}>
+               <Users className="w-6 h-6 shrink-0" />
+               {isSidebarExpanded && <span className="text-xs font-black tracking-widest uppercase truncate">Assignment</span>}
+            </button>
            {isSuperAdmin && <button onClick={()=>setActiveTab('administration')} className={'nb47-sidebar-admin '+(activeTab==='administration'?'nb47-sidebar-admin-selected':'')}><ShieldCheck size={20}/>{isSidebarExpanded&&<span>Administration</span>}</button>}
          </nav>
 

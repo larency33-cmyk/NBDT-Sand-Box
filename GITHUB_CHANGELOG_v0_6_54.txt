@@ -1,0 +1,9 @@
+NBDT v0.6.54 — Assignment controls and team management
+
+- Search: removed overlapping input border and All positions filter.
+- Admin-only Edit person modal and Add person end column; preserved existing assignments and owner IDs.
+- Improved DnD feedback, adaptive matrix row height, custom thin horizontal scroll track.
+- Sidebar Assignment moved below Configuration Report; Collab Hub link removed.
+- Automated tests and preflight checks updated.
+
+Removed files: none

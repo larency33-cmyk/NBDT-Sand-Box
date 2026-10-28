@@ -1,0 +1,20 @@
+{
+  "release": "v0.6.54",
+  "base": "v0.6.53",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_54.txt",
+    "NBDT_v0_6_54_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_54_RU.md",
+    "index.tsx",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "src/assignment-page-v052.tsx",
+    "src/assignment-roster.mjs",
+    "tests/assignment-v054.test.mjs",
+    "tests/entrypoint-v053.test.mjs"
+  ],
+  "removed_files": [],
+  "test_result": "309/309",
+  "note": "Assignment people editor, Add person, enhanced DnD, thin custom horizontal scrollbar; navigation cleanup. Full production Vite build unavailable due npm registry EAI_AGAIN."
+}

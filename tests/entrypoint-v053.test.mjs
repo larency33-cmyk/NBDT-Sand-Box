@@ -10,5 +10,5 @@ test('Assignment navigation icon Users has an explicit lucide-react import',()=>
 });
 test('production build runs missing-symbol preflight before Vite',()=>{
  assert.match(pkg.scripts.build,/check-symbols\.cjs\s*&&\s*vite build/);
- assert.equal(pkg.version,'0.6.53');
+ assert.ok(/^0\.6\.(?:5[3-9]|[6-9]\d|\d{3,})$/.test(pkg.version),'Missing-symbol preflight must remain enabled after v0.6.53');
 });

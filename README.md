@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.53 (critical startup hotfix).** New Assignment page with the provided 13-person / 108-system matrix, editable and draggable assignment cells for Admin/Super Admin, and central exact-name system-owner lookup across Registry, Guide, Configuration Report and task details. Global browser-local Assignment registry lives in IndexedDB. See `RELEASE_NOTES_v0_6_53_RU.md` and `RELEASE_NOTES_v0_6_52_RU.md`.
+**Current package: v0.6.54 (Assignment usability).** Added editable team-member headers (name, position, joining date), Add person column, improved owner drag and drop, one-border search field, and a thin custom horizontal scrollbar. Assignment now appears below Configuration Report; Collab Hub is absent from the menu. The original 13-person / 108-assignment roster remains intact. See `RELEASE_NOTES_v0_6_54_RU.md` and prior notes for v0.6.52–53.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 
