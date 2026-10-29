@@ -1,0 +1,1 @@
+NBDT v0.6.60 (from v0.6.59): fix Configuration Report white gap between Export data and Import Report. No data/behavior changes.

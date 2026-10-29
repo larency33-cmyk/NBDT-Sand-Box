@@ -43,3 +43,18 @@
    grid-template-columns:repeat(2,minmax(0,1fr))!important;
  }
 }
+
+/* v0.6.60 — prevent the app-wide dark-class-to-white normalization
+   from painting a white rectangle between Export data and Import Report.
+   The report header must be truly transparent so the report shell's
+   pale-blue gradient shows through across the entire button gap. */
+.nbdt-redesign.nb-app-root main .nb-report-shell > .nb-report-top-actions {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+.nbdt-redesign.nb-app-root main .nb-report-shell > .nb-report-top-actions > div:last-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}

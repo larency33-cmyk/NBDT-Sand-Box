@@ -1,8 +1,8 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.58 (Configuration Report Cyber workflow cleanup).** Cyber status can now be changed with the existing inline Save control without requiring a change reason; `Unknown` is displayed as `Not Started` for legacy browser-local data and new records. The lower report demo disclaimer is hidden (the underlying sample KPI methodology is unchanged). Assignment v0.6.57 and other existing features remain intact. See `RELEASE_NOTES_v0_6_58_RU.md`.
+**Current package: v0.6.60 (Configuration Report button-toolbar background correction).** The white rectangle between Export data and Import Report is removed by replacing a legacy dark background class with a transparent one and raising the specificity of the scoped report style. No data logic or button functionality was changed. See `RELEASE_NOTES_v0_6_60_RU.md`.
 
-The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
+All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
 ## Assignment column ordering (v0.6.57)
 

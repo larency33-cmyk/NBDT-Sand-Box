@@ -3144,7 +3144,7 @@ const App = () => {
 
         {activeTab === 'config-report' && (
           <div className="nb-report-shell flex-1 flex flex-col overflow-auto animate-fadeIn">
-            <header className="nb-report-top-actions px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-[#020617]">
+            <header className="nb-report-top-actions px-10 py-6 flex items-center justify-between shrink-0 border-b border-slate-900/50 bg-transparent">
               <div>
                 <h1 className="text-3xl font-bold tracking-tighter text-white">Configuration Report</h1>
                 <p className="text-slate-500 text-sm font-medium">Deployment overview</p>

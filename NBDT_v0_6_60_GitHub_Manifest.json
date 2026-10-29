@@ -1,0 +1,22 @@
+{
+  "version": "0.6.60",
+  "base_version": "0.6.59",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_60.txt",
+    "NBDT_v0_6_60_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_60_RU.md",
+    "index.tsx",
+    "nbdt-report-v059.css",
+    "package.json",
+    "tests/report-action-toolbar-v060.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_60.txt",
+    "NBDT_v0_6_60_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_60_RU.md",
+    "tests/report-action-toolbar-v060.test.mjs"
+  ],
+  "total_file_count": 213
+}
