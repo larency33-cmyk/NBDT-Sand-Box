@@ -25,7 +25,7 @@ test('Dashboard matches reference information hierarchy',()=>{
  assert.match(report, /Deployment overview/);
  assert.ok(report.indexOf('nb-kpis')<report.indexOf('nb-readiness-heading'));
  assert.ok(report.indexOf('nb-readiness-heading')<report.indexOf('nb-report-filters'));
- assert.ok(report.indexOf('nb-report-column-picker')<report.indexOf('nb-report-table'));
+ assert.doesNotMatch(report,/className="nb-report-column-picker"/);
  assert.ok(report.indexOf('nb-report-table')<report.indexOf('nb-report-continuous-footer'));
  assert.match(css,/grid-template-columns:minmax\(195px,2\.3fr\)/);
  assert.match(css,/\.nb-report \.nb-report-column-picker/);

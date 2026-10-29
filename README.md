@@ -206,3 +206,11 @@ The Issue Tracker title now shares the same `width: 100%; max-width: var(--conte
 - Scrollbar chrome stays hidden on both screens, but mouse wheel, touch gestures, keyboard focus/scroll and table horizontal scrolling still work.
 - Only these two overview routes change; Guide pages, Weekly Tracker, Issue Tracker, app state and persistence are untouched.
 - See `RELEASE_NOTES_v0_6_51_RU.md`.
+
+
+### v0.6.59 — Assignment / Configuration Report
+- Assignment: кнопка CSV Export удалена.
+- Configuration Report: сохранение новой системы больше не меняет поиск, фильтры или сортировку; добавленная строка подсвечивается трижды.
+- Columns picker удалён; доступна сортировка нажатием заголовка.
+- Исправлен фон между верхними кнопками экспорта/импорта.
+- Контроль запуска Report (Admin/Guest) добавлен к офлайн-тестам; полноценная Vite/Chromium проверка остаётся обязательной в GitHub release gate.

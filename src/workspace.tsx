@@ -775,11 +775,13 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
 
 export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
  const [query,setQuery]=useState(''),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
- const [hidden,setHidden]=useState<string[]>(()=>{try{return JSON.parse(localStorage.getItem('nbdt-report-hidden')||'[]');}catch{return [];}});
+ // Every report column remains visible; sorting is available in its column header.
+ const hidden:string[]=[];
  const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc');
  const [editor,setEditor]=useState<any>(null),[saving,setSaving]=useState(false),[saveMessage,setSaveMessage]=useState(''),[formError,setFormError]=useState('');
  const [confirmDeleteId,setConfirmDeleteId]=useState<string|null>(null);
- useEffect(()=>{localStorage.setItem('nbdt-report-hidden',JSON.stringify(hidden));},[hidden]);
+ const [recentlyCreatedId,setRecentlyCreatedId]=useState<string|null>(null);
+ const newRowRef=useRef<HTMLTableRowElement|null>(null);
  const reportSummary=reportCounts(project,counts);
  const allColumns=['System','Qty','Venue','Base','Ready','Deployed','AW','Cyber','Owner'];
  const memberName=(sys:any)=>sys.assignmentOwnerLabel||sys.reportOwnerName||project.members.find((m:any)=>m.id===sys.assigneeId)?.name||'Unassigned';
@@ -797,6 +799,15 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   return scope==='All'||(scope==='Not started'?total.base===0:total.base>0&&total.deployed<total.total);
  }).sort(compare);
  const rows=systems;
+ // Keep current filters and sort untouched. Once the created row is actually
+ // rendered, scroll it into view and pulse exactly three times, then clear it.
+ const newlyCreatedIsVisible=!!recentlyCreatedId&&rows.some((s:any)=>s.id===recentlyCreatedId);
+ useEffect(()=>{
+  if(!recentlyCreatedId||!newlyCreatedIsVisible)return;
+  const frame=requestAnimationFrame(()=>newRowRef.current?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'}));
+  const timer=window.setTimeout(()=>setRecentlyCreatedId(id=>id===recentlyCreatedId?null:id),3100);
+  return ()=>{cancelAnimationFrame(frame);clearTimeout(timer);};
+ },[recentlyCreatedId,newlyCreatedIsVisible]);
  const isCreating=!!editor&&!project.systems.some((s:any)=>s.id===editor.id);
  const visibleCount=allColumns.filter(c=>!hidden.includes(c)).length+1;
  const allVenues=[...new Set(project.systems.map((s:any)=>displayVenue(s)).filter((s:string)=>s!=='—'))].sort();
@@ -808,7 +819,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   ['Cyber Approved','cyber',reportSummary.cyberApproved,reportSummary.cyberApplicable,ShieldCheck],
  ] as any[];
  const progress=(n:number,t:number)=> t>0?<span className="nb-report-progress"><span className="nb-progress-label"><small>{n.toLocaleString('en-US')}</small><strong>{Math.round(n/t*100)}%{n===t?' ✓':''}</strong></span><progress max={t} value={n} aria-label={`${n} out of ${t} completed`}/></span>:<span className="nb-muted">—<small>No device inventory</small></span>;
- const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}if(!sys){setQuery('');setScope('All');setOwner('');setCyber('');setVenue('');setSort('reference');setSortDirection('asc');}setFormError('');setSaveMessage('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Not Started'});};
+ const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}setFormError('');setSaveMessage('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Not Started'});};
  const saveEditor=async(e?:any)=>{e?.preventDefault?.();if(!editor||saving)return;setFormError('');
   try{
    if(!editor.name?.trim())throw Error('System name is required.');
@@ -823,7 +834,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
    const next={...editor,name:editor.name.trim(),deviceType:editor.deviceType.trim(),reportVenue:editor.reportVenue.trim().toUpperCase(),reportOwnerName:editor.reportOwnerName.trim(),reportAW:editor.reportAW,airWatchTags:editor.reportAW,cyberStatus:normalizeCyberStatus(editor.cyberStatus),reportMetrics:metrics,reportMode:original?.devices?.length&&original.reportMode!=='aggregate-sample'?original.reportMode:'aggregate-sample',cyberHistory:cyberChanged?[...(original?.cyberHistory||[]),{status:normalizeCyberStatus(editor.cyberStatus),actor:'local-demo',at:new Date().toISOString()}]:original?.cyberHistory||[]};
    setSaving(true);
    if(original)await onSystemChange(next);else await onSystemCreate(next);
-   if(!original){setQuery(next.name);setScope('All');setOwner('');setCyber('');setVenue('');}
+   if(!original)setRecentlyCreatedId(next.id);
    setEditor(null);setConfirmDeleteId(null);setSaveMessage(`System “${next.name}” saved.`);
   }catch(error:any){setFormError(error?.message||'Unable to save system.');}finally{setSaving(false);}
  };
@@ -866,12 +877,12 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
     <select aria-label="Venue scope" value={venue} onChange={e=>setVenue(e.target.value)}><option value="">All venues</option>{allVenues.map(v=><option key={v} value={v}>{v}</option>)}</select>
     <select aria-label="Owner scope" value={owner} onChange={e=>setOwner(e.target.value)}><option value="">All assignees</option>{allOwners.map(v=><option key={v} value={v}>{v}</option>)}</select>
     <select aria-label="Cyber scope" value={cyber} onChange={e=>setCyber(e.target.value)}><option value="">All cyber statuses</option>{CYBER_STATUSES.map(v=><option key={v}>{v}</option>)}</select>
-    <details className="nb-report-column-picker"><summary>Columns</summary><div className="nb-report-column-menu">{allColumns.filter(v=>v!=='System').map(v=><label key={v}><input type="checkbox" checked={!hidden.includes(v)} onChange={e=>setHidden(e.target.checked?hidden.filter(x=>x!==v):[...hidden,v])}/>{v}</label>)}<div className="nb-report-sort-control"><label>Sort by<select value={sort} onChange={e=>{setSort(e.target.value);setSortDirection('asc');}}><option value="reference">Reference order</option><option value="name">System name</option><option value="qty">Device quantity</option><option value="base">Base configuration</option><option value="ready">Ready to deploy</option><option value="deployed">Deployed count</option></select></label></div></div></details>
+
    </div>
    <div className="nb-report-table nb-report-continuous"><table><thead><tr>{allColumns.map(v=>{const key=({System:'name',Qty:'qty',Venue:'venue',Base:'base',Ready:'ready',Deployed:'deployed',AW:'aw',Cyber:'cyber',Owner:'owner'} as any)[v];return <th key={v} hidden={hidden.includes(v)} aria-sort={sort===key?(sortDirection==='asc'?'ascending':'descending'):'none'}><button className="nb-report-th-sort" onClick={()=>changeSort(key)}>{({Base:'Base config.',Ready:'Ready to deploy'} as any)[v]||v}<span aria-hidden="true">{sort===key?(sortDirection==='asc'?'⌃':'⌄'):'↕'}</span></button></th>})}<th className="nb-report-actions-th">Actions</th></tr></thead>
     <tbody>
      {isCreating&&inlineRow}
-     {rows.map((s:any)=>{const c=counts(s);if(editor?.id===s.id)return inlineRow;return <tr key={s.id} className="nb-report-data-row"><td><strong className="nb-report-system-name">{s.name}</strong><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={normalizeCyberStatus(s.cyberStatus)}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td><td className="nb-report-action-cell">{confirmDeleteId===s.id?<div className="nb-report-delete-confirm"><span>Delete this system and its history?</span><button disabled={saving} onClick={()=>deleteEditor(s)} className="nb-report-confirm-danger" aria-label={'Confirm delete '+s.name}>Delete</button><button onClick={()=>setConfirmDeleteId(null)}>Cancel</button></div>:<div className="nb-report-row-actions">{isAdmin&&<button type="button" aria-label={'Edit '+s.name} title="Edit system inline" onClick={()=>openEditor(s)}><Pencil size={15}/></button>}{isAdmin&&<button type="button" aria-label={'Delete '+s.name} title="Delete system" onClick={()=>{setEditor(null);setConfirmDeleteId(s.id);}}><Trash2 size={15}/></button>}</div>}</td></tr>})}
+     {rows.map((s:any)=>{const c=counts(s);if(editor?.id===s.id)return inlineRow;return <tr key={s.id} ref={s.id===recentlyCreatedId?newRowRef:undefined} className={"nb-report-data-row"+(s.id===recentlyCreatedId?" nb59-new-system-highlight":"")}><td><strong className="nb-report-system-name">{s.name}</strong><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={normalizeCyberStatus(s.cyberStatus)}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td><td className="nb-report-action-cell">{confirmDeleteId===s.id?<div className="nb-report-delete-confirm"><span>Delete this system and its history?</span><button disabled={saving} onClick={()=>deleteEditor(s)} className="nb-report-confirm-danger" aria-label={'Confirm delete '+s.name}>Delete</button><button onClick={()=>setConfirmDeleteId(null)}>Cancel</button></div>:<div className="nb-report-row-actions">{isAdmin&&<button type="button" aria-label={'Edit '+s.name} title="Edit system inline" onClick={()=>openEditor(s)}><Pencil size={15}/></button>}{isAdmin&&<button type="button" aria-label={'Delete '+s.name} title="Delete system" onClick={()=>{setEditor(null);setConfirmDeleteId(s.id);}}><Trash2 size={15}/></button>}</div>}</td></tr>})}
      {rows.length===0&&!isCreating&&<tr><td colSpan={visibleCount} className="nb-report-no-results">No systems match the current filters.</td></tr>}
     </tbody></table></div>
    <div className="nb-report-continuous-footer"><span>Showing all {systems.length} systems · Scroll to view the full list</span></div>

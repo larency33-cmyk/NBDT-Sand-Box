@@ -4,13 +4,14 @@ import { readFileSync } from 'node:fs';
 const w=readFileSync(new URL('../src/workspace.tsx',import.meta.url),'utf8');
 const app=readFileSync(new URL('../index.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../redesign.css',import.meta.url),'utf8');
-test('NBDT v0.6 places report KPIs before readiness filters and column picker and continuous table',()=>{
+test('NBDT report shows KPIs, controls and a continuous table without an obsolete Columns picker',()=>{
  const start=w.indexOf('export function Report');
  const substr=w.slice(start,w.indexOf('export function Overview',start));
- const selectors=['className="nb-kpis"','className="nb-readiness-heading"','className="nb-toolbar nb-report-filters"','className="nb-report-column-picker"','className="nb-report-table nb-report-continuous"'];
+ const selectors=['className="nb-kpis"','className="nb-readiness-heading"','className="nb-toolbar nb-report-filters"','className="nb-report-table nb-report-continuous"'];
  const positions=selectors.map(k=>substr.indexOf(k));
  assert.ok(positions.every(p=>p>=0));
  assert.deepEqual(positions,[...positions].sort((a,b)=>a-b));
+ assert.doesNotMatch(substr,/className="nb-report-column-picker"/);
 });
 test('report avoids simulated production percentages and retains explicit no-device data',()=>{
  assert.ok(w.includes('No registered device data'));

@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import {DndContext,PointerSensor,KeyboardSensor,useDraggable,useDroppable,useSensor,useSensors,DragOverlay,pointerWithin,rectIntersection} from '@dnd-kit/core';
-import {Pencil,Plus,Check,X,Search,Users,ClipboardList,ArrowRightLeft,GripVertical,LockKeyhole,Download,UserRoundPlus,MoveRight} from 'lucide-react';
+import {Pencil,Plus,Check,X,Search,Users,ClipboardList,ArrowRightLeft,GripVertical,LockKeyhole,UserRoundPlus,MoveRight} from 'lucide-react';
 import {assignmentRows,addAssignment,editAssignment,removeAssignment,moveAssignment,addAssignmentPerson,editAssignmentPerson,moveAssignmentPerson} from './assignment-roster.mjs';
 
 const PALETTE=['blue','violet','teal','orange','purple','blue','mint','amber','pink','lavender','sky','cyan','rose'];
@@ -160,14 +160,6 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
   const direct=pointerWithin(scope);
   return direct.length?direct:rectIntersection(scope);
  };
- const exportRoster=()=>{
-  const cells=(person:any)=>roster.items.filter((item:any)=>item.personId===person.id).sort((a:any,b:any)=>a.order-b.order);
-  const rows=[['NAME',...roster.people.map((p:any)=>p.name)],['POSITION',...roster.people.map((p:any)=>p.position)],['START DATE',...roster.people.map((p:any)=>p.startDate)],
-   ...Array.from({length:assignmentRows(roster)},(_,i)=>['Project '+i,...roster.people.map((p:any)=>cells(p)[i]?.name||'')])];
-  const escapeCsv=(v:any)=>{let value=String(v??'');if(/^[=+@\-\t\r]/.test(value))value="'"+value;return '"'+value.replaceAll('"','""')+'"';};
-  const blob=new Blob(['\ufeff'+rows.map(row=>row.map(escapeCsv).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='NBDT_Assignments.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
- };
  const dragged=dragging?roster.items.find((i:any)=>i.id===dragging):null;
  const sourcePerson=dragged?roster.people.find((p:any)=>p.id===dragged.personId):null;
  const dropPerson=dropTarget?roster.people.find((p:any)=>p.id===dropTarget):null;
@@ -176,7 +168,7 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const seen=new Set<string>();const sharedNames=new Set<string>();roster.items.forEach((i:any)=>{const key=i.name.trim().toLowerCase();if(seen.has(key))sharedNames.add(key);seen.add(key);});
  return <section className="nb52-page nb54-page" aria-label="Assignment">
   <header className="nb52-header nb45-primary-header"><div><h1>Assignment</h1><p>System ownership · Team responsibilities</p></div><div className="nb52-kpis"><span><Users size={17}/>{roster.people.length} people</span><span><ClipboardList size={17}/>{roster.items.length} assignments</span></div></header>
-  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><button type="button" className="nb52-export" onClick={exportRoster}><Download size={15}/> Export CSV</button><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span></div>
+  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span></div>
   <div className="nb52-matrix-frame">
    <div ref={gridRef} className="nb52-grid-scroll" role="region" aria-label="Assignment matrix — scroll horizontally to explore all team members" tabIndex={0}>
     <DndContext sensors={sensors} collisionDetection={assignmentCollision} onDragStart={onDraggingStarted} onDragOver={onDraggingOver} onDragCancel={()=>{setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);}} onDragEnd={onDragFinished}>

@@ -1,0 +1,45 @@
+/* NBDT v0.6.59: cleaner report controls and non-disruptive insertion feedback. */
+.nb-report-shell .nb-report-top-actions,
+.nb-report-shell .nb-report-top-actions > div:last-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+/* Four controls: search, venue, owner, cyber. Remove the obsolete fifth slot. */
+.nb-report-shell .nb-report .nb-toolbar.nb-report-filters {
+  grid-template-columns:minmax(230px,1.7fr) repeat(3,minmax(140px,1fr))!important;
+}
+/* Overlay avoids changing row heights or breaking the existing status/progress colors. */
+.nb-report-shell .nb-report .nb-report-table tr.nb59-new-system-highlight > td {position:relative!important;}
+.nb-report-shell .nb-report .nb-report-table tr.nb59-new-system-highlight > td::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:rgba(28,121,235,.14);
+  border-top:1px solid rgba(28,121,235,.32);
+  border-bottom:1px solid rgba(28,121,235,.32);
+  border-radius:2px;
+  animation:nb59-new-system-pulse 1s ease-in-out 3 both;
+}
+@keyframes nb59-new-system-pulse {
+  0%,100%{opacity:0}
+  48%{opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-report-shell .nb-report .nb-report-table tr.nb59-new-system-highlight > td::after {
+   animation:none;
+   opacity:.55;
+ }
+}
+@media(max-width:1170px){
+ .nb-report-shell .nb-report .nb-toolbar.nb-report-filters {
+   grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+ .nb-report-shell .nb-report .nb-toolbar.nb-report-filters .nb-report-search {grid-column:1/-1}
+}
+@media(max-width:720px){
+ .nb-report-shell .nb-report .nb-toolbar.nb-report-filters {
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
