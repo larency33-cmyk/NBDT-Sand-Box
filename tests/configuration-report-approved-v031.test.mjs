@@ -39,5 +39,5 @@ test('The six reference systems use live aggregation, with an explicitly labelle
  assert.match(report,/reportCounts\(project,counts\)/);
  assert.match(report,/const rows=systems/);
  assert.match(report,/counts\(s\)/);
- assert.match(report,/Reference demo:/);
+ assert.doesNotMatch(report,/Reference demo:/);
 });

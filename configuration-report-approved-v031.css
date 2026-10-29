@@ -415,6 +415,7 @@
 .nb-report-shell .nb-report .nb-report-table .nb-status-approved {color:#008f91!important;background:#e5fbf9!important;border:1px solid #55cacd!important}
 .nb-report-shell .nb-report .nb-report-table .nb-status-review {color:#b86c0e!important;background:#fff2d9!important;border:1px solid #fee3af!important}
 .nb-report-shell .nb-report .nb-report-table .nb-status-unknown,
+.nb-report-shell .nb-report .nb-report-table .nb-status-not-started,
 .nb-report-shell .nb-report .nb-report-table .nb-status-n/a {color:#8198b6!important;background:transparent!important;border:0!important}
 .nb-report-shell .nb-report .nb-report-table select[aria-label^='Cyber status'] {width:100%;max-width:130px;min-height:31px;font-size:12px}
 .nb-report-shell .nb-report .nb-report-pagination {

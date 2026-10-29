@@ -23,7 +23,7 @@ test('Reference readiness panel wraps filters and a continuous table',()=>{
 test('Dashboard uses computed progress and identifies sample benchmark totals',()=>{
   assert.match(report,/reportCounts\(project,counts\)/);
   assert.match(report,/No registered device data/);
-  assert.match(report,/Reference demo:/);
+  assert.doesNotMatch(report,/Reference demo:/);
   assert.match(report,/--report-kpi-accent/);
 });
 test('Table includes grounded Venue and AW values, without six-row paging',()=>{

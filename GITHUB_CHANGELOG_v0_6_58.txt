@@ -1,0 +1,6 @@
+NBDT v0.6.58 (based on v0.6.57)
+- Configuration Report: remove mandatory Cyber status reason/evidence input and validation.
+- Normalize legacy Unknown to the user-facing Not Started across select, filter, badges, XLSX export and import.
+- Keep automatic Cyber change audit metadata without requiring a written reason.
+- Remove footer Reference demo disclaimer; leave metrics and KPI aggregation untouched.
+- Add tests for old data, report imports, status filtering and streamlined Cyber editor.

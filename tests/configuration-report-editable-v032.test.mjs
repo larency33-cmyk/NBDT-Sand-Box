@@ -58,7 +58,7 @@ test('report supports inline add edit delete, confirmation and backing persisten
  assert.match(index,/onSystemCreate=/);
  assert.match(index,/onSystemDelete=/);
  assert.match(index,/commitRecord/);
- assert.match(component,/Reference demo:/);
+ assert.doesNotMatch(component,/Reference demo:/);
  assert.doesNotMatch(component,/nb-report-editor-backdrop/);
  assert.match(index,/configuration-report-editable-v032\.css/);
  assert.doesNotMatch(css,/\.nb-sidebar|\.nb-week-grid/);

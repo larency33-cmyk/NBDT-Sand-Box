@@ -1,3 +1,4 @@
+import {normalizeCyberStatus} from './cyber-status.mjs';
 /** Reference Configuration Report sample captured from the approved mockup.
  * Aggregated sample counts are NOT registered or verified devices.
  * The 68 systems absent from the screenshot are intentionally not invented.
@@ -44,7 +45,7 @@ export function reportCounts(project,counts){
  const result={total:0,base:0,ready:0,deployed:0,cyberApproved:0,cyberApplicable:0};
  for(const sys of project.systems||[]){
   const c=counts(sys); for(const key of ['total','base','ready','deployed'])result[key]+=c[key]||0;
-  if(sys.cyberStatus&&!['Unknown','N/A'].includes(sys.cyberStatus)){result.cyberApplicable++;if(sys.cyberStatus==='Approved')result.cyberApproved++;}
+  if(!['Not Started','N/A'].includes(normalizeCyberStatus(sys.cyberStatus))){result.cyberApplicable++;if(sys.cyberStatus==='Approved')result.cyberApproved++;}
  }
  if(project.referenceDemoTotals){
   for(const key of ['total','base','ready','deployed'])result[key]+=REPORT_BACKGROUND[key];

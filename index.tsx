@@ -1,4 +1,5 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
+import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
 import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
@@ -2239,7 +2240,7 @@ const App = () => {
         'Ready to deploy': summary.ready,
         Deployed: summary.deployed,
         AW: system.reportAW || system.airWatchTags || system.airWatch || system.mdm || '',
-        Cyber: system.cyberStatus || 'Unknown',
+        Cyber: normalizeCyberStatus(system.cyberStatus),
         Owner: resolvedOwner.label || system.reportOwnerName || owner?.name || 'Unassigned'
       };
     });

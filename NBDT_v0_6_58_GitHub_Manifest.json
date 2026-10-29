@@ -1,0 +1,30 @@
+{
+  "version": "0.6.58",
+  "base_version": "0.6.57",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_58.txt",
+    "NBDT_v0_6_58_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_58_RU.md",
+    "configuration-report-approved-v031.css",
+    "index.tsx",
+    "package.json",
+    "src/cyber-status.mjs",
+    "src/reference-report.mjs",
+    "src/report-import.mjs",
+    "src/workspace.tsx",
+    "tests/configuration-report-approved-v031.test.mjs",
+    "tests/configuration-report-cyber-simplified-v058.test.mjs",
+    "tests/configuration-report-editable-v032.test.mjs",
+    "tests/configuration-report-reference-v029.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_58.txt",
+    "NBDT_v0_6_58_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_58_RU.md",
+    "src/cyber-status.mjs",
+    "tests/configuration-report-cyber-simplified-v058.test.mjs"
+  ],
+  "total_file_count": 205
+}

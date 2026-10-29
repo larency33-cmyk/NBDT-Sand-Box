@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.57 (Assignment employee-column insertion).** Admin and Super Admin can drag a column by its **Move column** handle and drop it in the left or right half of another employee header to insert it before or after that person. Neighboring columns shift without exchanging owners or individual system assignments. Guest access, all v0.6.55 crash-prevention gates, and the rest of v0.6.56 are retained. See `RELEASE_NOTES_v0_6_57_RU.md`.
+**Current package: v0.6.58 (Configuration Report Cyber workflow cleanup).** Cyber status can now be changed with the existing inline Save control without requiring a change reason; `Unknown` is displayed as `Not Started` for legacy browser-local data and new records. The lower report demo disclaimer is hidden (the underlying sample KPI methodology is unchanged). Assignment v0.6.57 and other existing features remain intact. See `RELEASE_NOTES_v0_6_58_RU.md`.
 
 The interface is React + Vite. POC account credentials and roles remain browser-local; use this only for demonstrations. A corporate deployment needs a server-side authentication and authorization system. The core features of Weekly Tracker, System Registry, Issue Tracker and Configuration Report remain unchanged.
 

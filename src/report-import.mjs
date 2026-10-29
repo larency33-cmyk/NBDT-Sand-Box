@@ -1,3 +1,4 @@
+import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
 /**
  * Applies report spreadsheets only to metadata of existing System Registry entries.
  * Device readiness and cyber approvals from accepted checklists cannot be imported
@@ -29,10 +30,10 @@ export function prepareReportMetadataImport(project, rows) {
       } else if (system.assigneeId) changes.assigneeId='';
     }
     if (Object.hasOwn(row,'Cyber') || Object.hasOwn(row,'cyber')) {
-      const value = String(row.Cyber??row.cyber??'').trim();
-      const valid = ['Unknown','Approved','Review','Blocked','N/A'];
-      if (!valid.includes(value)) throw Error(`Row ${index+2}: invalid Cyber status ${value}`);
-      if (value !== (system.cyberStatus||'Unknown')) changes.cyberStatus=value;
+      const rawValue = String(row.Cyber??row.cyber??'').trim();
+      const value = normalizeCyberStatus(rawValue);
+      if (!rawValue || !CYBER_STATUSES.includes(value)) throw Error(`Row ${index+2}: invalid Cyber status ${value}`);
+      if (value !== normalizeCyberStatus(system.cyberStatus)) changes.cyberStatus=value;
     }
     if (Object.keys(changes).length>1) prepared.push(changes);
   }

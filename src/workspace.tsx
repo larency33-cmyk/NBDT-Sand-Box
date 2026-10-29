@@ -10,6 +10,7 @@ import {setResult} from './model.mjs';
 import {guideTechnicalValues,DEVICE_TYPES} from './registry-metadata.mjs';
 import {guideReviewKey,loadGuideReview,changeGuideCheck,acceptGuideReviewStage} from './guide-review.mjs';
 import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
+import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
@@ -778,14 +779,13 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc');
  const [editor,setEditor]=useState<any>(null),[saving,setSaving]=useState(false),[saveMessage,setSaveMessage]=useState(''),[formError,setFormError]=useState('');
  const [confirmDeleteId,setConfirmDeleteId]=useState<string|null>(null);
- const [cyberReason,setCyberReason]=useState('');
  useEffect(()=>{localStorage.setItem('nbdt-report-hidden',JSON.stringify(hidden));},[hidden]);
  const reportSummary=reportCounts(project,counts);
  const allColumns=['System','Qty','Venue','Base','Ready','Deployed','AW','Cyber','Owner'];
  const memberName=(sys:any)=>sys.assignmentOwnerLabel||sys.reportOwnerName||project.members.find((m:any)=>m.id===sys.assigneeId)?.name||'Unassigned';
  const displayVenue=(sys:any)=>sys.reportVenue||[...new Set((sys.devices||[]).map((d:any)=>d.venue).filter(Boolean))].join(', ')||'—';
  const displayAw=(sys:any)=>{const v=sys.reportAW??sys.airWatchTags??sys.airWatch??sys.mdm;if(v===true)return 'Yes';if(v===false)return 'No';const s=String(v||'').trim();return ['Yes','No','Pending','N/A'].includes(s)?s:s?'Specified':'—';};
- const compare=(a:any,b:any)=>{const key=(sys:any)=>sort==='reference'?(sys.reportOrder??100000):sort==='name'?sys.name:sort==='qty'?counts(sys).total:sort==='venue'?displayVenue(sys):sort==='base'?counts(sys).base:sort==='ready'?counts(sys).ready:sort==='deployed'?counts(sys).deployed:sort==='aw'?displayAw(sys):sort==='cyber'?sys.cyberStatus||'Unknown':memberName(sys);const x=key(a),y=key(b);const n=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y));return sortDirection==='asc'?n:-n;};
+ const compare=(a:any,b:any)=>{const key=(sys:any)=>sort==='reference'?(sys.reportOrder??100000):sort==='name'?sys.name:sort==='qty'?counts(sys).total:sort==='venue'?displayVenue(sys):sort==='base'?counts(sys).base:sort==='ready'?counts(sys).ready:sort==='deployed'?counts(sys).deployed:sort==='aw'?displayAw(sys):sort==='cyber'?normalizeCyberStatus(sys.cyberStatus):memberName(sys);const x=key(a),y=key(b);const n=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y));return sortDirection==='asc'?n:-n;};
  const changeSort=(key:string)=>{if(sort===key)setSortDirection(v=>v==='asc'?'desc':'asc');else{setSort(key);setSortDirection('asc');}};
  const normalizedQuery=query.trim().toLowerCase();
  const systems=[...project.systems].filter((s:any)=>{
@@ -793,7 +793,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   if(normalizedQuery&&![s.name,s.deviceType,s.os,displayVenue(s),memberName(s),...(s.devices||[]).flatMap((d:any)=>[d.identity,d.venue])].some(v=>String(v||'').toLowerCase().includes(normalizedQuery)))return false;
   if(venue&&displayVenue(s)!==venue)return false;
   if(owner&&memberName(s)!==owner)return false;
-  if(cyber&&(s.cyberStatus||'Unknown')!==cyber)return false;
+  if(cyber&&normalizeCyberStatus(s.cyberStatus)!==cyber)return false;
   return scope==='All'||(scope==='Not started'?total.base===0:total.base>0&&total.deployed<total.total);
  }).sort(compare);
  const rows=systems;
@@ -808,7 +808,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
   ['Cyber Approved','cyber',reportSummary.cyberApproved,reportSummary.cyberApplicable,ShieldCheck],
  ] as any[];
  const progress=(n:number,t:number)=> t>0?<span className="nb-report-progress"><span className="nb-progress-label"><small>{n.toLocaleString('en-US')}</small><strong>{Math.round(n/t*100)}%{n===t?' ✓':''}</strong></span><progress max={t} value={n} aria-label={`${n} out of ${t} completed`}/></span>:<span className="nb-muted">—<small>No device inventory</small></span>;
- const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}if(!sys){setQuery('');setScope('All');setOwner('');setCyber('');setVenue('');setSort('reference');setSortDirection('asc');}setFormError('');setSaveMessage('');setCyberReason('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Unknown'});};
+ const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}if(!sys){setQuery('');setScope('All');setOwner('');setCyber('');setVenue('');setSort('reference');setSortDirection('asc');}setFormError('');setSaveMessage('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Not Started'});};
  const saveEditor=async(e?:any)=>{e?.preventDefault?.();if(!editor||saving)return;setFormError('');
   try{
    if(!editor.name?.trim())throw Error('System name is required.');
@@ -819,9 +819,8 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
    if(original?.devices?.length&&original.reportMode!=='aggregate-sample'){
     const actual=counts(original);if(['total','base','ready','deployed'].some(key=>metrics[key]!==actual[key]))throw Error('Registered device progress must be edited through its device checklists.');
    }
-   const cyberChanged=(editor.cyberStatus||'Unknown')!==(original?.cyberStatus||'Unknown');
-   if(cyberChanged&&!cyberReason.trim())throw Error('Provide a reason or evidence reference for changing Cyber status.');
-   const next={...editor,name:editor.name.trim(),deviceType:editor.deviceType.trim(),reportVenue:editor.reportVenue.trim().toUpperCase(),reportOwnerName:editor.reportOwnerName.trim(),reportAW:editor.reportAW,airWatchTags:editor.reportAW,reportMetrics:metrics,reportMode:original?.devices?.length&&original.reportMode!=='aggregate-sample'?original.reportMode:'aggregate-sample',cyberHistory:cyberChanged?[...(original?.cyberHistory||[]),{status:editor.cyberStatus||'Unknown',reason:cyberReason.trim(),actor:'local-demo',at:new Date().toISOString()}]:original?.cyberHistory||[]};
+   const cyberChanged=normalizeCyberStatus(editor.cyberStatus)!==normalizeCyberStatus(original?.cyberStatus);
+   const next={...editor,name:editor.name.trim(),deviceType:editor.deviceType.trim(),reportVenue:editor.reportVenue.trim().toUpperCase(),reportOwnerName:editor.reportOwnerName.trim(),reportAW:editor.reportAW,airWatchTags:editor.reportAW,cyberStatus:normalizeCyberStatus(editor.cyberStatus),reportMetrics:metrics,reportMode:original?.devices?.length&&original.reportMode!=='aggregate-sample'?original.reportMode:'aggregate-sample',cyberHistory:cyberChanged?[...(original?.cyberHistory||[]),{status:normalizeCyberStatus(editor.cyberStatus),actor:'local-demo',at:new Date().toISOString()}]:original?.cyberHistory||[]};
    setSaving(true);
    if(original)await onSystemChange(next);else await onSystemCreate(next);
    if(!original){setQuery(next.name);setScope('All');setOwner('');setCyber('');setVenue('');}
@@ -831,7 +830,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  const deleteEditor=async(sys:any)=>{if(!isAdmin||saving||confirmDeleteId!==sys.id)return;
   try{setSaving(true);setFormError('');await onSystemDelete(sys.id);setConfirmDeleteId(null);setEditor(null);setSaveMessage(`System “${sys.name}” deleted.`);}catch(error:any){setFormError(error?.message||'Unable to delete system.');}finally{setSaving(false);}
  };
- const cancelEditor=()=>{setEditor(null);setFormError('');setCyberReason('');};
+ const cancelEditor=()=>{setEditor(null);setFormError('');};
  const editableRegistered=(sys:any)=>!!(sys?.devices?.length&&sys.reportMode!=='aggregate-sample');
  const inlineNumber=(key:'total'|'base'|'ready'|'deployed',label:string)=>{
   const isLocked=!!editor&&editableRegistered(project.systems.find((s:any)=>s.id===editor.id));
@@ -851,7 +850,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
    <td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{inlineProgress('ready','Ready for deployment completed')}</td>
    <td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{inlineProgress('deployed','Deployed devices')}</td>
    <td hidden={hidden.includes('AW')}><select aria-label="AW" value={editor.reportAW||''} onChange={e=>changeField('reportAW',e.target.value)}>{['Yes','No','Pending','N/A',''].map(v=><option key={v} value={v}>{v||'—'}</option>)}</select></td>
-   <td hidden={hidden.includes('Cyber')}><select aria-label="Cyber status" value={editor.cyberStatus||'Unknown'} onChange={e=>changeField('cyberStatus',e.target.value)}>{['Unknown','Review','Approved','Blocked','N/A'].map(v=><option key={v} value={v}>{v}</option>)}</select>{(editor.cyberStatus||'Unknown')!==(project.systems.find((s:any)=>s.id===editor.id)?.cyberStatus||'Unknown')&&<input className="nb-report-cyber-reason-inline" required maxLength={500} aria-label="Cyber change reason" title="Cyber change reason / evidence" placeholder="Reason / evidence" value={cyberReason} onChange={e=>setCyberReason(e.target.value)}/>}</td>
+   <td hidden={hidden.includes('Cyber')}><select aria-label="Cyber status" value={normalizeCyberStatus(editor.cyberStatus)} onChange={e=>changeField('cyberStatus',e.target.value)}>{CYBER_STATUSES.map(v=><option key={v} value={v}>{v}</option>)}</select></td>
    <td hidden={hidden.includes('Owner')}>{editor.assignmentOwnerLabel?<span title="Change this owner in Assignment">{editor.assignmentOwnerLabel}</span>:<input aria-label="Owner" maxLength={100} value={editor.reportOwnerName||''} onChange={e=>changeField('reportOwnerName',e.target.value)}/>}</td>
    <td className="nb-report-action-cell">{inlineActions}</td>
   </tr>;
@@ -866,17 +865,16 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
     <label className="nb-report-search"><Search size={19} aria-hidden="true"/><input aria-label="Search systems" placeholder="Search systems or devices..." value={query} onChange={e=>setQuery(e.target.value)}/></label>
     <select aria-label="Venue scope" value={venue} onChange={e=>setVenue(e.target.value)}><option value="">All venues</option>{allVenues.map(v=><option key={v} value={v}>{v}</option>)}</select>
     <select aria-label="Owner scope" value={owner} onChange={e=>setOwner(e.target.value)}><option value="">All assignees</option>{allOwners.map(v=><option key={v} value={v}>{v}</option>)}</select>
-    <select aria-label="Cyber scope" value={cyber} onChange={e=>setCyber(e.target.value)}><option value="">All cyber statuses</option>{['Unknown','Approved','Review','Blocked','N/A'].map(v=><option key={v}>{v}</option>)}</select>
+    <select aria-label="Cyber scope" value={cyber} onChange={e=>setCyber(e.target.value)}><option value="">All cyber statuses</option>{CYBER_STATUSES.map(v=><option key={v}>{v}</option>)}</select>
     <details className="nb-report-column-picker"><summary>Columns</summary><div className="nb-report-column-menu">{allColumns.filter(v=>v!=='System').map(v=><label key={v}><input type="checkbox" checked={!hidden.includes(v)} onChange={e=>setHidden(e.target.checked?hidden.filter(x=>x!==v):[...hidden,v])}/>{v}</label>)}<div className="nb-report-sort-control"><label>Sort by<select value={sort} onChange={e=>{setSort(e.target.value);setSortDirection('asc');}}><option value="reference">Reference order</option><option value="name">System name</option><option value="qty">Device quantity</option><option value="base">Base configuration</option><option value="ready">Ready to deploy</option><option value="deployed">Deployed count</option></select></label></div></div></details>
    </div>
    <div className="nb-report-table nb-report-continuous"><table><thead><tr>{allColumns.map(v=>{const key=({System:'name',Qty:'qty',Venue:'venue',Base:'base',Ready:'ready',Deployed:'deployed',AW:'aw',Cyber:'cyber',Owner:'owner'} as any)[v];return <th key={v} hidden={hidden.includes(v)} aria-sort={sort===key?(sortDirection==='asc'?'ascending':'descending'):'none'}><button className="nb-report-th-sort" onClick={()=>changeSort(key)}>{({Base:'Base config.',Ready:'Ready to deploy'} as any)[v]||v}<span aria-hidden="true">{sort===key?(sortDirection==='asc'?'⌃':'⌄'):'↕'}</span></button></th>})}<th className="nb-report-actions-th">Actions</th></tr></thead>
     <tbody>
      {isCreating&&inlineRow}
-     {rows.map((s:any)=>{const c=counts(s);if(editor?.id===s.id)return inlineRow;return <tr key={s.id} className="nb-report-data-row"><td><strong className="nb-report-system-name">{s.name}</strong><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={s.cyberStatus||'Unknown'}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td><td className="nb-report-action-cell">{confirmDeleteId===s.id?<div className="nb-report-delete-confirm"><span>Delete this system and its history?</span><button disabled={saving} onClick={()=>deleteEditor(s)} className="nb-report-confirm-danger" aria-label={'Confirm delete '+s.name}>Delete</button><button onClick={()=>setConfirmDeleteId(null)}>Cancel</button></div>:<div className="nb-report-row-actions">{isAdmin&&<button type="button" aria-label={'Edit '+s.name} title="Edit system inline" onClick={()=>openEditor(s)}><Pencil size={15}/></button>}{isAdmin&&<button type="button" aria-label={'Delete '+s.name} title="Delete system" onClick={()=>{setEditor(null);setConfirmDeleteId(s.id);}}><Trash2 size={15}/></button>}</div>}</td></tr>})}
+     {rows.map((s:any)=>{const c=counts(s);if(editor?.id===s.id)return inlineRow;return <tr key={s.id} className="nb-report-data-row"><td><strong className="nb-report-system-name">{s.name}</strong><small>{s.deviceType||s.deviceCategory||'Device profile'}</small></td><td hidden={hidden.includes('Qty')}>{c.total||'—'}</td><td hidden={hidden.includes('Venue')}>{displayVenue(s)}</td><td className="nb-stage-base" hidden={hidden.includes('Base')}>{progress(c.base,c.total)}</td><td className="nb-stage-ready" hidden={hidden.includes('Ready')}>{progress(c.ready,c.total)}</td><td className="nb-stage-deployed" hidden={hidden.includes('Deployed')}>{progress(c.deployed,c.total)}</td><td hidden={hidden.includes('AW')}>{displayAw(s)}</td><td hidden={hidden.includes('Cyber')}><Badge value={normalizeCyberStatus(s.cyberStatus)}/></td><td hidden={hidden.includes('Owner')}>{memberName(s)}</td><td className="nb-report-action-cell">{confirmDeleteId===s.id?<div className="nb-report-delete-confirm"><span>Delete this system and its history?</span><button disabled={saving} onClick={()=>deleteEditor(s)} className="nb-report-confirm-danger" aria-label={'Confirm delete '+s.name}>Delete</button><button onClick={()=>setConfirmDeleteId(null)}>Cancel</button></div>:<div className="nb-report-row-actions">{isAdmin&&<button type="button" aria-label={'Edit '+s.name} title="Edit system inline" onClick={()=>openEditor(s)}><Pencil size={15}/></button>}{isAdmin&&<button type="button" aria-label={'Delete '+s.name} title="Delete system" onClick={()=>{setEditor(null);setConfirmDeleteId(s.id);}}><Trash2 size={15}/></button>}</div>}</td></tr>})}
      {rows.length===0&&!isCreating&&<tr><td colSpan={visibleCount} className="nb-report-no-results">No systems match the current filters.</td></tr>}
     </tbody></table></div>
    <div className="nb-report-continuous-footer"><span>Showing all {systems.length} systems · Scroll to view the full list</span></div>
-   {project.referenceDemoTotals&&<p className="nb-report-reference-note">Reference demo: six systems reproduced from the approved mockup. KPI totals also include an illustrative subtotal for 68 unseen systems. These totals are not verified device inventory. Editing a system updates its progress and the overall displayed totals.</p>}
    {formError&&!editor&&<p role="alert" className="nb-report-form-error nb-report-inline-error">{formError}</p>}
    {saveMessage&&<p role="status" className="nb-report-save-message">{saveMessage}</p>}
   </section>
