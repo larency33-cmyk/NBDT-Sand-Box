@@ -1,0 +1,16 @@
+NBDT v0.6.62 — Premium Overview Visual Refinement
+Base version: v0.6.61
+
+CHANGED:
+- nbdt-overview-v061.css: fully scoped visual refinement for Overview only
+- package.json: version 0.6.62
+- README.md: overview visual scope and release verification instructions
+
+NEW:
+- tests/overview-premium-v062.test.mjs: scope, accessibility, responsive and interaction contracts
+- RELEASE_NOTES_v0_6_62_RU.md: changes and testing limitations
+- GITHUB_CHANGELOG_v0_6_62.txt
+- NBDT_v0_6_62_GitHub_Manifest.json
+
+No JavaScript business logic, global sidebar, router, user accounts, or data files were changed.
+Offline environment cannot run Vite build or Chromium route smoke; verify GitHub release gate before deploying.

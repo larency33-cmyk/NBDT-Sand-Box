@@ -218,3 +218,9 @@ The Issue Tracker title now shares the same `width: 100%; max-width: var(--conte
 ## v0.6.61 Operational Overview
 
 Overview is now a derived read-only project command screen (`src/overview-v061.tsx`, `src/overview-metrics.mjs`, `nbdt-overview-v061.css`). Its four headline figures match Configuration Report through the shared `reportCounts` function; other sections derive from Weekly Tracker tasks/milestones, Issue Tracker, system inventory and the Assignment owner directory. No Overview metrics are stored separately, and no synthetic change rates or composite completion percentages are used. A failed exact owner match is shown as unresolved rather than guessed. `Recorded activity` reflects only actual browser IndexedDB audit writes. Refer to `RELEASE_NOTES_v0_6_61_RU.md` for formula, source and navigation contracts. The release-gate must validate the real Vite build and six browser routes before deployment.
+
+## Overview design refinement (v0.6.62)
+
+Overview now has a calmer operational visual hierarchy while keeping the **same data sources, calculations and navigation** as v0.6.61. `nbdt-overview-v061.css` contains the fully scoped v0.6.62 refinement: premium white surfaces, clearer typography, deliberately restrained status colors, one subtle attention accent, improved week summary and more legible data tables. At 1320/1150/760/460 px the grid reflows without restyling the global shell/sidebar.
+
+The Overview component and metrics are **unchanged**: this is a CSS-only UI refinement (aside from release metadata and design guard tests). Run `npm test`, `npm run check:syntax`, `node scripts/check-symbols.cjs`, `npm run build` and `npm run smoke:production` before any production release. In the offline export environment only the first three can be verified; GitHub Actions is the production build and browser-smoke release gate.

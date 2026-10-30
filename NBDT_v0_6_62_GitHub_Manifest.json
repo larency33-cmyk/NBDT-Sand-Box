@@ -1,0 +1,25 @@
+{
+  "version": "0.6.62",
+  "baseVersion": "0.6.61",
+  "release": "Overview Visual Refinement",
+  "changedFiles": [
+    "GITHUB_CHANGELOG_v0_6_62.txt",
+    "NBDT_v0_6_62_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_62_RU.md",
+    "nbdt-overview-v061.css",
+    "package.json",
+    "tests/overview-premium-v062.test.mjs"
+  ],
+  "deletedFiles": [],
+  "baseArchive": "NBDT_Full_Project_v0_6_61.zip",
+  "checks": {
+    "unitTestsPassed": 353,
+    "symbolPreflight": "passed",
+    "syntax": "passed",
+    "cssParse": "passed",
+    "viteBuild": "not run - vite unavailable (node_modules not installed)",
+    "browserSmoke": "pending GitHub Actions"
+  },
+  "scope": "Visual-only changes in Overview; no business logic, global sidebar or other sections modified."
+}
