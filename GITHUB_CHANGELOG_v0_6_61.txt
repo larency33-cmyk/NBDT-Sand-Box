@@ -1,0 +1,18 @@
+NBDT v0.6.61 — Overview Operational Dashboard
+Base version: v0.6.60
+
+NEW
+- src/overview-metrics.mjs: verified derived KPI and priority calculations
+- src/overview-v061.tsx: new read-only Overview user interface
+- nbdt-overview-v061.css: scoped and responsive dashboard design
+- tests/overview-v061.test.mjs: data-link and reactive calculation regression tests
+- tests/overview-render-v061.test.mjs: JS render boot check
+- RELEASE_NOTES_v0_6_61_RU.md: complete source/metric contracts
+
+CHANGED
+- index.tsx: replace old Overview, navigate to real modules and pass project/roster state
+- src/workspace.tsx: optional report search initialization for contextual deep linking
+- package.json: release version
+- README.md: new Overview documentation and release baseline
+
+WARNING: Full Vite build and Chromium smoke must be performed by GitHub release-gate after uploading the delta. Offline environment has no cached npm packages.

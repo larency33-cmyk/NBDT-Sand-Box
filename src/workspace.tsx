@@ -773,8 +773,8 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  </section>;
 }
 
-export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
- const [query,setQuery]=useState(''),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
+export function Report({project,isAdmin,initialQuery="",onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
+ const [query,setQuery]=useState(initialQuery),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
  // Every report column remains visible; sorting is available in its column header.
  const hidden:string[]=[];
  const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc');

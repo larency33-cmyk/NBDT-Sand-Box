@@ -1,0 +1,27 @@
+{
+  "version": "0.6.61",
+  "baseVersion": "0.6.60",
+  "release": "Operational Overview",
+  "changedFiles": [
+    "GITHUB_CHANGELOG_v0_6_61.txt",
+    "README.md",
+    "RELEASE_NOTES_v0_6_61_RU.md",
+    "index.tsx",
+    "nbdt-overview-v061.css",
+    "package.json",
+    "src/overview-metrics.mjs",
+    "src/overview-v061.tsx",
+    "src/workspace.tsx",
+    "tests/overview-render-v061.test.mjs",
+    "tests/overview-v061.test.mjs"
+  ],
+  "deletedFiles": [],
+  "baseArchive": "NBDT_Full_Project_v0_6_60.zip",
+  "checks": {
+    "unitTestsPassed": 349,
+    "symbolPreflight": "passed",
+    "syntax": "passed",
+    "viteBuild": "not run - npm cache unavailable",
+    "browserSmoke": "pending GitHub Actions"
+  }
+}

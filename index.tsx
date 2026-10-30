@@ -5,8 +5,9 @@ import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
-import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
+import {Tracker as WeeklyTracker,Report,SystemCreate} from './src/workspace';
 import {AssignmentPage} from './src/assignment-page-v052';
+import {OverviewDashboard} from './src/overview-v061';
 import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
@@ -39,6 +40,7 @@ import './nbdt-layout-v050.css';
 import './nbdt-layout-v051.css';
 import './nbdt-assignment-v052.css';
 import './nbdt-report-v059.css';
+import './nbdt-overview-v061.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -1547,9 +1549,10 @@ const App = () => {
     return 'overview';
   });
 
+  const [overviewReportQuery,setOverviewReportQuery]=useState('');
   const [mobileNav,setMobileNav]=useState(false);
   const [routeError,setRouteError]=useState('');
-  const setActiveTab=(tab:any)=>{if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes before navigating?'))return;delete document.documentElement.dataset.nbdtDirty;setDraftTask(null);setDraftSystem(null);setActiveCheckSheetSys(null);setMobileNav(false);setActiveTabRaw(tab);window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,tab));};
+  const setActiveTab=(tab:any)=>{if(document.documentElement.dataset.nbdtDirty&&!confirm('Discard unsaved changes before navigating?'))return;delete document.documentElement.dataset.nbdtDirty;setOverviewReportQuery('');setDraftTask(null);setDraftSystem(null);setActiveCheckSheetSys(null);setMobileNav(false);setActiveTabRaw(tab);window.history.pushState({nbdt:true},'',sectionPath(projectRef.current.id,tab));};
   useEffect(()=>{const f=()=>{const tab=location.hash.slice(1);if(['overview','roadmap','systems','sync','issues','config-report','assignment'].includes(tab))setActiveTab(tab);};window.addEventListener('hashchange',f);return()=>window.removeEventListener('hashchange',f);},[]);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [panelPosition, setPanelPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -2828,7 +2831,7 @@ const App = () => {
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
-        {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
+        {activeTab==='overview' && <><OverviewDashboard project={displayProject} roster={assignmentRoster} onNavigate={(tab:string)=>{setOverviewReportQuery('');if(tab==='roadmap')setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(project.startDate,project.timezone||'Europe/Paris')||0)+1)));setActiveTab(tab);}} onInspectSystem={(name:string)=>{setActiveTab('config-report');setOverviewReportQuery(name);}} onOpenIssue={(id:string)=>{const issue=project.issues.find(i=>i.id===id);if(issue){setActiveTab('issues');setDraftIssue(issue);}}}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={displayProject} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));
@@ -3172,7 +3175,7 @@ const App = () => {
 
               </div>
             </header>
-            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
+            <Report project={displayProject} initialQuery={overviewReportQuery} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
           </div>
         )}
 

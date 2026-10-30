@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.60 (Configuration Report button-toolbar background correction).** The white rectangle between Export data and Import Report is removed by replacing a legacy dark background class with a transparent one and raising the specificity of the scoped report style. No data logic or button functionality was changed. See `RELEASE_NOTES_v0_6_60_RU.md`.
+**Current package: v0.6.61 — Operational Overview.** A new analytical dashboard derives its figures from Configuration Report, Weekly Tracker, Issue Tracker, System Registry and Assignment without duplicating stored data or inventing growth metrics. See `RELEASE_NOTES_v0_6_61_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
@@ -214,3 +214,7 @@ The Issue Tracker title now shares the same `width: 100%; max-width: var(--conte
 - Columns picker удалён; доступна сортировка нажатием заголовка.
 - Исправлен фон между верхними кнопками экспорта/импорта.
 - Контроль запуска Report (Admin/Guest) добавлен к офлайн-тестам; полноценная Vite/Chromium проверка остаётся обязательной в GitHub release gate.
+
+## v0.6.61 Operational Overview
+
+Overview is now a derived read-only project command screen (`src/overview-v061.tsx`, `src/overview-metrics.mjs`, `nbdt-overview-v061.css`). Its four headline figures match Configuration Report through the shared `reportCounts` function; other sections derive from Weekly Tracker tasks/milestones, Issue Tracker, system inventory and the Assignment owner directory. No Overview metrics are stored separately, and no synthetic change rates or composite completion percentages are used. A failed exact owner match is shown as unresolved rather than guessed. `Recorded activity` reflects only actual browser IndexedDB audit writes. Refer to `RELEASE_NOTES_v0_6_61_RU.md` for formula, source and navigation contracts. The release-gate must validate the real Vite build and six browser routes before deployment.
