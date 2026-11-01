@@ -1,0 +1,5 @@
+NBDT v0.6.64
+- Removed the Demo data, backup & audit block from the Overview workspace.
+- Strengthened the glass treatment of the four top KPI tiles only.
+- Reorganized lower Overview panels into a more compact two-column layout.
+- Preserved sidebar, Overview data flow and KPI gauge logic.

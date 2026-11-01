@@ -3,7 +3,7 @@ import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
 import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
-import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
+import {ProfileGuide as SystemGuide,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,SystemCreate} from './src/workspace';
 import {AssignmentPage} from './src/assignment-page-v052';
@@ -2832,7 +2832,7 @@ const App = () => {
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
-        {activeTab==='overview' && <><OverviewDashboard project={displayProject} roster={assignmentRoster} onNavigate={(tab:string)=>{setOverviewReportQuery('');if(tab==='roadmap')setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(project.startDate,project.timezone||'Europe/Paris')||0)+1)));setActiveTab(tab);}} onInspectSystem={(name:string)=>{setActiveTab('config-report');setOverviewReportQuery(name);}} onOpenIssue={(id:string)=>{const issue=project.issues.find(i=>i.id===id);if(issue){setActiveTab('issues');setDraftIssue(issue);}}}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
+        {activeTab==='overview' && <OverviewDashboard project={displayProject} roster={assignmentRoster} onNavigate={(tab:string)=>{setOverviewReportQuery('');if(tab==='roadmap')setCurrentStartWeek(Math.max(1,Math.min(520,(currentWeekIndex(project.startDate,project.timezone||'Europe/Paris')||0)+1)));setActiveTab(tab);}} onInspectSystem={(name:string)=>{setActiveTab('config-report');setOverviewReportQuery(name);}} onOpenIssue={(id:string)=>{const issue=project.issues.find(i=>i.id===id);if(issue){setActiveTab('issues');setDraftIssue(issue);}}}/>}
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={displayProject} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));

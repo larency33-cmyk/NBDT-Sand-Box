@@ -307,3 +307,45 @@
 .nb61-overview .nb61-readiness .nb61-panel-symbol{background:#eaf4ff;color:#1876df}
 .nb61-overview .nb61-recent .nb61-panel-symbol{background:#edf5ff;color:#367cda}
 .nb61-overview .nb61-coverage .nb61-panel-symbol{background:#ecf4ff;color:#2175dd}
+
+
+/* v0.6.64 — more compact post-KPI layout and no extra utility strip on Overview. */
+.nb61-overview .nb61-grid-top{grid-template-columns:minmax(0,1.82fr) minmax(300px,.88fr);gap:14px}
+.nb61-overview .nb61-week{min-height:0}
+.nb61-overview .nb61-week-stats{gap:8px;margin-bottom:14px}
+.nb61-overview .nb61-week-stat{min-height:74px}
+.nb61-overview .nb61-grid-bottom{
+  grid-template-columns:minmax(0,1.58fr) minmax(320px,.94fr);
+  grid-template-areas:
+    "readiness recent"
+    "readiness coverage";
+  align-items:stretch;
+  gap:14px;
+}
+.nb61-overview .nb61-readiness{grid-area:readiness;min-height:0}
+.nb61-overview .nb61-recent{grid-area:recent;min-height:0}
+.nb61-overview .nb61-coverage{grid-area:coverage;min-height:0}
+.nb61-overview .nb61-grid-bottom .nb61-panel{min-height:0}
+.nb61-overview .nb61-readiness .nb61-table-scroller{flex:1;overflow:auto}
+.nb61-overview .nb61-recent .nb61-panel-heading,.nb61-overview .nb61-coverage .nb61-panel-heading{margin-bottom:12px}
+.nb61-overview .nb61-activity-list{display:grid;gap:0}
+.nb61-overview .nb61-activity{padding:10px 0}
+.nb61-overview .nb61-coverage-visual{padding:8px 2px 14px;gap:16px}
+.nb61-overview .nb61-coverage-ring{width:110px;height:110px}
+.nb61-overview .nb61-coverage-ring>span{width:80px;height:80px}
+.nb61-overview .nb61-coverage-ring strong{font-size:24px}
+.nb61-overview .nb61-coverage-note{margin-top:8px}
+@media(max-width:1450px){
+  .nb61-overview .nb61-grid-bottom{
+    grid-template-columns:minmax(0,1.28fr) minmax(280px,.92fr);
+    grid-template-areas:
+      "readiness recent"
+      "coverage coverage";
+  }
+}
+@media(max-width:1150px){
+  .nb61-overview .nb61-grid-bottom{grid-template-columns:1fr;grid-template-areas:
+      "readiness"
+      "recent"
+      "coverage";}
+}

@@ -1,0 +1,14 @@
+{
+  "version": "0.6.64",
+  "base_version": "0.6.63",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_64.txt",
+    "NBDT_v0_6_64_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_64_RU.md",
+    "index.tsx",
+    "nbdt-overview-v061.css",
+    "nbdt-overview-kpi-v063.css",
+    "package.json"
+  ],
+  "notes": "Overview-only polish: glass KPI row, removed data tools strip, compact lower layout."
+}
