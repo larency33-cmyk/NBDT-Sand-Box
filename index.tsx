@@ -41,6 +41,7 @@ import './nbdt-layout-v051.css';
 import './nbdt-assignment-v052.css';
 import './nbdt-report-v059.css';
 import './nbdt-overview-v061.css';
+import './nbdt-overview-kpi-v063.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';

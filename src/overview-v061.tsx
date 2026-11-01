@@ -1,6 +1,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {Layers3,Rocket,Boxes,ShieldCheck,AlertTriangle,CalendarDays,CheckCircle2,Clock3,Users,ArrowUpRight,ChevronRight,Activity,Ship,ClipboardList,Info,AlertCircle} from 'lucide-react';
 import {buildOverviewData,pct} from './overview-metrics.mjs';
+import {gaugeGeometry} from './overview-gauge.mjs';
 import {auditLog} from './demo-store.mjs';
 
 const formatter=(n:number)=>Number(n||0).toLocaleString('en-US');
@@ -9,6 +10,15 @@ const formatAudit=(date:string)=>{const v=new Date(date);return Number.isNaN(+v)
 const KPI_ICONS=[Layers3,Rocket,Boxes,ShieldCheck];
 const LABELS=[{theme:'base'},{theme:'ready'},{theme:'deployed'},{theme:'cyber'}];
 const StatBar=({value,tone='base'}:{value:number|null,tone?:string})=><span className={'nb61-statbar nb61-statbar--'+tone} role="img" aria-label={value===null?'No inventory':`${value}%`}><span style={{width:`${Math.max(0,Math.min(100,value||0))}%`}}/></span>;
+const SemiGauge=({value,title}:{value:number|null,title:string})=>{
+ const gauge=useMemo(()=>gaugeGeometry(value),[value]);
+ return <svg className="nb63-semi-gauge" viewBox="0 0 200 118" role="img" aria-label={value===null?`${title}: no applicable records`:`${title}: ${gauge.percent}% complete`} focusable="false">
+  <g fill="none" strokeWidth="13" strokeLinecap="butt">
+   {gauge.segments.map((segment:any)=><g key={segment.index}><path className="nb63-segment-track" d={segment.track}/>{segment.active&&<path className="nb63-segment-active" d={segment.active}/>}</g>)}
+  </g>
+  {gauge.marker&&<g className="nb63-gauge-end"><circle cx={gauge.marker.x} cy={gauge.marker.y} r="9" className="nb63-gauge-end-halo"/><circle cx={gauge.marker.x} cy={gauge.marker.y} r="4.1" className="nb63-gauge-end-core"/></g>}
+ </svg>;
+};
 const NavButton=({onClick,children}:any)=><button type="button" className="nb61-link" onClick={onClick}>{children}<ArrowUpRight size={15}/></button>;
 
 /** Main dashboard only reads live project, roster and local audit. No demo metrics are embedded. */
@@ -32,8 +42,9 @@ export function OverviewDashboard({project,roster,onNavigate,onInspectSystem,onO
   </header>
   <div className="nb61-kpis">{data.kpis.map((k:any,i:number)=>{const Icon=KPI_ICONS[i];const color=LABELS[i].theme;return <button type="button" key={k.key} onClick={()=>kpiTarget(k.key)} className={'nb61-kpi nb61-tone-'+color}>
    <span className="nb61-kpi-head"><span className="nb61-kpi-icon"><Icon size={23} strokeWidth={1.8}/></span><span className="nb61-kpi-name">{k.title}</span><ChevronRight size={15} className="nb61-kpi-chevron"/></span>
-   <span className="nb61-kpi-numbers"><strong>{k.percent===null?'—':k.percent+'%'}</strong><span className="nb61-kpi-ring" style={{background:`conic-gradient(var(--nb61-accent) ${(k.percent||0)}%, #e3edf8 0)`}}><i/></span></span>
-   <span className="nb61-kpi-description">{k.total?`${formatter(k.value)} / ${formatter(k.total)} ${k.unit}`:'No applicable records'}</span><StatBar value={k.percent} tone={color}/>
+   <span className="nb63-kpi-body"><span className="nb63-kpi-figures"><strong className="nb63-kpi-value">{k.percent===null?'—':k.percent+'%'}</strong><span className="nb61-kpi-description">{k.total?`${formatter(k.value)} / ${formatter(k.total)} ${k.unit}`:'No applicable records'}</span></span><SemiGauge value={k.percent} title={k.title}/></span>
+   <svg className="nb63-kpi-wave nb63-kpi-wave-back" viewBox="0 0 440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 46 C85 0 136 76 225 42 S350 8 440 45 L440 100 L0 100 Z"/></svg>
+   <svg className="nb63-kpi-wave nb63-kpi-wave-front" viewBox="0 0 440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 69 C95 30 148 91 230 64 S352 34 440 70 L440 100 L0 100 Z"/></svg>
   </button>;})}</div>
   <div className="nb61-grid-top">
    <section className="nb61-panel nb61-attention"><header className="nb61-panel-heading"><span className="nb61-panel-symbol nb61-warn"><AlertTriangle size={19}/></span><div><h2>Systems requiring attention</h2><p>Prioritized from open issues, blocked tasks and incomplete device progress</p></div><span className="nb61-count-alert">{data.attentionCount} systems</span><NavButton onClick={()=>onNavigate('config-report')}>Report</NavButton></header>
