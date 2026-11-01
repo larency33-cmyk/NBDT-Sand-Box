@@ -1,0 +1,17 @@
+{
+  "version": "0.6.65",
+  "baseline": "0.6.64",
+  "comparison": "sha256 content comparison against the original full ZIP",
+  "changed_or_added_files": [
+    "GITHUB_CHANGELOG_v0_6_65.txt",
+    "README.md",
+    "RELEASE_NOTES_v0_6_65_RU.md",
+    "index.tsx",
+    "nbdt-overview-v065.css",
+    "package.json",
+    "tests/overview-v065-layout.test.mjs"
+  ],
+  "removed_files": [],
+  "tested": "363/363 Node regression tests passed; syntax and symbol preflight passed; CSS parsed; Vite production build not verified without npm deps",
+  "deploy": "Upload delta maintaining relative paths; require GitHub release gate to pass"
+}

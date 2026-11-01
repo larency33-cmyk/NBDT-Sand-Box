@@ -1,0 +1,6 @@
+NBDT v0.6.65 (base: v0.6.64)
+- Add separate scoped CSS for premium glossy KPI treatment and responsive 3-column diagnostics.
+- Keep the segmented gauges as the sole visual KPI progress presentation.
+- Reduce spacing in operational panels and weekly empty-milestone area.
+- Add visual regression contract tests for Overview; leave sidebar and data calculations unchanged.
+- Update release documentation and version.

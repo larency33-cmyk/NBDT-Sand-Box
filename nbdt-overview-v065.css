@@ -1,0 +1,194 @@
+/* NBDT 0.6.65 — premium Overview composition.
+   All visual selectors are explicitly scoped to .nb61-overview.
+   No shared navigation, authentication or application-wide layout rules. */
+
+/* One polished glass language for the four existing, data-driven KPIs. */
+.nb61-overview .nb61-kpis {
+  gap: 15px;
+  margin-bottom: 16px;
+}
+.nb61-overview .nb61-kpis .nb61-kpi {
+  --nb65-tint: color-mix(in srgb, var(--nb61-accent) 12%, white);
+  min-height: 175px;
+  padding: 15px 18px 12px;
+  border: 1px solid color-mix(in srgb, var(--nb61-accent) 18%, #fff);
+  border-radius: 18px;
+  background:
+    linear-gradient(146deg, rgba(255,255,255,.85) 0%, rgba(248,252,255,.65) 42%, rgba(240,248,255,.42) 100%),
+    radial-gradient(ellipse 95% 80% at 92% 95%, var(--nb65-tint) 0%, transparent 76%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(255,255,255,.70),
+    0 12px 26px rgba(29,82,150,.095),
+    0 2px 6px rgba(30,87,162,.040);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  backdrop-filter: blur(22px) saturate(130%);
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition: transform .20s ease, box-shadow .20s ease, border-color .20s ease;
+}
+/* A real glass highlight: fine curved diagonal reflection, not a second progress meter. */
+.nb61-overview .nb61-kpis .nb61-kpi::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(154deg, transparent 0%, rgba(255,255,255,.10) 27%, rgba(255,255,255,.75) 37%, rgba(255,255,255,.18) 40%, transparent 56%),
+    radial-gradient(ellipse 90% 48% at 32% -13%, rgba(255,255,255,.87) 0%, transparent 83%);
+  opacity: .66;
+}
+.nb61-overview .nb61-kpis .nb61-kpi::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 17px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.45);
+}
+.nb61-overview .nb61-kpis .nb61-kpi:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--nb61-accent) 33%, white);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(255,255,255,.75),
+    0 17px 31px rgba(31,82,148,.13),
+    0 3px 8px rgba(30,87,162,.055);
+}
+.nb61-overview .nb61-kpis .nb61-kpi-head,
+.nb61-overview .nb61-kpis .nb63-kpi-body { position: relative; z-index: 4; }
+.nb61-overview .nb61-kpis .nb61-kpi-head { gap: 10px; min-height: 32px; }
+.nb61-overview .nb61-kpis .nb61-kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.53);
+  border: 1px solid rgba(255,255,255,.86);
+  box-shadow: 0 1px 3px rgba(34,90,166,.07);
+}
+.nb61-overview .nb61-kpis .nb61-kpi-icon svg { width: 18px; height: 18px; stroke-width: 1.65px; }
+.nb61-overview .nb61-kpis .nb61-kpi-name {
+  color: #17345d;
+  font-size: 12.5px;
+  font-weight: 760;
+}
+.nb61-overview .nb61-kpis .nb63-kpi-body { min-height: 103px; }
+.nb61-overview .nb61-kpis .nb63-kpi-figures { padding-left: 3px; gap: 6px; }
+.nb61-overview .nb61-kpis .nb63-kpi-value {
+  font-size: clamp(31px, 2.4vw, 39px);
+  font-weight: 795;
+  color: #0d2c59;
+}
+.nb61-overview .nb61-kpis .nb63-kpi-figures .nb61-kpi-description {
+  font-size: 11px;
+  color: #5f7a9d;
+}
+.nb61-overview .nb61-kpis .nb63-semi-gauge {
+  filter: drop-shadow(0 1px 1px var(--nb63-halo));
+}
+.nb61-overview .nb61-kpis .nb63-segment-track { opacity: .24; }
+.nb61-overview .nb61-kpis .nb63-segment-active { stroke-width: 13px; }
+.nb61-overview .nb61-kpis .nb63-kpi-wave { z-index: 0; height: 50px; }
+.nb61-overview .nb61-kpis .nb63-kpi-wave-back { opacity: .29; }
+.nb61-overview .nb61-kpis .nb63-kpi-wave-front { opacity: .46; }
+
+/* Focus on actual data rather than wasted vertical space. */
+.nb61-overview .nb61-grid-top { gap: 14px; margin-bottom: 14px; align-items: start; }
+.nb61-overview .nb61-panel { box-shadow: 0 5px 19px rgba(31,75,126,.052); }
+.nb61-overview .nb61-attention { min-height: 0; }
+.nb61-overview .nb61-attention .nb61-panel-heading { margin-bottom: 12px; }
+.nb61-overview .nb61-attention-table th { padding-top: 8px; padding-bottom: 8px; }
+.nb61-overview .nb61-attention-table td { padding-top: 8px; padding-bottom: 8px; }
+.nb61-overview .nb61-attention-footer { min-height: 30px; }
+.nb61-overview .nb61-week { min-height: 0; }
+.nb61-overview .nb61-week .nb61-panel-heading { margin-bottom: 13px; }
+.nb61-overview .nb61-week-stats { margin: 0 0 13px; gap: 7px; }
+.nb61-overview .nb61-week-stat { min-height: 67px; padding: 9px 5px; }
+.nb61-overview .nb61-week-stat strong { font-size: 23px; }
+.nb61-overview .nb61-week-subhead { padding-bottom: 9px; }
+.nb61-overview .nb61-milestones { min-height: 0; max-height: 185px; overflow-y: auto; }
+.nb61-overview .nb61-milestones > button { min-height: 39px; padding: 7px 2px; }
+.nb61-overview .nb61-empty-milestones { padding: 13px 2px !important; }
+
+/* Three balanced diagnostic panels on wide screens, instead of a stacked column. */
+.nb61-overview .nb61-grid-bottom {
+  display: grid;
+  grid-template-columns: minmax(0,1.44fr) minmax(0,1.06fr) minmax(0,1.04fr);
+  grid-template-areas: "readiness recent coverage";
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 6px;
+}
+.nb61-overview .nb61-grid-bottom .nb61-panel {
+  min-height: 0;
+  padding: 16px 17px 14px;
+}
+.nb61-overview .nb61-grid-bottom .nb61-panel-heading { margin-bottom: 12px; min-height: 38px; }
+.nb61-overview .nb61-grid-bottom .nb61-panel-heading h2 { font-size: 15px; }
+.nb61-overview .nb61-readiness { grid-area: readiness; }
+.nb61-overview .nb61-recent { grid-area: recent; }
+.nb61-overview .nb61-coverage { grid-area: coverage; grid-column: auto; }
+.nb61-overview .nb61-readiness .nb61-table-scroller { overflow-x: auto; overflow-y: visible; }
+.nb61-overview .nb61-readiness-table { min-width: 0; table-layout: auto; }
+.nb61-overview .nb61-readiness-table th,
+.nb61-overview .nb61-readiness-table td { padding: 7px 6px; }
+.nb61-overview .nb61-readiness-table th { font-size: 10px; }
+.nb61-overview .nb61-readiness-table td { font-size: 10.8px; }
+.nb61-overview .nb61-readiness-table th:first-child,
+.nb61-overview .nb61-readiness-table td:first-child { min-width: 112px; }
+.nb61-overview .nb61-readiness-table .nb61-readiness-progress { min-width: 62px; gap: 5px; }
+.nb61-overview .nb61-readiness-table .nb61-statbar { width: 38px; height: 5px; }
+.nb61-overview .nb61-activity { padding: 10px 0; gap: 8px; }
+.nb61-overview .nb61-activity strong { font-size: 11px; }
+.nb61-overview .nb61-activity time { font-size: 10px; }
+.nb61-overview .nb61-coverage-visual {
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0 14px;
+  max-width: none;
+}
+.nb61-overview .nb61-coverage-ring { width: 102px; height: 102px; }
+.nb61-overview .nb61-coverage-ring > span { width: 75px; height: 75px; }
+.nb61-overview .nb61-coverage-ring strong { font-size: 23px; }
+.nb61-overview .nb61-coverage-legend { gap: 11px; }
+.nb61-overview .nb61-coverage-legend p { font-size: 10.4px; white-space: normal; }
+.nb61-overview .nb61-coverage-legend strong { font-size: 11.5px; }
+.nb61-overview .nb61-coverage-note { margin-top: 2px; padding: 8px 10px; font-size: 10px; }
+
+/* Intermediate viewports: a two-column composition without clipped text. */
+@media (max-width: 1599px) {
+  .nb61-overview .nb61-grid-bottom {
+    grid-template-columns: minmax(0,1.20fr) minmax(0,1fr);
+    grid-template-areas: "readiness recent" "readiness coverage";
+  }
+  .nb61-overview .nb61-coverage { grid-column: auto; }
+}
+@media (max-width: 1170px) {
+  .nb61-overview .nb61-grid-top { grid-template-columns: 1fr; }
+  .nb61-overview .nb61-grid-bottom {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas: "readiness readiness" "recent coverage";
+  }
+  .nb61-overview .nb61-coverage { grid-column: auto; }
+}
+@media (max-width: 760px) {
+  .nb61-overview .nb61-grid-bottom {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-areas: "readiness" "recent" "coverage";
+  }
+  .nb61-overview .nb61-grid-bottom .nb61-panel { padding: 15px 13px; }
+  .nb61-overview .nb61-readiness-table { min-width: 480px; }
+}
+@media (max-width: 460px) {
+  .nb61-overview .nb61-kpis .nb61-kpi { padding: 15px; }
+  .nb61-overview .nb61-week-stat { min-height: 62px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nb61-overview .nb61-kpis .nb61-kpi { transition: none; transform: none !important; }
+  .nb61-overview .nb63-kpi-wave { animation: none !important; }
+}
