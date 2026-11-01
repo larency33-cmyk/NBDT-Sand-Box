@@ -1,0 +1,270 @@
+/* NBDT v0.6.66 — premium glass KPI refinement and reorganized Overview analytics.
+   Fully scoped to .nb61-overview so the sidebar and other screens remain untouched. */
+
+.nb61-overview{
+  background:
+    radial-gradient(ellipse 48% 18% at 82% 3%, rgba(141,186,240,.16), transparent 80%),
+    radial-gradient(ellipse 28% 12% at 18% 0%, rgba(255,255,255,.72), transparent 85%),
+    linear-gradient(135deg,#f6fbff 0%,#eff6fd 56%,#f7fbff 100%);
+}
+
+/* Stronger glossy glass only for the KPI row. */
+.nb61-overview .nb61-kpis{
+  gap:16px;
+  margin-bottom:18px;
+}
+.nb61-overview .nb61-kpis .nb61-kpi{
+  --nb66-glass-tint: color-mix(in srgb, var(--nb61-accent) 16%, white);
+  min-height:188px;
+  padding:16px 18px 14px;
+  border-radius:21px;
+  border:1px solid color-mix(in srgb, var(--nb61-accent) 15%, #dfeafb);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.93) 0%, rgba(252,254,255,.78) 36%, rgba(246,250,255,.62) 100%),
+    linear-gradient(138deg, rgba(255,255,255,.24) 0%, transparent 42%),
+    radial-gradient(circle at 84% 110%, var(--nb66-glass-tint) 0%, transparent 45%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.96),
+    inset 0 -1px 0 rgba(255,255,255,.72),
+    inset 0 -28px 44px rgba(255,255,255,.12),
+    0 18px 34px rgba(27,77,139,.10),
+    0 4px 9px rgba(35,91,158,.05);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  backdrop-filter: blur(20px) saturate(150%);
+}
+.nb61-overview .nb61-kpis .nb61-kpi::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    radial-gradient(ellipse 78% 45% at 18% -6%, rgba(255,255,255,.92) 0%, rgba(255,255,255,.54) 30%, transparent 76%),
+    linear-gradient(151deg, transparent 0%, rgba(255,255,255,.08) 18%, rgba(255,255,255,.82) 28%, rgba(255,255,255,.20) 33%, transparent 51%),
+    linear-gradient(180deg, rgba(255,255,255,.08) 0%, transparent 48%);
+  opacity:.88;
+}
+.nb61-overview .nb61-kpis .nb61-kpi::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  z-index:1;
+  pointer-events:none;
+  border-radius:20px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.48);
+}
+.nb61-overview .nb61-kpis .nb61-kpi:hover{
+  border-color:color-mix(in srgb, var(--nb61-accent) 24%, #eef5ff);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(255,255,255,.76),
+    inset 0 -32px 48px rgba(255,255,255,.14),
+    0 22px 38px rgba(27,77,139,.13),
+    0 5px 11px rgba(35,91,158,.06);
+}
+.nb61-overview .nb61-kpis .nb61-kpi-head,
+.nb61-overview .nb61-kpis .nb63-kpi-body{
+  position:relative;
+  z-index:3;
+}
+.nb61-overview .nb61-kpis .nb61-kpi-head{min-height:35px}
+.nb61-overview .nb61-kpis .nb61-kpi-icon{
+  background:rgba(255,255,255,.58);
+  border:1px solid rgba(255,255,255,.84);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 2px 5px rgba(38,91,153,.05);
+}
+.nb61-overview .nb61-kpis .nb61-kpi-name{font-size:12.7px;font-weight:770;color:#173661}
+.nb61-overview .nb61-kpis .nb61-kpi-chevron{color:#a5bdd9}
+.nb61-overview .nb61-kpis .nb63-kpi-body{min-height:110px;gap:6px}
+.nb61-overview .nb61-kpis .nb63-kpi-figures{padding:2px 0 6px 4px;gap:7px}
+.nb61-overview .nb61-kpis .nb63-kpi-value{font-size:clamp(32px,2.55vw,40px);font-weight:810;color:#0b2b5a}
+.nb61-overview .nb61-kpis .nb63-kpi-figures .nb61-kpi-description{font-size:11.1px;color:#617fa2}
+.nb61-overview .nb61-kpis .nb63-semi-gauge{width:min(48%,162px);filter:drop-shadow(0 3px 8px var(--nb63-halo))}
+.nb61-overview .nb61-kpis .nb63-segment-track{opacity:.16}
+.nb61-overview .nb61-kpis .nb63-segment-active{filter:drop-shadow(0 0 1.4px var(--nb63-halo))}
+.nb61-overview .nb61-kpis .nb63-gauge-end-core{stroke-width:2.6}
+.nb61-overview .nb61-kpis .nb63-kpi-wave{height:56px}
+.nb61-overview .nb61-kpis .nb63-kpi-wave-back{opacity:.24}
+.nb61-overview .nb61-kpis .nb63-kpi-wave-front{opacity:.42}
+
+/* Global panel polish for the rest of Overview. */
+.nb61-overview .nb61-panel{
+  border-radius:18px;
+  border:1px solid rgba(206,222,242,.88);
+  background:linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(252,254,255,.96) 100%);
+  box-shadow:0 10px 24px rgba(25,71,126,.055), 0 2px 6px rgba(36,87,150,.03);
+}
+.nb61-overview .nb61-panel-heading{
+  margin-bottom:14px;
+}
+.nb61-overview .nb61-panel-symbol{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+/* Main composition: stronger hierarchy without wasting space. */
+.nb61-overview .nb61-grid-top{
+  grid-template-columns:minmax(0,1.7fr) minmax(315px,.85fr);
+  gap:16px;
+  margin-bottom:16px;
+  align-items:start;
+}
+.nb61-overview .nb61-attention{
+  min-height:0;
+  padding:18px 18px 15px 21px;
+}
+.nb61-overview .nb61-attention:before{top:18px;bottom:18px;opacity:.78}
+.nb61-overview .nb61-attention .nb61-panel-heading h2,
+.nb61-overview .nb61-week .nb61-panel-heading h2,
+.nb61-overview .nb61-readiness .nb61-panel-heading h2,
+.nb61-overview .nb61-recent .nb61-panel-heading h2,
+.nb61-overview .nb61-coverage .nb61-panel-heading h2{
+  font-size:15.5px;
+  font-weight:790;
+}
+.nb61-overview .nb61-attention-table th,
+.nb61-overview .nb61-readiness-table th{
+  background:#f4f8fd;
+  color:#607a9c;
+}
+.nb61-overview .nb61-attention-table td{padding-top:9px;padding-bottom:9px}
+.nb61-overview .nb61-attention-footer{padding-top:10px}
+
+.nb61-overview .nb61-week{
+  min-height:0;
+  padding:18px 18px 16px;
+}
+.nb61-overview .nb61-week-stats{gap:8px;margin:1px 0 14px}
+.nb61-overview .nb61-week-stat{
+  min-height:72px;
+  border-radius:12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.nb61-overview .nb61-week-subhead{padding-bottom:10px}
+.nb61-overview .nb61-milestones{min-height:0;max-height:176px}
+.nb61-overview .nb61-empty-milestones,
+.nb61-overview .nb61-milestones .nb61-empty{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  min-height:86px;
+  padding:14px 10px !important;
+  border:1px dashed #dbe7f4;
+  border-radius:13px;
+  background:linear-gradient(180deg,#f9fbfe,#f5f9fd);
+  color:#7690b0;
+}
+
+/* Reorganized lower analytics: readiness is primary, activity + ownership stack to the right. */
+.nb61-overview .nb61-grid-bottom{
+  grid-template-columns:minmax(0,1.55fr) minmax(320px,.92fr);
+  grid-template-areas:
+    "readiness recent"
+    "readiness coverage";
+  gap:16px;
+  align-items:start;
+  margin-bottom:8px;
+}
+.nb61-overview .nb61-readiness{grid-area:readiness}
+.nb61-overview .nb61-recent{grid-area:recent}
+.nb61-overview .nb61-coverage{grid-area:coverage}
+.nb61-overview .nb61-grid-bottom .nb61-panel{
+  min-height:0;
+  padding:17px 18px 16px;
+}
+
+.nb61-overview .nb61-readiness .nb61-panel-heading,
+.nb61-overview .nb61-recent .nb61-panel-heading,
+.nb61-overview .nb61-coverage .nb61-panel-heading{margin-bottom:13px}
+.nb61-overview .nb61-readiness-table{table-layout:auto}
+.nb61-overview .nb61-readiness-table td,
+.nb61-overview .nb61-readiness-table th{padding:9px 7px}
+.nb61-overview .nb61-readiness-table td:first-child,
+.nb61-overview .nb61-readiness-table th:first-child{min-width:126px}
+.nb61-overview .nb61-readiness-progress{gap:6px;min-width:74px}
+.nb61-overview .nb61-readiness-progress>.nb61-statbar{width:46px;height:6px}
+
+.nb61-overview .nb61-recent .nb61-activity-list{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+}
+.nb61-overview .nb61-recent .nb61-activity{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:start;
+  gap:9px;
+  padding:11px 0;
+}
+.nb61-overview .nb61-recent .nb61-activity:not(:last-child){border-bottom:1px solid #edf3fa}
+.nb61-overview .nb61-recent .nb61-activity::after{
+  content:"";
+  position:absolute;
+  left:3px;
+  top:24px;
+  bottom:-10px;
+  width:1px;
+  background:#e4eef9;
+}
+.nb61-overview .nb61-recent .nb61-activity:last-child::after{display:none}
+.nb61-overview .nb61-recent .nb61-activity-dot{margin-top:7px}
+.nb61-overview .nb61-recent .nb61-activity strong{font-size:11.2px}
+
+.nb61-overview .nb61-coverage .nb61-coverage-visual{
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:10px 0 12px;
+}
+.nb61-overview .nb61-coverage .nb61-coverage-ring{
+  width:114px;
+  height:114px;
+  box-shadow:0 0 0 1px #ebf1fa, 0 6px 18px rgba(29,81,140,.05);
+}
+.nb61-overview .nb61-coverage .nb61-coverage-ring>span{width:82px;height:82px}
+.nb61-overview .nb61-coverage .nb61-coverage-ring strong{font-size:24px}
+.nb61-overview .nb61-coverage .nb61-coverage-legend{gap:10px}
+.nb61-overview .nb61-coverage .nb61-coverage-note{
+  margin-top:2px;
+  padding:10px 11px;
+  border-radius:12px;
+  background:#f7fbff;
+  border:1px solid #e5eef8;
+}
+
+@media (max-width: 1499px){
+  .nb61-overview .nb61-kpis .nb61-kpi{min-height:180px;padding:15px 15px 13px}
+  .nb61-overview .nb61-grid-bottom{grid-template-columns:minmax(0,1.35fr) minmax(300px,.95fr)}
+}
+@media (max-width: 1180px){
+  .nb61-overview .nb61-grid-top{grid-template-columns:minmax(0,1fr)}
+  .nb61-overview .nb61-grid-bottom{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:
+      "readiness readiness"
+      "recent coverage";
+  }
+}
+@media (max-width: 860px){
+  .nb61-overview .nb61-grid-bottom{
+    grid-template-columns:minmax(0,1fr);
+    grid-template-areas:
+      "readiness"
+      "recent"
+      "coverage";
+  }
+  .nb61-overview .nb61-readiness-table{min-width:500px}
+}
+@media (max-width: 560px){
+  .nb61-overview .nb61-kpis{grid-template-columns:1fr}
+  .nb61-overview .nb61-kpis .nb61-kpi{min-height:180px;padding:15px}
+  .nb61-overview .nb61-week-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nb61-overview .nb61-coverage .nb61-coverage-visual{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){
+  .nb61-overview .nb61-kpis .nb61-kpi,
+  .nb61-overview .nb61-week-stat,
+  .nb61-overview .nb61-open{transition:none}
+}

@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.65 — Glass KPI & Compact Overview.** The Overview shows real indicators sourced from Configuration Report, Weekly Tracker, Issue Tracker, System Registry and Assignment. This release refines only the Overview presentation with glass KPI cards and a responsive three-panel analytics row. See `RELEASE_NOTES_v0_6_65_RU.md`.
+**Current package: v0.6.66 — Premium Gloss Overview Refinement.** The Overview still shows only real indicators sourced from Configuration Report, Weekly Tracker, Issue Tracker, System Registry and Assignment. This release strengthens the glossy-glass KPI row, reorganizes the lower analytics into a more compact operational composition, and refines the visual hierarchy of the Overview page only. See `RELEASE_NOTES_v0_6_66_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

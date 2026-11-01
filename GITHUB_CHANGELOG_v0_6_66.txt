@@ -1,0 +1,5 @@
+v0.6.66
+- strengthened glossy-glass treatment for the four Overview KPI cards
+- reorganized lower Overview analytics into readiness + activity/coverage composition
+- refined panel hierarchy, empty states and compact operational spacing
+- added scoped Overview override stylesheet and regression guard test

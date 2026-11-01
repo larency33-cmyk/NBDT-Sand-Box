@@ -1,0 +1,18 @@
+{
+  "version": "0.6.66",
+  "baseline": "0.6.65",
+  "comparison": "file-path delta against the original full ZIP",
+  "changed_or_added_files": [
+    "GITHUB_CHANGELOG_v0_6_66.txt",
+    "README.md",
+    "RELEASE_NOTES_v0_6_66_RU.md",
+    "NBDT_v0_6_66_GitHub_Manifest.json",
+    "index.tsx",
+    "nbdt-overview-v066.css",
+    "package.json",
+    "tests/overview-v066-refinement.test.mjs"
+  ],
+  "removed_files": [],
+  "tested": "Packaging prepared in export environment; run npm install, npm test, npm run check:syntax, node scripts/check-symbols.cjs, npm run build and npm run smoke:production before production release",
+  "deploy": "Upload delta archive preserving relative paths; require GitHub release gate to pass"
+}
