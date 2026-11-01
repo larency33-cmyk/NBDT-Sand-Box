@@ -1,27 +1,20 @@
 {
   "version": "0.6.61",
-  "baseVersion": "0.6.60",
-  "release": "Operational Overview",
-  "changedFiles": [
+  "base_version": "0.6.60",
+  "changed_files": [
     "GITHUB_CHANGELOG_v0_6_61.txt",
+    "NBDT_v0_6_61_GitHub_Manifest.json",
     "README.md",
     "RELEASE_NOTES_v0_6_61_RU.md",
-    "index.tsx",
-    "nbdt-overview-v061.css",
     "package.json",
-    "src/overview-metrics.mjs",
-    "src/overview-v061.tsx",
-    "src/workspace.tsx",
-    "tests/overview-render-v061.test.mjs",
-    "tests/overview-v061.test.mjs"
+    "redesign.css",
+    "src/workspace.tsx"
   ],
-  "deletedFiles": [],
-  "baseArchive": "NBDT_Full_Project_v0_6_60.zip",
-  "checks": {
-    "unitTestsPassed": 349,
-    "symbolPreflight": "passed",
-    "syntax": "passed",
-    "viteBuild": "not run - npm cache unavailable",
-    "browserSmoke": "pending GitHub Actions"
-  }
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_61.txt",
+    "NBDT_v0_6_61_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_61_RU.md"
+  ],
+  "total_file_count": 216
 }

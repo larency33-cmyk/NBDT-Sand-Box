@@ -773,8 +773,8 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  </section>;
 }
 
-export function Report({project,isAdmin,initialQuery="",onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
- const [query,setQuery]=useState(initialQuery),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
+export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDelete,onRequestAdmin,onDisableAdmin}:any){
+ const [query,setQuery]=useState(''),[scope,setScope]=useState('All'),[owner,setOwner]=useState(''),[cyber,setCyber]=useState(''),[venue,setVenue]=useState('');
  // Every report column remains visible; sorting is available in its column header.
  const hidden:string[]=[];
  const [sort,setSort]=useState('reference'),[sortDirection,setSortDirection]=useState<'asc'|'desc'>('asc');
@@ -892,4 +892,211 @@ export function Report({project,isAdmin,initialQuery="",onSystemChange,onSystemC
  </section>;
 }
 
-export function Overview({project,onNavigate}:any){return <section className="nb-overview"><header className="nb-page-header"><div><h1>{project.name}</h1><p>NBDT · Deployment workspace</p></div></header><div className="nb-kpis">{[['Systems',project.systems.length,'systems'],['Tasks',project.tasks.filter((t:any)=>!t.isMilestone).length,'roadmap'],['Open issues',project.issues.filter((i:any)=>i.status!=='Resolved').length,'issues'],['Registered devices',project.systems.reduce((n:number,s:any)=>n+(s.devices||[]).length,0),'config-report']].map(([label,n,tab])=><button className="nb-kpi" key={label} onClick={()=>onNavigate(tab)}><div><h3>{label}</h3><strong>{n}</strong></div></button>)}</div><p className="nb-notice">Local preview. Existing seed records are retained from the supplied project; they are not a live deployment status.</p></section>;}
+
+export function Overview({project,onNavigate}:any){
+ const reportSummary=reportCounts(project,counts);
+ const timezone=project.timezone||'Europe/Paris';
+ const activeWeek=Math.max(0,currentWeekIndex(project.startDate,timezone)??0);
+ const tasks=(project.tasks||[]).filter((t:any)=>!t.isMilestone).map((t:any)=>({...t,status:effectiveStatus(t,project.issues||[])}));
+ const milestones=(project.tasks||[]).filter((t:any)=>t.isMilestone);
+ const openIssues=(project.issues||[]).filter((issue:any)=>!['Resolved','Closed'].includes(issue.status));
+ const currentWeekTasks=tasks.filter((task:any)=>task.startWeek<=activeWeek&&task.startWeek+(task.duration||1)>activeWeek);
+ const currentWeekMilestones=milestones.filter((task:any)=>task.startWeek===activeWeek||task.startWeek===activeWeek+1);
+ const weekStats={
+  planned:currentWeekTasks.filter((task:any)=>task.status==='Planned').length,
+  active:currentWeekTasks.filter((task:any)=>task.status==='In Progress').length,
+  blocked:currentWeekTasks.filter((task:any)=>task.status==='Blocked').length,
+  done:currentWeekTasks.filter((task:any)=>task.status==='Completed').length,
+ };
+ const memberName=(id:string)=>project.members?.find((m:any)=>m.id===id)?.name||'';
+ const ownerName=(sys:any)=>sys.assignmentOwnerLabel||memberName(sys.assigneeId)||sys.reportOwnerName||'Not matched';
+ const venueName=(sys:any)=>sys.reportVenue||sys.venue||'—';
+ const issueBySystem=new Map<string,any[]>();
+ for(const issue of openIssues){
+  const list=issueBySystem.get(issue.systemId)||[];
+  list.push(issue);
+  issueBySystem.set(issue.systemId,list);
+ }
+ const attentionRows=[...(project.systems||[])].map((sys:any)=>{
+  const c=counts(sys);
+  const sysIssues=issueBySystem.get(sys.id)||[];
+  const primaryIssue=sysIssues.sort((a:any,b:any)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
+  const remainingBase=Math.max(0,(c.total||0)-(c.base||0));
+  const remainingReady=Math.max(0,(c.total||0)-(c.ready||0));
+  const reason=primaryIssue?.title||primaryIssue?.description||(
+   c.total>0&&c.base===0?`${c.total} not base configured`:
+   remainingBase>0?`${remainingBase} pending base configuration`:
+   remainingReady>0?`${remainingReady} pending ready for deployment`:
+   'Awaiting follow-up'
+  );
+  const severityLabel=primaryIssue?.severity||primaryIssue?.status||(c.base===0?'Not started':'Attention');
+  const score=(sysIssues.length*200)+((primaryIssue?.severity==='Critical')?120:(primaryIssue?.severity==='High')?80:(primaryIssue?.severity==='Medium')?40:0)+(c.total?Math.round(((c.total-c.base)/c.total)*100):0)+(c.total?Math.round(((c.total-c.ready)/c.total)*40):0);
+  return {sys,c,reason,severityLabel,score};
+ }).filter((row:any)=>row.score>0).sort((a:any,b:any)=>b.score-a.score||String(a.sys.name).localeCompare(String(b.sys.name))).slice(0,5);
+ const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,5);
+ const activityItems=[
+  ...openIssues.map((issue:any)=>({id:'issue-'+issue.id,title:issue.title||'Issue updated',meta:`Issue · ${(project.systems||[]).find((sys:any)=>sys.id===issue.systemId)?.name||'Unknown system'}`,at:issue.updatedAt||issue.createdAt||''})),
+  ...tasks.map((task:any)=>({id:'task-'+task.id,title:task.status==='Completed'?`${task.label} completed`:`${task.label} updated`,meta:`Task · ${memberName(task.memberId)||'Unassigned'}`,at:task.updatedAt||task.completedAt||task.createdAt||''})),
+  ...(project.systems||[]).flatMap((sys:any)=>(sys.cyberHistory||[]).map((entry:any,index:number)=>({id:`cyber-${sys.id}-${index}`,title:`${sys.name} cyber status: ${entry.status}`,meta:'Configuration Report',at:entry.at||''})))
+ ].filter((item:any)=>item.at).sort((a:any,b:any)=>String(b.at).localeCompare(String(a.at))).slice(0,4);
+ const ownership=(project.systems||[]).reduce((acc:any,sys:any)=>{
+  const label=ownerName(sys);
+  if(!label||label==='Not matched'||label==='Unassigned')acc.unmatched+=1;
+  else acc.assigned+=1;
+  return acc;
+ },{assigned:0,multiple:0,unmatched:0});
+ const totalSystems=Math.max(1,(project.systems||[]).length);
+ const formatDate=(value:string)=>{
+  if(!value)return '—';
+  try{return new Date(value+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch{return value;}
+ };
+ const formatDateTime=(value:string)=>{
+  if(!value)return 'No timestamp';
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime()))return value;
+  return date.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+ };
+ const kpis=[
+  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base'},
+  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready'},
+  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed'},
+  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber'},
+ ];
+ const miniProgress=(value:number,total:number,variant:string)=> <div className="nb-overview-progress"><span>{total>0?`${Math.round(value/total*100)}%`:'—'}</span><div className="nb-overview-progress-track"><i className={`nb-overview-progress-fill nb-overview-progress-fill--${variant}`} style={{width:`${total>0?Math.max(4,Math.min(100,Math.round(value/total*100))):0}%`}}/></div></div>;
+ return <section className="nb-overview nb-overview-premium">
+  <header className="nb-page-header nb-overview-header">
+   <div>
+    <h1>Overview</h1>
+    <p>{project.name} · Project status at a glance</p>
+   </div>
+   <div className="nb-overview-header-meta">
+    <div className="nb-overview-meta-card">
+     <span>Project start</span>
+     <strong>{formatDate(project.startDate)}</strong>
+    </div>
+    <button type="button" className="nb-overview-meta-card nb-overview-meta-card--primary" onClick={()=>onNavigate('roadmap')}>
+     <span>Current week</span>
+     <strong>{`Week ${activeWeek+1}`}</strong>
+     <small>{weekRange(project.startDate,activeWeek)}</small>
+    </button>
+   </div>
+  </header>
+
+  <div className="nb-overview-kpi-grid">
+   {kpis.map((item:any)=><button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent}`} onClick={()=>onNavigate(item.tab)}>
+    <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
+    <div className="nb-overview-kpi-card__content">
+     <div className="nb-overview-kpi-copy">
+      <h3>{item.label}</h3>
+      <strong>{item.value}%</strong>
+      <p>{item.count}</p>
+     </div>
+     <div className={`nb-overview-kpi-ring nb-overview-kpi-ring--${item.accent}`} style={{background:`conic-gradient(var(--overview-accent) ${item.value}%, rgba(196,211,231,.35) 0)`}}><span/></div>
+    </div>
+   </button>)}
+  </div>
+
+  <div className="nb-overview-layout">
+   <section className="nb-overview-card nb-overview-attention">
+    <div className="nb-overview-card-head">
+     <div>
+      <h2>Systems requiring attention</h2>
+      <p>Prioritized from open issues, blocked tasks and incomplete progress.</p>
+     </div>
+     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('issues')}>{openIssues.length} open issues ↗</button>
+    </div>
+    <div className="nb-overview-table">
+     <div className="nb-overview-table-head"><span>System</span><span>What needs attention</span><span>Base config.</span><span>Owner</span></div>
+     {(attentionRows.length?attentionRows:[...readinessRows.slice(0,5)].map((sys:any)=>({sys,c:counts(sys),reason:'Continue deployment follow-up',severityLabel:'Monitor'}))).map((row:any)=><div key={row.sys.id} className="nb-overview-table-row">
+      <div>
+       <strong>{row.sys.name}</strong>
+       <small>{row.sys.deviceType||row.sys.deviceCategory||'System'}</small>
+      </div>
+      <div>
+       <span className="nb-overview-alert-label">{row.reason}</span>
+       <small>{row.severityLabel}</small>
+      </div>
+      <div>{miniProgress(row.c.base,row.c.total,'base')}</div>
+      <div><strong>{ownerName(row.sys)}</strong></div>
+     </div>)}
+    </div>
+    <div className="nb-overview-card-foot">
+     <span>{attentionRows.length?`Top ${attentionRows.length} priority systems shown`:'Using the five largest systems as a watch list'}</span>
+     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>Configuration Report ↗</button>
+    </div>
+   </section>
+
+   <div className="nb-overview-side-stack">
+    <section className="nb-overview-card nb-overview-week">
+     <div className="nb-overview-card-head">
+      <div>
+       <h2>This week</h2>
+       <p>{`Week ${activeWeek+1} · ${weekRange(project.startDate,activeWeek)}`}</p>
+      </div>
+      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('roadmap')}>Tracker ↗</button>
+     </div>
+     <div className="nb-overview-week-stats">
+      <article><strong>{weekStats.planned}</strong><span>Planned</span></article>
+      <article><strong>{weekStats.active}</strong><span>Active</span></article>
+      <article><strong>{weekStats.blocked}</strong><span>Blocked</span></article>
+      <article><strong>{weekStats.done}</strong><span>Done</span></article>
+     </div>
+     <div className="nb-overview-placeholder">
+      {currentWeekMilestones.length?currentWeekMilestones.slice(0,3).map((milestone:any)=><div key={milestone.id} className="nb-overview-bullet-row"><strong>{milestone.label}</strong><span>{`Week ${milestone.startWeek+1}`}</span></div>):<p>No milestones scheduled for this and next week.</p>}
+     </div>
+    </section>
+
+    <section className="nb-overview-card nb-overview-activity">
+     <div className="nb-overview-card-head">
+      <div>
+       <h2>Recorded activity</h2>
+       <p>Latest tracked updates across issues, systems and assignments.</p>
+      </div>
+     </div>
+     <div className="nb-overview-activity-list">
+      {activityItems.length?activityItems.map((item:any)=><div key={item.id} className="nb-overview-activity-row"><i/><div><strong>{item.title}</strong><small>{item.meta}</small></div><span>{formatDateTime(item.at)}</span></div>):<p className="nb-overview-empty">No recent activity has been recorded yet.</p>}
+     </div>
+    </section>
+
+    <section className="nb-overview-card nb-overview-ownership">
+     <div className="nb-overview-card-head">
+      <div>
+       <h2>Ownership coverage</h2>
+       <p>Visibility of assigned system owners in this project.</p>
+      </div>
+      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('assignment')}>Assignment ↗</button>
+     </div>
+     <div className="nb-overview-coverage">
+      <div className="nb-overview-coverage-ring" style={{background:`conic-gradient(#2c77f4 ${Math.round(ownership.assigned/totalSystems*100)}%, #e4edf7 0)`}}><span><strong>{project.systems.length}</strong><small>systems</small></span></div>
+      <div className="nb-overview-coverage-legend">
+       <div><i className="is-assigned"/>Assigned uniquely <strong>{ownership.assigned}</strong></div>
+       <div><i className="is-multiple"/>Multiple owners <strong>{ownership.multiple}</strong></div>
+       <div><i className="is-unmatched"/>No exact match <strong>{ownership.unmatched}</strong></div>
+      </div>
+     </div>
+    </section>
+   </div>
+
+   <section className="nb-overview-card nb-overview-readiness">
+    <div className="nb-overview-card-head">
+     <div>
+      <h2>System readiness</h2>
+      <p>Largest inventoried systems · figures from Configuration Report.</p>
+     </div>
+     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>All systems ↗</button>
+    </div>
+    <div className="nb-overview-readiness-table">
+     <div className="nb-overview-readiness-head"><span>System · Venue</span><span>Qty</span><span>Base</span><span>Ready</span><span>Deployed</span></div>
+     {readinessRows.map((sys:any)=>{const c=counts(sys);return <div key={sys.id} className="nb-overview-readiness-row">
+      <div><strong>{sys.name}</strong><small>{venueName(sys)}</small></div>
+      <div>{c.total}</div>
+      <div>{miniProgress(c.base,c.total,'base')}</div>
+      <div>{miniProgress(c.ready,c.total,'ready')}</div>
+      <div>{miniProgress(c.deployed,c.total,'deployed')}</div>
+     </div>;})}
+    </div>
+   </section>
+  </div>
+
+  <p className="nb-notice nb-overview-note">Local preview. Existing seed records are retained from the supplied project; the overview layout is redesigned to surface the most relevant operational signals first.</p>
+ </section>;}

@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.66 — Premium Gloss Overview Refinement.** The Overview still shows only real indicators sourced from Configuration Report, Weekly Tracker, Issue Tracker, System Registry and Assignment. This release strengthens the glossy-glass KPI row, reorganizes the lower analytics into a more compact operational composition, and refines the visual hierarchy of the Overview page only. See `RELEASE_NOTES_v0_6_66_RU.md`.
+**Current package: v0.6.61 (Overview glass KPI cards and dashboard reorganization).** The Overview page now uses clearly visible glossy glass KPI cards for the four top indicators and a denser dashboard layout below them, with aligned attention, readiness, weekly status, activity and ownership blocks. See `RELEASE_NOTES_v0_6_61_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
@@ -214,20 +214,3 @@ The Issue Tracker title now shares the same `width: 100%; max-width: var(--conte
 - Columns picker удалён; доступна сортировка нажатием заголовка.
 - Исправлен фон между верхними кнопками экспорта/импорта.
 - Контроль запуска Report (Admin/Guest) добавлен к офлайн-тестам; полноценная Vite/Chromium проверка остаётся обязательной в GitHub release gate.
-
-## v0.6.61 Operational Overview
-
-Overview is now a derived read-only project command screen (`src/overview-v061.tsx`, `src/overview-metrics.mjs`, `nbdt-overview-v061.css`). Its four headline figures match Configuration Report through the shared `reportCounts` function; other sections derive from Weekly Tracker tasks/milestones, Issue Tracker, system inventory and the Assignment owner directory. No Overview metrics are stored separately, and no synthetic change rates or composite completion percentages are used. A failed exact owner match is shown as unresolved rather than guessed. `Recorded activity` reflects only actual browser IndexedDB audit writes. Refer to `RELEASE_NOTES_v0_6_61_RU.md` for formula, source and navigation contracts. The release-gate must validate the real Vite build and six browser routes before deployment.
-
-## Overview design refinement (v0.6.62)
-
-Overview now has a calmer operational visual hierarchy while keeping the **same data sources, calculations and navigation** as v0.6.61. `nbdt-overview-v061.css` contains the fully scoped v0.6.62 refinement: premium white surfaces, clearer typography, deliberately restrained status colors, one subtle attention accent, improved week summary and more legible data tables. At 1320/1150/760/460 px the grid reflows without restyling the global shell/sidebar.
-
-The Overview component and metrics are **unchanged**: this is a CSS-only UI refinement (aside from release metadata and design guard tests). Run `npm test`, `npm run check:syntax`, `node scripts/check-symbols.cjs`, `npm run build` and `npm run smoke:production` before any production release. In the offline export environment only the first three can be verified; GitHub Actions is the production build and browser-smoke release gate.
-
-
-## Overview KPI redesign — v0.6.63
-
-Four Overview headline cards use a **single, mathematically accurate segmented half-circle** as their visual progress indicator (`src/overview-gauge.mjs`), replacing both the previous donut and duplicated horizontal bar. The percentage is displayed only once as the large figure. There are 32 smoothly rendered segments, with partial-segment fill and an endpoint marker, including correct 0%, 7%, 10% and 100% states. Counts and units still come exclusively from `reportCounts` through `buildOverviewData` — Cyber Approved uses *applicable systems*, not the device denominator.
-
-The cards have subtle frosted-glass surfaces and two very slow colored bottom waves (26 s and 31 s, small movement); only the bottom waves animate. `prefers-reduced-motion: reduce` disables the movement. Styling lives entirely in `nbdt-overview-kpi-v063.css` and remains scoped to `.nb61-overview`, leaving the sidebar, other screens and dashboard data logic untouched. The exact gauge geometry and actual rendering of four KPI indicators are covered by regression tests. Production build and real browser route smoke remain mandatory before deployment; do not present offline unit tests alone as production verification.
