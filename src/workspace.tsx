@@ -1,4 +1,5 @@
 import {Migration,download,useUnsaved} from './enhancements';
+import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
@@ -917,11 +918,10 @@ export function Overview({project,onNavigate}:any){
   issue,system:(project.systems||[]).find((sys:any)=>sys.id===issue.systemId),
   severity:String(issue.severity||'').toLowerCase()
  })).sort((a:any,b:any)=>({critical:0,high:1,medium:2,low:3}[a.severity]??4)-({critical:0,high:1,medium:2,low:3}[b.severity]??4)).slice(0,3);
- const setupRows=(project.systems||[]).map((sys:any)=>{
-  const c=counts(sys),remainingBase=Math.max(0,(c.total||0)-(c.base||0)),remainingReady=Math.max(0,(c.total||0)-(c.ready||0));
-  return {sys,c,remainingBase,remainingReady,score:remainingBase*2+remainingReady};
- }).filter((row:any)=>row.c.total>0&&row.score>0)
-   .sort((a:any,b:any)=>b.score-a.score||String(a.sys.name).localeCompare(String(b.sys.name))).slice(0,3);
+ // Stage-aware attention: the displayed percentage, progress bar and pending
+ // message must ALL come from the same actionable rollout stage.
+ const allSetupRows=getAttentionRows(project.systems||[],counts);
+ const setupRows=allSetupRows.slice(0,3);
  const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,5);
  const activityItems=Array.isArray(project.activityLog)?project.activityLog:[];
  const ownership=(project.systems||[]).reduce((acc:any,sys:any)=>{
@@ -1073,13 +1073,13 @@ export function Overview({project,onNavigate}:any){
       <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('issues')}>View Issue Tracker <ChevronRight size={13}/></button>
      </div>
      <div className="nb63-attention-group nb63-attention-progress">
-      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-progress"><Settings2 size={14}/></span><strong>Configuration remaining</strong></div><span className="nb63-attention-count">{(project.systems||[]).filter((s:any)=>{const c=counts(s);return c.total>0&&(c.base<c.total||c.ready<c.total)}).length}</span></div>
+      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-progress"><Settings2 size={14}/></span><strong>Configuration remaining</strong></div><span className="nb63-attention-count">{allSetupRows.length}</span></div>
       <div className="nb63-attention-rows">
-       {setupRows.length?setupRows.map(({sys,c,remainingBase,remainingReady}:any)=><div className="nb63-attention-item" key={sys.id}>
-        <div className="nb63-attention-item-top"><strong title={sys.name}>{sys.name}</strong><span className="nb63-setup-percent">{Math.round(c.base/c.total*100)}%</span></div>
-        <div className="nb63-setup-bar"><span style={{width:`${Math.round(c.base/c.total*100)}%`}}/></div>
-        <p>{remainingBase?`${remainingBase} devices need base configuration`:`${remainingReady} pending ready for deployment`}</p>
-       </div>):<div className="nb63-attention-empty">No incomplete device configurations.</div>}
+       {setupRows.length?setupRows.map(({sys,stage}:any)=><div className={`nb63-attention-item nb73-attention-stage--${stage.className}`} key={sys.id}>
+        <div className="nb63-attention-item-top"><strong title={sys.name}>{sys.name}</strong><span className="nb63-setup-percent" title={`${stage.label}: ${stage.complete} / ${stage.total}`}>{stage.percent}%</span></div>
+        <div className="nb63-setup-bar" role="progressbar" aria-label={`${sys.name} — ${stage.label}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={stage.percent}><span style={{width:`${stage.percent}%`}}/></div>
+        <p><span className="nb73-stage-label">{stage.label}</span><span aria-hidden="true"> · </span>{stage.description}</p>
+       </div>):<div className="nb63-attention-empty">All device deployment stages are complete.</div>}
       </div>
       <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('config-report')}>Open Configuration Report <ChevronRight size={13}/></button>
      </div>

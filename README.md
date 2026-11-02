@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.72 (neutral empty KPI chamber).** Overview KPI water keeps the seamless v0.6.71 loop, while the unfilled part of each KPI circle now uses a light-gray 50% transparent base so the empty area reads clearly and no longer blends into the card background. See `RELEASE_NOTES_v0_6_72_RU.md`.
+**Current package: v0.6.73 (white empty KPI chamber + stage-aware Configuration Remaining).** Unfilled KPI water is white at 70% opacity; Overview now shows the correct active stage and its own percentage: Base Configuration → Ready for Deployment → Deployed. Near-complete stages (95%+) can yield attention to the next stage if it has a substantial backlog. See `RELEASE_NOTES_v0_6_73_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

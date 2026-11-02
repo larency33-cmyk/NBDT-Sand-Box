@@ -1,0 +1,21 @@
+/* NBDT 0.6.73 — neutral white empty liquid chamber and stage-correct attention */
+/* This is the interior empty-water region, not the coloured outer progress arc. */
+.nb-overview-premium .nb69-water-background {
+  fill:rgba(255,255,255,.70);
+  opacity:1;
+}
+/* Keep the stage identified alongside the REAL progress for that stage. */
+.nb-overview-premium .nb73-stage-label {font-weight:750;color:#236fe8;white-space:nowrap}
+.nb-overview-premium .nb73-attention-stage--ready .nb73-stage-label,
+.nb-overview-premium .nb73-attention-stage--ready .nb63-setup-percent{color:#7359d9}
+.nb-overview-premium .nb73-attention-stage--ready .nb63-setup-bar>span{
+  background:linear-gradient(90deg,#9179ff,#6f57e8);
+}
+.nb-overview-premium .nb73-attention-stage--deployed .nb73-stage-label,
+.nb-overview-premium .nb73-attention-stage--deployed .nb63-setup-percent{color:#0793aa}
+.nb-overview-premium .nb73-attention-stage--deployed .nb63-setup-bar>span{
+  background:linear-gradient(90deg,#22c7d9,#0893ae);
+}
+.nb-overview-premium .nb73-attention-stage--base .nb63-setup-bar>span{
+  background:linear-gradient(90deg,#3786ff,#1165ea);
+}

@@ -1,0 +1,14 @@
+NBDT v0.6.73 (from v0.6.72)
+Overview: white 70%-transparent empty KPI backgrounds and Configuration Remaining stage-specific progress (Base → Ready → Deployed). No changes to stored project data.
+
+Files:
+README.md
+package.json
+index.tsx
+nbdt-overview-v073.css
+src/workspace.tsx
+src/overview-attention.mjs
+tests/overview-attention-v073.test.mjs
+RELEASE_NOTES_v0_6_73_RU.md
+GITHUB_CHANGELOG_v0_6_73.txt
+NBDT_v0_6_73_GitHub_Manifest.json
