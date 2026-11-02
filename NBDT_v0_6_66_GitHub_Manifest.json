@@ -1,18 +1,33 @@
 {
   "version": "0.6.66",
-  "baseline": "0.6.65",
-  "comparison": "file-path delta against the original full ZIP",
-  "changed_or_added_files": [
+  "base_version": "0.6.65",
+  "changed_files": [
     "GITHUB_CHANGELOG_v0_6_66.txt",
+    "NBDT_v0_6_66_GitHub_Manifest.json",
     "README.md",
     "RELEASE_NOTES_v0_6_66_RU.md",
-    "NBDT_v0_6_66_GitHub_Manifest.json",
     "index.tsx",
     "nbdt-overview-v066.css",
     "package.json",
-    "tests/overview-v066-refinement.test.mjs"
+    "scripts/smoke-production.cjs",
+    "src/workspace.tsx",
+    "tests/overview-liquid-v064.test.mjs",
+    "tests/overview-liquid-v065.test.mjs",
+    "tests/overview-liquid-v066.test.mjs"
   ],
   "removed_files": [],
-  "tested": "Packaging prepared in export environment; run npm install, npm test, npm run check:syntax, node scripts/check-symbols.cjs, npm run build and npm run smoke:production before production release",
-  "deploy": "Upload delta archive preserving relative paths; require GitHub release gate to pass"
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_66.txt",
+    "NBDT_v0_6_66_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_66_RU.md",
+    "nbdt-overview-v066.css",
+    "tests/overview-liquid-v066.test.mjs"
+  ],
+  "total_file_count": 242,
+  "verification": {
+    "tests": "355 passed",
+    "typescript_preflight": "passed",
+    "isolated_chromium_css_animation": "passed",
+    "full_vite_build": "not run: missing vite dependency"
+  }
 }

@@ -27,9 +27,9 @@ test('rings are precise SVG strokes with a clipped animated liquid layer',()=>{
  assert.match(kpi,/strokeDasharray=\{`\$\{\(percent\/100\*circumference\)\.toFixed\(3\)\} \$\{circumference\.toFixed\(3\)\}`\}/);
  assert.match(kpi,/strokeLinecap=\{percent>=100\?'butt':'round'\}/);
  assert.match(kpi,/const percent=Math\.max\(0,Math\.min\(100,Number\(item\.value\)\|\|0\)\)/);
- assert.match(kpi,/<clipPath id=\{waveId\}>/);
- assert.match(kpi,/<animateTransform attributeName="transform" type="translate"/);
- assert.match(kpi,/fill=\{item\.colors\.light\}/);
+ assert.match(kpi,/className="nb66-liquid-chamber"/);
+ assert.match(kpi,/className="nb66-liquid-surface nb66-liquid-surface--front"/);
+ assert.match(kpi,/--nb66-light/);
  assert.doesNotMatch(kpi,/conic-gradient/);
 });
 

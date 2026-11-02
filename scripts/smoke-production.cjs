@@ -44,6 +44,23 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
     const title=await page.locator('h1').first().innerText().catch(()=>'(no heading)');
     if(failScreen||errors.length||!documentedTitle(title,expected))
       throw Error(`${label}: heading=${JSON.stringify(title)}, error screen=${failScreen}, page errors=${JSON.stringify(errors)}`);
+    if(label==='Overview'){
+      const rings=page.locator('.nb66-liquid-ring');
+      const ringCount=await rings.count();
+      if(ringCount!==4)throw Error(`Overview: expected 4 KPI rings, got ${ringCount}`);
+      const getSurface=async()=>page.locator('.nb66-liquid-surface--front').first().evaluate(el=>({
+        animation:getComputedStyle(el).animationName,
+        transform:getComputedStyle(el).transform
+      }));
+      const first=await getSurface();
+      if(!first.animation.includes('nb66-wave-front'))throw Error(`Overview: liquid animation missing, got ${first.animation}`);
+      if(!await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)){
+        await page.waitForTimeout(700);
+        const second=await getSurface();
+        if(first.transform===second.transform)throw Error('Overview: liquid surface is static despite motion enabled');
+      }
+      console.log('PASS Overview KPI fluid animation and 4 indicators');
+    }
     console.log('PASS browser boot: '+label);
    }catch(e){
     failures.push(e.message);

@@ -10,12 +10,13 @@ test('SVG paint does not rely on unsupported CSS variable in SVG presentation at
  assert.match(kpi,/stroke=\{item\.colors\.track\}/);
  assert.match(kpi,/stopColor=\{item\.colors\.primary\}/);
  assert.doesNotMatch(kpi,/stopColor="var\(/);
- assert.match(kpi,/fill=\{item\.colors\.light\}/);
+ assert.match(kpi,/--nb66-light/);
 });
-test('every KPI has a native SVG animation independent of CSS animation availability',()=>{
- assert.equal((kpi.match(/<animateTransform\b/g)||[]).length,2);
- assert.equal((kpi.match(/repeatCount="indefinite"/g)||[]).length,3);
- assert.ok(kpi.includes('clipPath id={waveId}'));
+test('liquid layers are animated via reliable CSS with fixed SVG progress',()=>{
+ assert.equal((kpi.match(/<animateTransform\b/g)||[]).length,0);
+ assert.ok(kpi.includes('nb66-liquid-surface--front'));
+ assert.ok(kpi.includes('nb66-liquid-surface--back'));
+ assert.ok(kpi.includes('nb66-bubble--one'));
 });
 test('all four rings have explicit distinct colors, icons left of numbers and remain navigable',()=>{
  for(const name of ['Base Configuration','Ready for Deployment','Deployed','Cyber Approved']){

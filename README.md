@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.65 (Overview KPI indicators color + motion fix).** All four SVG rings now use explicitly defined theme colors rather than relying on CSS custom properties inside SVG presentation attributes. Native SVG wave animation is attached directly to each indicator, preserving the data, layout and all other routes. See `RELEASE_NOTES_v0_6_65_RU.md`.
+**Current package: v0.6.66 (Overview subtle animated liquid indicators).** Replaces barely perceptible repeated SVG-SMIL waves with visibly animated CSS liquid surfaces, very light rising bubbles, and subtle shimmer inside each of four KPI circles. All percentages, progress arcs, theme colors, and existing routes remain unchanged. `npm run smoke:production` now verifies the animation is actually moving in Chromium. See `RELEASE_NOTES_v0_6_66_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

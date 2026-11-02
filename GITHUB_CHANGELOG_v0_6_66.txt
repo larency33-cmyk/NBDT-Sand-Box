@@ -1,5 +1,1 @@
-v0.6.66
-- strengthened glossy-glass treatment for the four Overview KPI cards
-- reorganized lower Overview analytics into readiness + activity/coverage composition
-- refined panel hierarchy, empty states and compact operational spacing
-- added scoped Overview override stylesheet and regression guard test
+NBDT v0.6.66, based on v0.6.65: clearly visible, softly animated water inside Overview KPI rings (CSS waves, gentle bobbing, sparse bubbles, subtle shimmer). Adds browser smoke animation assertion and regression tests. Other pages unchanged.

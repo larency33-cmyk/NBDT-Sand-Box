@@ -971,9 +971,7 @@ export function Overview({project,onNavigate}:any){
    {kpis.map((item:any)=>{
     const percent=Math.max(0,Math.min(100,Number(item.value)||0));
     const circumference=2*Math.PI*48;
-    const waveY=101-percent*.82;
     const ringId=`nb64-ring-${item.accent}`;
-    const waveId=`nb64-wave-${item.accent}`;
     return <button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`} onClick={()=>onNavigate(item.tab)}>
      <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
      <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
@@ -985,35 +983,28 @@ export function Overview({project,onNavigate}:any){
         <div className="nb64-kpi-figures"><strong>{percent}%</strong><p>{item.count}</p></div>
        </div>
       </div>
-      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb65-liquid-ring`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{width:108,height:108,flex:'0 0 108px',display:'block',position:'relative',filter:'drop-shadow(0 5px 8px rgba(24,70,128,.12))'}}>
-       <svg className="nb65-liquid-svg" viewBox="0 0 120 120" width="100%" height="100%" style={{display:'block',overflow:'visible'}} focusable="false" aria-hidden="true">
+      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb66-liquid-ring ${percent===0?'nb66-liquid-ring--empty':''}`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{'--nb66-primary':item.colors.primary,'--nb66-light':item.colors.light,'--nb66-track':item.colors.track,'--nb66-fill':`${percent}%`} as React.CSSProperties}>
+       <span className="nb66-liquid-chamber" aria-hidden="true">
+        <span className="nb66-liquid-fill">
+         <span className="nb66-liquid-surface nb66-liquid-surface--back"/>
+         <span className="nb66-liquid-surface nb66-liquid-surface--front"/>
+         <span className="nb66-bubble nb66-bubble--one"/>
+         <span className="nb66-bubble nb66-bubble--two"/>
+         <span className="nb66-bubble nb66-bubble--three"/>
+        </span>
+        <span className="nb66-liquid-gloss"/>
+       </span>
+       <svg className="nb66-liquid-svg" viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" focusable="false">
         <defs>
-         <linearGradient id={ringId} x1="0%" y1="0%" x2="95%" y2="100%">
+         <linearGradient id={ringId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor={item.colors.light}/>
           <stop offset="45%" stopColor={item.colors.primary}/>
           <stop offset="100%" stopColor={item.colors.dark}/>
          </linearGradient>
-         <linearGradient id={`${ringId}-water`} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={item.colors.light} stopOpacity=".48"/>
-          <stop offset="100%" stopColor={item.colors.primary} stopOpacity=".52"/>
-         </linearGradient>
-         <clipPath id={waveId}><circle cx="60" cy="60" r="40"/></clipPath>
         </defs>
-        <circle cx="60" cy="60" r="41" fill="#ffffff" fillOpacity=".7" stroke="#ffffff" strokeWidth="2"/>
-        <g clipPath={`url(#${waveId})`}>
-         <path d={`M -145 ${waveY+5} Q -125 ${waveY-5}, -105 ${waveY+5} T -65 ${waveY+5} T -25 ${waveY+5} T 15 ${waveY+5} T 55 ${waveY+5} T 95 ${waveY+5} T 135 ${waveY+5} T 175 ${waveY+5} L 175 155 L -145 155 Z`} fill={item.colors.light} fillOpacity=".34">
-          <animateTransform attributeName="transform" type="translate" values="-16 -1;16 1;-16 -1" keyTimes="0;.5;1" dur="5.6s" repeatCount="indefinite"/>
-         </path>
-         <path d={`M -145 ${waveY} Q -125 ${waveY-9}, -105 ${waveY} T -65 ${waveY} T -25 ${waveY} T 15 ${waveY} T 55 ${waveY} T 95 ${waveY} T 135 ${waveY} T 175 ${waveY} L 175 155 L -145 155 Z`} fill={`url(#${ringId}-water)`}>
-          <animateTransform attributeName="transform" type="translate" values="16 1;-16 -1;16 1" keyTimes="0;.5;1" dur="4.8s" repeatCount="indefinite"/>
-         </path>
-         <ellipse cx="47" cy="46" rx="28" ry="15" fill="#ffffff" fillOpacity=".13">
-          <animate attributeName="opacity" values=".2;.5;.2" dur="4.8s" repeatCount="indefinite"/>
-         </ellipse>
-        </g>
         <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="9"/>
         {percent>0&&<circle cx="60" cy="60" r="48" fill="none" stroke={`url(#${ringId})`} strokeWidth="9" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
-        <path d="M 28 43 A 38 38 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".83" strokeWidth="2.6" strokeLinecap="round"/>
+        <path d="M 30 42 A 39 39 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".7" strokeWidth="2.2" strokeLinecap="round"/>
        </svg>
       </span>
      </div>
