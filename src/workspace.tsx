@@ -938,7 +938,7 @@ export function Overview({project,onNavigate}:any){
   ...openIssues.map((issue:any)=>({id:'issue-'+issue.id,title:issue.title||'Issue updated',meta:`Issue · ${(project.systems||[]).find((sys:any)=>sys.id===issue.systemId)?.name||'Unknown system'}`,at:issue.updatedAt||issue.createdAt||''})),
   ...tasks.map((task:any)=>({id:'task-'+task.id,title:task.status==='Completed'?`${task.label} completed`:`${task.label} updated`,meta:`Task · ${memberName(task.memberId)||'Unassigned'}`,at:task.updatedAt||task.completedAt||task.createdAt||''})),
   ...(project.systems||[]).flatMap((sys:any)=>(sys.cyberHistory||[]).map((entry:any,index:number)=>({id:`cyber-${sys.id}-${index}`,title:`${sys.name} cyber status: ${entry.status}`,meta:'Configuration Report',at:entry.at||''})))
- ].filter((item:any)=>item.at).sort((a:any,b:any)=>String(b.at).localeCompare(String(a.at))).slice(0,4);
+ ].filter((item:any)=>item.at).sort((a:any,b:any)=>String(b.at).localeCompare(String(a.at))).slice(0,3);
  const ownership=(project.systems||[]).reduce((acc:any,sys:any)=>{
   const label=ownerName(sys);
   if(!label||label==='Not matched'||label==='Unassigned')acc.unmatched+=1;
@@ -985,6 +985,7 @@ export function Overview({project,onNavigate}:any){
   <div className="nb-overview-kpi-grid">
    {kpis.map((item:any)=><button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent}`} onClick={()=>onNavigate(item.tab)}>
     <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
+    <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
     <div className="nb-overview-kpi-card__content">
      <div className="nb-overview-kpi-copy">
       <h3>{item.label}</h3>
@@ -996,7 +997,7 @@ export function Overview({project,onNavigate}:any){
    </button>)}
   </div>
 
-  <div className="nb-overview-layout">
+  <div className="nb-overview-layout nb-overview-layout-v062">
    <section className="nb-overview-card nb-overview-attention">
     <div className="nb-overview-card-head">
      <div>
@@ -1026,7 +1027,6 @@ export function Overview({project,onNavigate}:any){
     </div>
    </section>
 
-   <div className="nb-overview-side-stack">
     <section className="nb-overview-card nb-overview-week">
      <div className="nb-overview-card-head">
       <div>
@@ -1046,6 +1046,25 @@ export function Overview({project,onNavigate}:any){
      </div>
     </section>
 
+   <section className="nb-overview-card nb-overview-readiness">
+    <div className="nb-overview-card-head">
+     <div>
+      <h2>System readiness</h2>
+      <p>Largest inventoried systems · figures from Configuration Report.</p>
+     </div>
+     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>All systems ↗</button>
+    </div>
+    <div className="nb-overview-readiness-table">
+     <div className="nb-overview-readiness-head"><span>System · Venue</span><span>Qty</span><span>Base</span><span>Ready</span><span>Deployed</span></div>
+     {readinessRows.map((sys:any)=>{const c=counts(sys);return <div key={sys.id} className="nb-overview-readiness-row">
+      <div><strong>{sys.name}</strong><small>{venueName(sys)}</small></div>
+      <div>{c.total}</div>
+      <div>{miniProgress(c.base,c.total,'base')}</div>
+      <div>{miniProgress(c.ready,c.total,'ready')}</div>
+      <div>{miniProgress(c.deployed,c.total,'deployed')}</div>
+     </div>;})}
+    </div>
+   </section>
     <section className="nb-overview-card nb-overview-activity">
      <div className="nb-overview-card-head">
       <div>
@@ -1075,28 +1094,7 @@ export function Overview({project,onNavigate}:any){
       </div>
      </div>
     </section>
-   </div>
-
-   <section className="nb-overview-card nb-overview-readiness">
-    <div className="nb-overview-card-head">
-     <div>
-      <h2>System readiness</h2>
-      <p>Largest inventoried systems · figures from Configuration Report.</p>
-     </div>
-     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>All systems ↗</button>
-    </div>
-    <div className="nb-overview-readiness-table">
-     <div className="nb-overview-readiness-head"><span>System · Venue</span><span>Qty</span><span>Base</span><span>Ready</span><span>Deployed</span></div>
-     {readinessRows.map((sys:any)=>{const c=counts(sys);return <div key={sys.id} className="nb-overview-readiness-row">
-      <div><strong>{sys.name}</strong><small>{venueName(sys)}</small></div>
-      <div>{c.total}</div>
-      <div>{miniProgress(c.base,c.total,'base')}</div>
-      <div>{miniProgress(c.ready,c.total,'ready')}</div>
-      <div>{miniProgress(c.deployed,c.total,'deployed')}</div>
-     </div>;})}
-    </div>
-   </section>
   </div>
 
-  <p className="nb-notice nb-overview-note">Local preview. Existing seed records are retained from the supplied project; the overview layout is redesigned to surface the most relevant operational signals first.</p>
+  <p className="nb-notice nb-overview-note">Overview uses current project records and configuration-report figures; reference demonstration subtotals are not verified device inventory.</p>
  </section>;}

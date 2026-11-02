@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.61 (Overview glass KPI cards and dashboard reorganization).** The Overview page now uses clearly visible glossy glass KPI cards for the four top indicators and a denser dashboard layout below them, with aligned attention, readiness, weekly status, activity and ownership blocks. See `RELEASE_NOTES_v0_6_61_RU.md`.
+**Current package: v0.6.62 (stronger reflective KPI glass + strictly two-row Overview).** The four top KPI cards now have a true overlaid specular reflection with a curved glass highlight. On wide screens, the five operational panels below form exactly two rows (2 + 3). The previous project data and routes are retained. See `RELEASE_NOTES_v0_6_62_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
