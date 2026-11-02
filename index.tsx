@@ -1,4 +1,5 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
+import {deriveProjectActivity,deriveAssignmentActivity,mergeActivity} from './src/activity-log.mjs';
 import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
 import {seedReferenceReport} from './src/reference-report.mjs';
@@ -40,6 +41,7 @@ import './nbdt-layout-v051.css';
 import './nbdt-assignment-v052.css';
 import './nbdt-report-v059.css';
 import './nbdt-overview-v062.css';
+import './nbdt-overview-v063.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
@@ -302,6 +304,7 @@ interface ProjectData {
   issues: Issue[];
   startDate: string;
   updatedAt: number;
+  activityLog?: any[];
 }
 
 // --- Constants ---
@@ -1721,9 +1724,17 @@ const App = () => {
   const changeAssignment=(updater:(roster:any)=>any)=>{
     if(!isAdmin) return Promise.reject(Error('Administrator sign-in required'));
     const operation=async()=>{
-      const next=updater(assignmentRosterRef.current);
+      const previous=assignmentRosterRef.current;
+      const next=updater(previous);
+      if(next===previous)return next;
       await commitRecord(ASSIGNMENT_STORAGE_KEY,JSON.stringify(next));
       assignmentRosterRef.current=next;setAssignmentRoster(next);
+      // Activity is recorded only AFTER the authoritative Assignment write succeeds.
+      const changes=deriveAssignmentActivity(previous,next);
+      if(changes.length){
+        try{await handleAction(p=>({...p,activityLog:mergeActivity(p.activityLog,changes)}));}
+        catch(error){console.warn('Assignment saved but activity summary could not be recorded.',error);}
+      }
       return next;
     };
     const result=assignmentQueue.current.then(operation);assignmentQueue.current=result.catch(()=>{});return result;
@@ -2224,7 +2235,17 @@ const App = () => {
   const projectRef=useRef(project);useEffect(()=>{projectRef.current=project;},[project]);
   const actionQueue=useRef<Promise<any>>(Promise.resolve());
   const handleAction=(updater:(prev:ProjectData)=>ProjectData)=>{
-    const operation=async()=>{const previous=projectRef.current;const updated=updater(previous);const next={...updated,version:(previous.version||0)+1,systems:updated.systems.map(({assignmentOwnerLabel,assignmentOwnerStatus,assignmentOwnerNames,...sys}:any)=>sys),tasks:updated.tasks.map(({assignmentOwnerLabel,assignmentOwnerStatus,...task}:any)=>task)};await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));projectRef.current=next;setProject(next);return next;};
+    const operation=async()=>{
+      const previous=projectRef.current;
+      const updated=updater(previous);
+      const changes=deriveProjectActivity(previous,updated);
+      const next={...updated,version:(previous.version||0)+1,
+        activityLog:changes.length?mergeActivity(updated.activityLog||previous.activityLog,changes):(updated.activityLog||previous.activityLog||[]),
+        systems:updated.systems.map(({assignmentOwnerLabel,assignmentOwnerStatus,assignmentOwnerNames,...sys}:any)=>sys),
+        tasks:updated.tasks.map(({assignmentOwnerLabel,assignmentOwnerStatus,...task}:any)=>task)};
+      await commitRecord(`nbdt_project_${next.id}`,JSON.stringify(next));
+      projectRef.current=next;setProject(next);return next;
+    };
     const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
   // Live device-readiness export: never export retired aggregate/demo records.
@@ -2829,7 +2850,7 @@ const App = () => {
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
-        {activeTab==='overview' && <><Overview project={project} onNavigate={setActiveTab}/><DataTools project={project} isAdmin={isSuperAdmin} onApply={(next:any)=>handleAction(()=>next)}/></>}
+        {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab}/> }
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={displayProject} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));

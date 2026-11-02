@@ -21,7 +21,7 @@ test('Overview retains all four KPI cards with a dedicated on-top reflection lay
 
 test('Desktop Overview has five blocks in exactly two CSS grid rows',()=>{
  const names=['nb-overview-attention','nb-overview-week','nb-overview-readiness','nb-overview-activity','nb-overview-ownership'];
- const positions=names.map(n=>overview.indexOf(`<section className="nb-overview-card ${n}"`));
+ const positions=names.map(n=>overview.indexOf(`<section className="nb-overview-card ${n}`));
  assert.ok(positions.every(i=>i>=0),'All five panels must remain present');
  assert.deepEqual([...positions].sort((a,b)=>a-b),positions,'DOM order follows visual reading order');
  assert.doesNotMatch(overview,/nb-overview-side-stack/);

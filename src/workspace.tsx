@@ -894,6 +894,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
 
 
 export function Overview({project,onNavigate}:any){
+ const [historyOpen,setHistoryOpen]=useState(false);
  const reportSummary=reportCounts(project,counts);
  const timezone=project.timezone||'Europe/Paris';
  const activeWeek=Math.max(0,currentWeekIndex(project.startDate,timezone)??0);
@@ -911,34 +912,18 @@ export function Overview({project,onNavigate}:any){
  const memberName=(id:string)=>project.members?.find((m:any)=>m.id===id)?.name||'';
  const ownerName=(sys:any)=>sys.assignmentOwnerLabel||memberName(sys.assigneeId)||sys.reportOwnerName||'Not matched';
  const venueName=(sys:any)=>sys.reportVenue||sys.venue||'—';
- const issueBySystem=new Map<string,any[]>();
- for(const issue of openIssues){
-  const list=issueBySystem.get(issue.systemId)||[];
-  list.push(issue);
-  issueBySystem.set(issue.systemId,list);
- }
- const attentionRows=[...(project.systems||[])].map((sys:any)=>{
-  const c=counts(sys);
-  const sysIssues=issueBySystem.get(sys.id)||[];
-  const primaryIssue=sysIssues.sort((a:any,b:any)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
-  const remainingBase=Math.max(0,(c.total||0)-(c.base||0));
-  const remainingReady=Math.max(0,(c.total||0)-(c.ready||0));
-  const reason=primaryIssue?.title||primaryIssue?.description||(
-   c.total>0&&c.base===0?`${c.total} not base configured`:
-   remainingBase>0?`${remainingBase} pending base configuration`:
-   remainingReady>0?`${remainingReady} pending ready for deployment`:
-   'Awaiting follow-up'
-  );
-  const severityLabel=primaryIssue?.severity||primaryIssue?.status||(c.base===0?'Not started':'Attention');
-  const score=(sysIssues.length*200)+((primaryIssue?.severity==='Critical')?120:(primaryIssue?.severity==='High')?80:(primaryIssue?.severity==='Medium')?40:0)+(c.total?Math.round(((c.total-c.base)/c.total)*100):0)+(c.total?Math.round(((c.total-c.ready)/c.total)*40):0);
-  return {sys,c,reason,severityLabel,score};
- }).filter((row:any)=>row.score>0).sort((a:any,b:any)=>b.score-a.score||String(a.sys.name).localeCompare(String(b.sys.name))).slice(0,5);
+ // Issues and unfinished rollout are two different operational signals.
+ const issueRows=openIssues.map((issue:any)=>({
+  issue,system:(project.systems||[]).find((sys:any)=>sys.id===issue.systemId),
+  severity:String(issue.severity||'').toLowerCase()
+ })).sort((a:any,b:any)=>({critical:0,high:1,medium:2,low:3}[a.severity]??4)-({critical:0,high:1,medium:2,low:3}[b.severity]??4)).slice(0,3);
+ const setupRows=(project.systems||[]).map((sys:any)=>{
+  const c=counts(sys),remainingBase=Math.max(0,(c.total||0)-(c.base||0)),remainingReady=Math.max(0,(c.total||0)-(c.ready||0));
+  return {sys,c,remainingBase,remainingReady,score:remainingBase*2+remainingReady};
+ }).filter((row:any)=>row.c.total>0&&row.score>0)
+   .sort((a:any,b:any)=>b.score-a.score||String(a.sys.name).localeCompare(String(b.sys.name))).slice(0,3);
  const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,5);
- const activityItems=[
-  ...openIssues.map((issue:any)=>({id:'issue-'+issue.id,title:issue.title||'Issue updated',meta:`Issue · ${(project.systems||[]).find((sys:any)=>sys.id===issue.systemId)?.name||'Unknown system'}`,at:issue.updatedAt||issue.createdAt||''})),
-  ...tasks.map((task:any)=>({id:'task-'+task.id,title:task.status==='Completed'?`${task.label} completed`:`${task.label} updated`,meta:`Task · ${memberName(task.memberId)||'Unassigned'}`,at:task.updatedAt||task.completedAt||task.createdAt||''})),
-  ...(project.systems||[]).flatMap((sys:any)=>(sys.cyberHistory||[]).map((entry:any,index:number)=>({id:`cyber-${sys.id}-${index}`,title:`${sys.name} cyber status: ${entry.status}`,meta:'Configuration Report',at:entry.at||''})))
- ].filter((item:any)=>item.at).sort((a:any,b:any)=>String(b.at).localeCompare(String(a.at))).slice(0,3);
+ const activityItems=Array.isArray(project.activityLog)?project.activityLog:[];
  const ownership=(project.systems||[]).reduce((acc:any,sys:any)=>{
   const label=ownerName(sys);
   if(!label||label==='Not matched'||label==='Unassigned')acc.unmatched+=1;
@@ -957,10 +942,10 @@ export function Overview({project,onNavigate}:any){
   return date.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
  };
  const kpis=[
-  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base'},
-  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready'},
-  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed'},
-  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber'},
+  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base',Icon:Settings2},
+  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready',Icon:Rocket},
+  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3},
+  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck},
  ];
  const miniProgress=(value:number,total:number,variant:string)=> <div className="nb-overview-progress"><span>{total>0?`${Math.round(value/total*100)}%`:'—'}</span><div className="nb-overview-progress-track"><i className={`nb-overview-progress-fill nb-overview-progress-fill--${variant}`} style={{width:`${total>0?Math.max(4,Math.min(100,Math.round(value/total*100))):0}%`}}/></div></div>;
  return <section className="nb-overview nb-overview-premium">
@@ -970,14 +955,14 @@ export function Overview({project,onNavigate}:any){
     <p>{project.name} · Project status at a glance</p>
    </div>
    <div className="nb-overview-header-meta">
-    <div className="nb-overview-meta-card">
-     <span>Project start</span>
-     <strong>{formatDate(project.startDate)}</strong>
+    <div className="nb-overview-meta-card nb63-project-start">
+     <span className="nb63-meta-icon" aria-hidden="true"><Flag size={18}/></span>
+     <div className="nb63-meta-copy"><span>Project start</span><strong>{formatDate(project.startDate)}</strong></div>
     </div>
-    <button type="button" className="nb-overview-meta-card nb-overview-meta-card--primary" onClick={()=>onNavigate('roadmap')}>
-     <span>Current week</span>
-     <strong>{`Week ${activeWeek+1}`}</strong>
-     <small>{weekRange(project.startDate,activeWeek)}</small>
+    <button type="button" className="nb-overview-meta-card nb-overview-meta-card--primary nb63-current-week" onClick={()=>onNavigate('roadmap')}>
+     <span className="nb63-meta-icon" aria-hidden="true"><CalendarDays size={18}/></span>
+     <div className="nb63-meta-copy"><span>Current week</span><strong>{`Week ${activeWeek+1}`}</strong><small>{weekRange(project.startDate,activeWeek)}</small></div>
+     <ChevronRight size={16} aria-hidden="true" className="nb63-week-chevron"/>
     </button>
    </div>
   </header>
@@ -988,7 +973,7 @@ export function Overview({project,onNavigate}:any){
     <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
     <div className="nb-overview-kpi-card__content">
      <div className="nb-overview-kpi-copy">
-      <h3>{item.label}</h3>
+      <div className="nb63-kpi-title"><span className="nb63-kpi-icon" aria-hidden="true"><item.Icon size={17} strokeWidth={1.9}/></span><h3>{item.label}</h3></div>
       <strong>{item.value}%</strong>
       <p>{item.count}</p>
      </div>
@@ -998,32 +983,32 @@ export function Overview({project,onNavigate}:any){
   </div>
 
   <div className="nb-overview-layout nb-overview-layout-v062">
-   <section className="nb-overview-card nb-overview-attention">
+   <section className="nb-overview-card nb-overview-attention nb63-attention">
     <div className="nb-overview-card-head">
-     <div>
-      <h2>Systems requiring attention</h2>
-      <p>Prioritized from open issues, blocked tasks and incomplete progress.</p>
+     <div><h2>Systems requiring attention</h2><p>Issues and unfinished deployment, clearly separated.</p></div>
+    </div>
+    <div className="nb63-attention-split">
+     <div className="nb63-attention-group nb63-attention-issues">
+      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-issues"><AlertCircle size={14}/></span><strong>Open issues</strong></div><span className="nb63-attention-count">{openIssues.length}</span></div>
+      <div className="nb63-attention-rows">
+       {issueRows.length?issueRows.map(({issue,system,severity}:any)=><div className="nb63-attention-item" key={issue.id}>
+        <div className="nb63-attention-item-top"><strong title={system?.name||'Unlinked issue'}>{system?.name||'Unlinked issue'}</strong><span className={`nb63-issue-severity nb63-severity-${severity||'unknown'}`}>{issue.severity||'Open'}</span></div>
+        <p title={issue.title}>{issue.title||'Issue reported'}</p>
+       </div>):<div className="nb63-attention-empty">No open issues.</div>}
+      </div>
+      <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('issues')}>View Issue Tracker <ChevronRight size={13}/></button>
      </div>
-     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('issues')}>{openIssues.length} open issues ↗</button>
-    </div>
-    <div className="nb-overview-table">
-     <div className="nb-overview-table-head"><span>System</span><span>What needs attention</span><span>Base config.</span><span>Owner</span></div>
-     {(attentionRows.length?attentionRows:[...readinessRows.slice(0,5)].map((sys:any)=>({sys,c:counts(sys),reason:'Continue deployment follow-up',severityLabel:'Monitor'}))).map((row:any)=><div key={row.sys.id} className="nb-overview-table-row">
-      <div>
-       <strong>{row.sys.name}</strong>
-       <small>{row.sys.deviceType||row.sys.deviceCategory||'System'}</small>
+     <div className="nb63-attention-group nb63-attention-progress">
+      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-progress"><Settings2 size={14}/></span><strong>Configuration remaining</strong></div><span className="nb63-attention-count">{(project.systems||[]).filter((s:any)=>{const c=counts(s);return c.total>0&&(c.base<c.total||c.ready<c.total)}).length}</span></div>
+      <div className="nb63-attention-rows">
+       {setupRows.length?setupRows.map(({sys,c,remainingBase,remainingReady}:any)=><div className="nb63-attention-item" key={sys.id}>
+        <div className="nb63-attention-item-top"><strong title={sys.name}>{sys.name}</strong><span className="nb63-setup-percent">{Math.round(c.base/c.total*100)}%</span></div>
+        <div className="nb63-setup-bar"><span style={{width:`${Math.round(c.base/c.total*100)}%`}}/></div>
+        <p>{remainingBase?`${remainingBase} devices need base configuration`:`${remainingReady} pending ready for deployment`}</p>
+       </div>):<div className="nb63-attention-empty">No incomplete device configurations.</div>}
       </div>
-      <div>
-       <span className="nb-overview-alert-label">{row.reason}</span>
-       <small>{row.severityLabel}</small>
-      </div>
-      <div>{miniProgress(row.c.base,row.c.total,'base')}</div>
-      <div><strong>{ownerName(row.sys)}</strong></div>
-     </div>)}
-    </div>
-    <div className="nb-overview-card-foot">
-     <span>{attentionRows.length?`Top ${attentionRows.length} priority systems shown`:'Using the five largest systems as a watch list'}</span>
-     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>Configuration Report ↗</button>
+      <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('config-report')}>Open Configuration Report <ChevronRight size={13}/></button>
+     </div>
     </div>
    </section>
 
@@ -1069,11 +1054,12 @@ export function Overview({project,onNavigate}:any){
      <div className="nb-overview-card-head">
       <div>
        <h2>Recorded activity</h2>
-       <p>Latest tracked updates across issues, systems and assignments.</p>
+       <p>Saved changes in NBDT.</p>
       </div>
+      {activityItems.length>0&&<button type="button" className="nb63-history-link" onClick={()=>setHistoryOpen(true)}>History <ChevronRight size={12}/></button>}
      </div>
      <div className="nb-overview-activity-list">
-      {activityItems.length?activityItems.map((item:any)=><div key={item.id} className="nb-overview-activity-row"><i/><div><strong>{item.title}</strong><small>{item.meta}</small></div><span>{formatDateTime(item.at)}</span></div>):<p className="nb-overview-empty">No recent activity has been recorded yet.</p>}
+      {activityItems.length?activityItems.slice(0,3).map((item:any)=><div key={item.id} className="nb-overview-activity-row"><i/><div><strong title={item.title}>{item.title}</strong><small title={item.detail}>{item.detail||item.section||''}</small></div><span>{formatDateTime(item.at)}</span></div>):<p className="nb-overview-empty">New saved changes will appear here.</p>}
      </div>
     </section>
 
@@ -1096,5 +1082,10 @@ export function Overview({project,onNavigate}:any){
     </section>
   </div>
 
-  <p className="nb-notice nb-overview-note">Overview uses current project records and configuration-report figures; reference demonstration subtotals are not verified device inventory.</p>
+  {historyOpen&&createPortal(<div className="nb63-activity-backdrop" onMouseDown={(e:any)=>{if(e.target===e.currentTarget)setHistoryOpen(false);}}>
+   <section className="nb63-activity-dialog" role="dialog" aria-modal="true" aria-label="Recorded activity history">
+    <header><div><h2>Recorded activity</h2><p>Recent saved changes · {activityItems.length} entries</p></div><button type="button" onClick={()=>setHistoryOpen(false)} aria-label="Close activity history"><X size={19}/></button></header>
+    <div className="nb63-activity-history">{activityItems.map((item:any)=><article key={item.id}><span className="nb63-history-dot"/><div><strong>{item.title}</strong><p>{item.detail}</p><small>{item.section} · {formatDateTime(item.at)}</small></div></article>)}</div>
+   </section>
+  </div>,document.body)}
  </section>;}

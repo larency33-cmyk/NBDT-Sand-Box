@@ -1,29 +1,27 @@
 {
   "version": "0.6.63",
-  "baseVersion": "0.6.62",
-  "release": "Overview Frosted KPI Gauges and Subtle Animated Waves",
-  "changedFiles": [
+  "base_version": "0.6.62",
+  "changed_files": [
     "GITHUB_CHANGELOG_v0_6_63.txt",
     "NBDT_v0_6_63_GitHub_Manifest.json",
     "README.md",
     "RELEASE_NOTES_v0_6_63_RU.md",
     "index.tsx",
-    "nbdt-overview-kpi-v063.css",
+    "nbdt-overview-v063.css",
     "package.json",
-    "src/overview-gauge.mjs",
-    "src/overview-v061.tsx",
-    "tests/overview-kpi-v063.test.mjs",
-    "tests/overview-render-v061.test.mjs"
+    "src/activity-log.mjs",
+    "src/workspace.tsx",
+    "tests/overview-v062.test.mjs",
+    "tests/overview-v063.test.mjs"
   ],
-  "deletedFiles": [],
-  "baseArchive": "NBDT_Full_Project_v0_6_62.zip",
-  "checks": {
-    "unitTestsPassed": 359,
-    "symbolPreflight": "passed",
-    "syntax": "passed",
-    "cssParse": "passed",
-    "viteBuild": "not run - vite not installed / npm cache incomplete",
-    "browserSmoke": "blocked locally; mandatory in GitHub Actions"
-  },
-  "scope": "Only four Overview KPI tiles and release/test documents. No changes to source metrics, other Overview sections or sidebar."
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_63.txt",
+    "NBDT_v0_6_63_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_63_RU.md",
+    "nbdt-overview-v063.css",
+    "src/activity-log.mjs",
+    "tests/overview-v063.test.mjs"
+  ],
+  "total_file_count": 227
 }
