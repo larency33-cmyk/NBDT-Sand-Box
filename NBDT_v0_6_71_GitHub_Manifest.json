@@ -1,0 +1,14 @@
+{
+  "version": "0.6.71",
+  "base_version": "0.6.70",
+  "changed_files": [
+    "README.md",
+    "RELEASE_NOTES_v0_6_71_RU.md",
+    "GITHUB_CHANGELOG_v0_6_71.txt",
+    "NBDT_v0_6_71_GitHub_Manifest.json",
+    "package.json",
+    "index.tsx",
+    "nbdt-overview-v071.css",
+    "tests/overview-liquid-v071.test.mjs"
+  ]
+}

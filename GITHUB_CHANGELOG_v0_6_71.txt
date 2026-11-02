@@ -1,0 +1,10 @@
+Changed files for v0.6.71 relative to v0.6.70
+
+- README.md
+- RELEASE_NOTES_v0_6_71_RU.md
+- GITHUB_CHANGELOG_v0_6_71.txt
+- NBDT_v0_6_71_GitHub_Manifest.json
+- package.json
+- index.tsx
+- nbdt-overview-v071.css
+- tests/overview-liquid-v071.test.mjs
