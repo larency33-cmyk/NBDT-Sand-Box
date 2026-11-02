@@ -968,18 +968,46 @@ export function Overview({project,onNavigate}:any){
   </header>
 
   <div className="nb-overview-kpi-grid">
-   {kpis.map((item:any)=><button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent}`} onClick={()=>onNavigate(item.tab)}>
-    <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
-    <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
-    <div className="nb-overview-kpi-card__content">
-     <div className="nb-overview-kpi-copy">
-      <div className="nb63-kpi-title"><span className="nb63-kpi-icon" aria-hidden="true"><item.Icon size={17} strokeWidth={1.9}/></span><h3>{item.label}</h3></div>
-      <strong>{item.value}%</strong>
-      <p>{item.count}</p>
+   {kpis.map((item:any)=>{
+    const percent=Math.max(0,Math.min(100,Number(item.value)||0));
+    const circumference=2*Math.PI*48;
+    const waveY=101-percent*.82;
+    const ringId=`nb64-ring-${item.accent}`;
+    const waveId=`nb64-wave-${item.accent}`;
+    return <button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`} onClick={()=>onNavigate(item.tab)}>
+     <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
+     <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
+     <div className="nb-overview-kpi-card__content">
+      <div className="nb-overview-kpi-copy nb64-kpi-copy">
+       <h3>{item.label}</h3>
+       <div className="nb64-kpi-reading">
+        <span className="nb64-kpi-symbol" aria-hidden="true"><item.Icon size={37} strokeWidth={1.85}/></span>
+        <div className="nb64-kpi-figures"><strong>{percent}%</strong><p>{item.count}</p></div>
+       </div>
+      </div>
+      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent}`} role="img" aria-label={`${item.label}: ${percent}% complete`}>
+       <svg viewBox="0 0 120 120" focusable="false" aria-hidden="true">
+        <defs>
+         <linearGradient id={ringId} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="var(--nb64-bright)"/>
+          <stop offset="50%" stopColor="var(--nb64-accent)"/>
+          <stop offset="100%" stopColor="var(--nb64-deep)"/>
+         </linearGradient>
+         <clipPath id={waveId}><circle cx="60" cy="60" r="41"/></clipPath>
+        </defs>
+        <circle className="nb64-ring-center" cx="60" cy="60" r="41"/>
+        <g clipPath={`url(#${waveId})`}>
+         <path className="nb64-liquid-wave nb64-liquid-wave--back" d={`M -150 ${waveY+5} C -110 ${waveY-3}, -70 ${waveY+13}, -30 ${waveY+5} S 50 ${waveY+5}, 90 ${waveY+5} S 170 ${waveY+5}, 210 ${waveY+5} L 210 155 L -150 155 Z`}/>
+         <path className="nb64-liquid-wave nb64-liquid-wave--front" d={`M -150 ${waveY} C -110 ${waveY-7}, -70 ${waveY+7}, -30 ${waveY} S 50 ${waveY}, 90 ${waveY} S 170 ${waveY}, 210 ${waveY} L 210 155 L -150 155 Z`}/>
+        </g>
+        <circle className="nb64-ring-track" cx="60" cy="60" r="48"/>
+        {percent>0&&<circle className="nb64-ring-progress" cx="60" cy="60" r="48" stroke={`url(#${ringId})`} strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
+        <path className="nb64-ring-highlight" d="M 28 43 A 38 38 0 0 1 62 22"/>
+       </svg>
+      </span>
      </div>
-     <div className={`nb-overview-kpi-ring nb-overview-kpi-ring--${item.accent}`} style={{background:`conic-gradient(var(--overview-accent) ${item.value}%, rgba(196,211,231,.35) 0)`}}><span/></div>
-    </div>
-   </button>)}
+    </button>;
+   })}
   </div>
 
   <div className="nb-overview-layout nb-overview-layout-v062">

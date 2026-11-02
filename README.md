@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.63 (Overview design + persistent Recorded Activity).** New start/week header badges, report-consistent KPI icons and colors, separate issue/setup signals, and a saved change feed for Configuration Report, Registry/Guide, Issues, Weekly Tracker and Assignment. Changes from before this release cannot be reconstructed retroactively. See `RELEASE_NOTES_v0_6_63_RU.md`.
+**Current package: v0.6.64 (Overview vector liquid progress rings).** The four top KPI cards now use precise SVG progress arcs instead of multi-layer conic gradients, a restrained animated liquid fill, and larger report-consistent icons directly to the left of each percentage. All four KPI values and the v0.6.63 activity history remain unchanged. See `RELEASE_NOTES_v0_6_64_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

@@ -4,11 +4,21 @@
   "changed_files": [
     "GITHUB_CHANGELOG_v0_6_64.txt",
     "NBDT_v0_6_64_GitHub_Manifest.json",
+    "README.md",
     "RELEASE_NOTES_v0_6_64_RU.md",
     "index.tsx",
-    "nbdt-overview-v061.css",
-    "nbdt-overview-kpi-v063.css",
-    "package.json"
+    "nbdt-overview-v064.css",
+    "package.json",
+    "src/workspace.tsx",
+    "tests/overview-liquid-v064.test.mjs"
   ],
-  "notes": "Overview-only polish: glass KPI row, removed data tools strip, compact lower layout."
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_64.txt",
+    "NBDT_v0_6_64_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_64_RU.md",
+    "nbdt-overview-v064.css",
+    "tests/overview-liquid-v064.test.mjs"
+  ],
+  "total_file_count": 232
 }

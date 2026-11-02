@@ -1,0 +1,108 @@
+/* NBDT v0.6.64 — precision vector progress and subtle animated liquid fill.
+   Replaces the composited conic-gradient rings, which showed jagged joins in
+   several browsers.  Scoped to the four Overview KPI cards only. */
+.nb-overview-premium .nb64-kpi-card--base{--nb64-accent:#2478f4;--nb64-bright:#68bbff;--nb64-deep:#0a56d9;--nb64-water:36,120,244}
+.nb-overview-premium .nb64-kpi-card--ready{--nb64-accent:#7962ea;--nb64-bright:#b2a0ff;--nb64-deep:#604ad8;--nb64-water:121,98,234}
+.nb-overview-premium .nb64-kpi-card--deployed{--nb64-accent:#12aac8;--nb64-bright:#74e6ed;--nb64-deep:#038ca8;--nb64-water:18,170,200}
+.nb-overview-premium .nb64-kpi-card--cyber{--nb64-accent:#13a889;--nb64-bright:#66e8bf;--nb64-deep:#08836f;--nb64-water:19,168,137}
+
+.nb-overview-premium .nb64-kpi-card .nb-overview-kpi-card__content{
+  grid-template-columns:minmax(0,1fr) 108px;
+  gap:10px;
+  min-height:176px;
+  padding:19px 18px 18px 21px;
+  z-index:10;
+}
+.nb-overview-premium .nb64-kpi-copy{min-width:0;text-align:left}
+.nb-overview-premium .nb64-kpi-copy h3{
+  font-size:13px!important;
+  line-height:1.32;
+  color:#17395e;
+  font-weight:780;
+  margin:0 0 16px!important;
+  letter-spacing:-.006em;
+}
+.nb-overview-premium .nb64-kpi-reading{display:flex;align-items:center;gap:12px;min-width:0}
+.nb-overview-premium .nb64-kpi-symbol{
+  width:50px;height:50px;flex:0 0 50px;
+  display:grid;place-items:center;
+  color:var(--nb64-accent);
+  border:1px solid rgba(var(--nb64-water),.22);
+  background:linear-gradient(150deg,rgba(255,255,255,.92),rgba(var(--nb64-water),.15));
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(var(--nb64-water),.14),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.nb-overview-premium .nb64-kpi-symbol svg{width:37px;height:37px;display:block}
+.nb-overview-premium .nb64-kpi-figures{display:flex;flex-direction:column;min-width:0;gap:5px}
+.nb-overview-premium .nb64-kpi-figures strong{
+  display:block;
+  font-size:36px;
+  line-height:1;
+  font-weight:800;
+  color:#102f56;
+  letter-spacing:-.044em;
+  margin:0;
+  white-space:nowrap;
+}
+.nb-overview-premium .nb64-kpi-figures p{
+  margin:0;
+  font-size:11px;
+  font-weight:560;
+  line-height:1.45;
+  color:#6584a9;
+  white-space:normal;
+}
+/* SVG ring: mathematical circle stroke, rounded ends and no layered CSS masks.
+   Interior waves are clipped to the circle and remain independent of the arc. */
+.nb-overview-premium .nb64-liquid-ring{
+  width:108px;height:108px;min-width:0;
+  display:block;position:relative;overflow:visible;
+  filter:drop-shadow(0 5px 7px rgba(25,75,126,.075));
+}
+.nb-overview-premium .nb64-liquid-ring svg{display:block;width:100%;height:100%;overflow:visible;shape-rendering:geometricPrecision}
+.nb-overview-premium .nb64-ring-center{fill:rgba(255,255,255,.46);stroke:rgba(255,255,255,.8);stroke-width:1.2}
+.nb-overview-premium .nb64-ring-track{fill:none;stroke:rgba(var(--nb64-water),.20);stroke-width:9}
+.nb-overview-premium .nb64-ring-progress{
+  fill:none;
+  stroke-width:9;
+  shape-rendering:geometricPrecision;
+  transition:stroke-dasharray .9s cubic-bezier(.22,1,.36,1);
+}
+.nb-overview-premium .nb64-liquid-wave--back{fill:rgba(var(--nb64-water),.12);animation:nb64-water-back 8s ease-in-out infinite alternate}
+.nb-overview-premium .nb64-liquid-wave--front{fill:rgba(var(--nb64-water),.25);animation:nb64-water-front 5.4s ease-in-out infinite alternate}
+.nb-overview-premium .nb64-ring-highlight{stroke:rgba(255,255,255,.84);stroke-width:2.4;stroke-linecap:round;fill:none;pointer-events:none}
+@keyframes nb64-water-front{
+  0%{transform:translate(-12px,1px)}
+  50%{transform:translate(6px,-1px)}
+  100%{transform:translate(18px,1px)}
+}
+@keyframes nb64-water-back{
+  0%{transform:translate(13px,-1px)}
+  100%{transform:translate(-15px,1px)}
+}
+@media(max-width:1560px){
+  .nb-overview-premium .nb64-kpi-card .nb-overview-kpi-card__content{grid-template-columns:minmax(0,1fr) 88px;gap:5px;padding:17px 13px 17px 17px}
+  .nb-overview-premium .nb64-liquid-ring{width:88px;height:88px}
+  .nb-overview-premium .nb64-kpi-reading{gap:8px}
+  .nb-overview-premium .nb64-kpi-symbol{width:43px;height:43px;flex-basis:43px;border-radius:12px}
+  .nb-overview-premium .nb64-kpi-symbol svg{width:33px;height:33px}
+  .nb-overview-premium .nb64-kpi-figures strong{font-size:34px}
+}
+@media(max-width:1280px){
+  .nb-overview-premium .nb64-kpi-card .nb-overview-kpi-card__content{grid-template-columns:minmax(0,1fr) 106px;gap:12px}
+  .nb-overview-premium .nb64-liquid-ring{width:106px;height:106px}
+  .nb-overview-premium .nb64-kpi-symbol{width:50px;height:50px;flex-basis:50px}
+  .nb-overview-premium .nb64-kpi-symbol svg{width:37px;height:37px}
+}
+@media(max-width:500px){
+  .nb-overview-premium .nb64-kpi-card .nb-overview-kpi-card__content{grid-template-columns:minmax(0,1fr) 88px;gap:8px}
+  .nb-overview-premium .nb64-liquid-ring{width:88px;height:88px}
+  .nb-overview-premium .nb64-kpi-figures strong{font-size:32px}
+  .nb-overview-premium .nb64-kpi-symbol{width:42px;height:42px;flex-basis:42px}
+  .nb-overview-premium .nb64-kpi-symbol svg{width:31px;height:31px}
+}
+@media(prefers-reduced-motion:reduce){
+  .nb-overview-premium .nb64-liquid-wave--front,
+  .nb-overview-premium .nb64-liquid-wave--back{animation:none!important;transform:none!important}
+  .nb-overview-premium .nb64-ring-progress{transition:none}
+}
