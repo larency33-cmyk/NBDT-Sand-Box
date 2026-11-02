@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.71 (seamless liquid KPI rings).** Overview KPI water keeps the flat design, five color shades, extra bubbles, and per-KPI motion styles from v0.6.70, but the ring animation now uses seamless loops with matched start/end states to remove visible hitches. See `RELEASE_NOTES_v0_6_71_RU.md`.
+**Current package: v0.6.72 (neutral empty KPI chamber).** Overview KPI water keeps the seamless v0.6.71 loop, while the unfilled part of each KPI circle now uses a light-gray 50% transparent base so the empty area reads clearly and no longer blends into the card background. See `RELEASE_NOTES_v0_6_72_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
