@@ -1,0 +1,24 @@
+{
+  "version": "0.6.67",
+  "base_version": "0.6.66",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_67.txt",
+    "NBDT_v0_6_67_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_67_RU.md",
+    "index.tsx",
+    "nbdt-overview-v067.css"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_67.txt",
+    "NBDT_v0_6_67_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_67_RU.md",
+    "nbdt-overview-v067.css"
+  ],
+  "total_file_count": 247,
+  "verification": {
+    "tests": "not run",
+    "typescript_preflight": "not run",
+    "full_vite_build": "not run: environment preserved as static delivery set"
+  }
+}
