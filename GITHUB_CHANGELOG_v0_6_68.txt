@@ -1,0 +1,1 @@
+NBDT v0.6.68 (from v0.6.67): an optically layered but restrained 3D treatment of Overview KPI water spheres. Adds an exact-value synchronized light inner progress arc, animated secondary waterline, soft glass rim and refraction highlights. No changes outside the Overview KPI visuals and package metadata.

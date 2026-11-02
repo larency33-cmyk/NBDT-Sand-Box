@@ -971,6 +971,7 @@ export function Overview({project,onNavigate}:any){
    {kpis.map((item:any)=>{
     const percent=Math.max(0,Math.min(100,Number(item.value)||0));
     const circumference=2*Math.PI*48;
+    const innerCircumference=2*Math.PI*41.5;
     const ringId=`nb64-ring-${item.accent}`;
     return <button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`} onClick={()=>onNavigate(item.tab)}>
      <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
@@ -987,12 +988,16 @@ export function Overview({project,onNavigate}:any){
        <span className="nb66-liquid-chamber" aria-hidden="true">
         <span className="nb66-liquid-fill">
          <span className="nb66-liquid-surface nb66-liquid-surface--back"/>
+         <span className="nb68-liquid-refraction"/>
          <span className="nb66-liquid-surface nb66-liquid-surface--front"/>
+         <span className="nb68-liquid-undertow"/>
          <span className="nb66-bubble nb66-bubble--one"/>
          <span className="nb66-bubble nb66-bubble--two"/>
          <span className="nb66-bubble nb66-bubble--three"/>
         </span>
         <span className="nb66-liquid-gloss"/>
+        <span className="nb68-glass-reflection"/>
+        <span className="nb68-glass-rim"/>
        </span>
        <svg className="nb66-liquid-svg" viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" focusable="false">
         <defs>
@@ -1002,9 +1007,13 @@ export function Overview({project,onNavigate}:any){
           <stop offset="100%" stopColor={item.colors.dark}/>
          </linearGradient>
         </defs>
+        {/* Inner light guide: a smaller, softer arc adds depth beneath the main progress arc. */}
+        <circle cx="60" cy="60" r="41.5" fill="none" stroke="#ffffff" strokeOpacity=".56" strokeWidth="1.2"/>
         <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="9"/>
+        {percent>0&&<circle className="nb68-secondary-arc" cx="60" cy="60" r="41.5" fill="none" stroke={item.colors.light} strokeOpacity=".76" strokeWidth="2.6" strokeDasharray={`${(percent/100*innerCircumference).toFixed(3)} ${innerCircumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
         {percent>0&&<circle cx="60" cy="60" r="48" fill="none" stroke={`url(#${ringId})`} strokeWidth="9" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
-        <path d="M 30 42 A 39 39 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".7" strokeWidth="2.2" strokeLinecap="round"/>
+        <path d="M 30 42 A 39 39 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".72" strokeWidth="2.2" strokeLinecap="round"/>
+        <path d="M 91 75 A 37 37 0 0 1 66 96" fill="none" stroke="#ffffff" strokeOpacity=".3" strokeWidth="1.4" strokeLinecap="round"/>
        </svg>
       </span>
      </div>

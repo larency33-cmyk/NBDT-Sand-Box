@@ -1,0 +1,30 @@
+{
+  "version": "0.6.68",
+  "base_version": "0.6.67",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_68.txt",
+    "NBDT_v0_6_68_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_68_RU.md",
+    "index.tsx",
+    "nbdt-overview-v068.css",
+    "package.json",
+    "src/workspace.tsx",
+    "tests/overview-liquid-v068.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_68.txt",
+    "NBDT_v0_6_68_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_68_RU.md",
+    "nbdt-overview-v068.css",
+    "tests/overview-liquid-v068.test.mjs"
+  ],
+  "total_file_count": 251,
+  "verification": {
+    "tests": "358 passed",
+    "symbols_and_syntax": "passed",
+    "chromium_isolated_visual": "4 progress rings, water contour motion verified",
+    "full_vite_build": "not run: project node_modules unavailable"
+  }
+}

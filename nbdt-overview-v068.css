@@ -1,0 +1,151 @@
+/* NBDT v0.6.68 — understated optical depth on the four Overview liquid KPIs.
+   The main arc is still the exact percent. The inner highlight arc tracks
+   that same percent, but has its own radius; the chamber gets a glass rim,
+   a faint secondary liquid meniscus and moving underwater refraction. */
+
+.nb-overview-premium .nb66-liquid-ring {
+  filter: drop-shadow(0 3px 4px rgba(24,79,139,.075))
+          drop-shadow(0 8px 13px rgba(35,85,145,.09));
+}
+
+.nb-overview-premium .nb66-liquid-chamber {
+  background:
+    radial-gradient(ellipse at 31% 23%, rgba(255,255,255,.99) 0%, rgba(255,255,255,.66) 22%, rgba(255,255,255,.13) 43%, transparent 57%),
+    radial-gradient(ellipse at 70% 86%, color-mix(in srgb,var(--nb66-light) 8%,white), transparent 55%),
+    linear-gradient(155deg, rgba(255,255,255,.92) 5%, rgba(249,252,255,.56) 64%, rgba(221,237,253,.48) 100%);
+  box-shadow:
+    inset 1px 2px 4px rgba(255,255,255,.94),
+    inset 5px 4px 9px rgba(78,122,165,.095),
+    inset -5px -5px 12px rgba(72,118,163,.12),
+    inset 0 0 0 1px rgba(255,255,255,.9),
+    0 0 0 1px rgba(255,255,255,.42),
+    0 3px 7px rgba(40,85,136,.09);
+}
+
+/* A tiny amount of shaded depth makes the liquid read as volume, not a flat fill. */
+.nb-overview-premium .nb66-liquid-fill {
+  background:
+    radial-gradient(ellipse at 22% 80%, rgba(255,255,255,.18), transparent 42%),
+    linear-gradient(110deg, rgba(255,255,255,.14), transparent 55%),
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--nb66-light) 52%,white) 0%,
+      color-mix(in srgb,var(--nb66-light) 64%,white) 33%,
+      color-mix(in srgb,var(--nb66-primary) 60%,white) 74%,
+      color-mix(in srgb,var(--nb66-primary) 70%,white) 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,.65),
+    inset 0 -11px 15px rgba(22,91,157,.16),
+    inset 5px 0 10px rgba(255,255,255,.16),
+    inset -5px 0 9px rgba(32,105,159,.055);
+}
+
+/* Refracted pale contour immediately under the front crest.
+   These independent motions are the two water levels visible in the reference. */
+.nb-overview-premium .nb68-liquid-refraction {
+  position:absolute;
+  display:block;
+  z-index:2;
+  top:-6px;
+  left:-29%;
+  width:162%;
+  height:19px;
+  pointer-events:none;
+  border-radius:42% 58% 58% 42% / 55% 44% 56% 45%;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.43) 0%,
+    color-mix(in srgb,var(--nb66-light) 35%,white) 40%,
+    color-mix(in srgb,var(--nb66-primary) 23%,white) 75%,
+    transparent 100%);
+  box-shadow:0 2px 3px rgba(255,255,255,.18);
+  opacity:.8;
+  transform-origin:50% 40%;
+  animation:nb68-refraction-flow 4.65s ease-in-out infinite alternate;
+}
+
+.nb-overview-premium .nb68-liquid-undertow {
+  position:absolute;
+  z-index:4;
+  top:3px;
+  left:-25%;
+  width:150%;
+  height:9px;
+  display:block;
+  pointer-events:none;
+  border-radius:49% 51% 48% 52% / 90% 85% 15% 10%;
+  border-top:1.6px solid rgba(255,255,255,.92);
+  border-bottom:1px solid color-mix(in srgb,var(--nb66-primary) 25%,white);
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.04));
+  box-shadow:0 2px 4px rgba(255,255,255,.15);
+  opacity:.8;
+  transform-origin:center;
+  animation:nb68-undertow-flow 3.35s ease-in-out infinite alternate;
+}
+
+.nb-overview-premium .nb66-liquid-surface--front{
+  z-index:3;
+  opacity:.87;
+  background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.28) 62%,rgba(255,255,255,.07));
+}
+.nb-overview-premium .nb66-liquid-surface--back{
+  z-index:1;
+  opacity:.47;
+}
+
+/* Optical dome: a soft vertical reflection and a very fine inside glass edge. */
+.nb-overview-premium .nb68-glass-reflection {
+  position:absolute;
+  z-index:8;
+  inset:6% 13% 27% 10%;
+  display:block;
+  border-radius:55% 45% 48% 52% / 56% 54% 46% 44%;
+  background:linear-gradient(132deg,
+    rgba(255,255,255,.70) 0%,
+    rgba(255,255,255,.36) 16%,
+    rgba(255,255,255,.07) 42%,
+    transparent 64%);
+  opacity:.72;
+  pointer-events:none;
+  animation:nb68-reflection-breathe 8s ease-in-out infinite alternate;
+}
+
+.nb-overview-premium .nb68-glass-rim {
+  position:absolute;
+  z-index:9;
+  display:block;
+  inset:1px;
+  border-radius:50%;
+  pointer-events:none;
+  border:1px solid rgba(255,255,255,.76);
+  box-shadow:
+    inset 2px 2px 3px rgba(255,255,255,.62),
+    inset 4px 5px 9px rgba(255,255,255,.1),
+    inset -4px -5px 7px rgba(32,91,148,.13),
+    0 0 0 1px rgba(255,255,255,.20);
+}
+
+/* Fine secondary light ring follows precisely the same percentage as the main arc. */
+.nb-overview-premium .nb68-secondary-arc {
+  filter:drop-shadow(0 0 1px rgba(255,255,255,.5));
+  transition:stroke-dasharray .8s cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes nb68-refraction-flow {
+  0% { transform:translateX(9px) rotate(5deg) scaleY(.92); }
+  50% { transform:translateX(-3px) rotate(-1deg) scaleY(1.07); }
+  100% { transform:translateX(-10px) rotate(-5deg) scaleY(1.02); }
+}
+@keyframes nb68-undertow-flow {
+  0% { transform:translateX(-7px) rotate(-4deg) scaleY(1); }
+  50% { transform:translateX(2px) rotate(1deg) scaleY(.96); }
+  100% { transform:translateX(10px) rotate(4deg) scaleY(1.05); }
+}
+@keyframes nb68-reflection-breathe {
+  from { opacity:.57; transform:translateX(-1px); }
+  to { opacity:.78; transform:translateX(1px); }
+}
+@media (prefers-reduced-motion:reduce){
+  .nb-overview-premium .nb68-liquid-refraction,
+  .nb-overview-premium .nb68-liquid-undertow,
+  .nb-overview-premium .nb68-glass-reflection{animation:none!important;transform:none!important}
+  .nb-overview-premium .nb68-secondary-arc{transition:none!important}
+}
