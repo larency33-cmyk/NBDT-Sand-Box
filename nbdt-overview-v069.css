@@ -1,0 +1,66 @@
+/* NBDT 0.6.69 — deliberately FLAT KPI water + crisp SVG progress.
+   Overrides only the four overview KPI indicators; older glass/rim DOM
+   is hidden for backward compatibility with the established component tests.
+   The fill level is based on the true percentage (0..100). */
+.nb-overview-premium .nb66-liquid-ring{
+  filter:none !important;
+  isolation:isolate;
+}
+.nb-overview-premium .nb66-liquid-chamber{
+  display:none !important; /* remove entire v066-v068 3D glass construction */
+}
+.nb-overview-premium .nb66-liquid-svg{
+  filter:none !important;
+  overflow:visible;
+  shape-rendering:geometricPrecision;
+  backface-visibility:visible;
+}
+/* Old inner highlight arc / fake glass glints caused uneven doubled edges. */
+.nb-overview-premium .nb68-secondary-arc,
+.nb-overview-premium .nb66-liquid-svg > path,
+.nb-overview-premium .nb66-liquid-svg circle[r="41.5"]{
+  display:none !important;
+}
+/* Water is clean two-dimensional, fully clipped. No glass refraction. */
+.nb-overview-premium .nb69-water-background{
+  opacity:.54;
+}
+.nb-overview-premium .nb69-water-window{
+  isolation:isolate;
+}
+.nb-overview-premium .nb69-water-wave{
+  stroke:none;
+  transform-box:view-box;
+  transform-origin:center;
+  will-change:transform;
+}
+.nb-overview-premium .nb69-water-wave--back{
+  animation:nb69-wave-back 3.4s ease-in-out infinite alternate;
+}
+.nb-overview-premium .nb69-water-wave--front{
+  animation:nb69-wave-front 2.8s ease-in-out infinite alternate;
+}
+.nb-overview-premium .nb69-water-outline{
+  opacity:.38;
+}
+.nb-overview-premium .nb69-progress-arc{
+  shape-rendering:geometricPrecision;
+  filter:none;
+  stroke-linejoin:round;
+  transition:stroke-dasharray .55s ease;
+  stroke-opacity:1;
+}
+@keyframes nb69-wave-back{
+  0%{transform:translate(-20px,-2px)}
+  50%{transform:translate(0,2px)}
+  100%{transform:translate(20px,-1px)}
+}
+@keyframes nb69-wave-front{
+  0%{transform:translate(22px,1px)}
+  50%{transform:translate(0,-2px)}
+  100%{transform:translate(-22px,1px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-overview-premium .nb69-water-wave{animation:none !important;transform:none !important}
+ .nb-overview-premium .nb69-progress-arc{transition:none !important}
+}

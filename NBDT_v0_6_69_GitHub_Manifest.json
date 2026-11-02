@@ -1,0 +1,32 @@
+{
+  "version": "0.6.69",
+  "base_version": "0.6.68",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_69.txt",
+    "NBDT_v0_6_69_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_69_RU.md",
+    "index.tsx",
+    "nbdt-overview-v069.css",
+    "package.json",
+    "scripts/smoke-production.cjs",
+    "src/workspace.tsx",
+    "tests/overview-liquid-v066.test.mjs",
+    "tests/overview-liquid-v069.test.mjs"
+  ],
+  "removed_files": [],
+  "new_files": [
+    "GITHUB_CHANGELOG_v0_6_69.txt",
+    "NBDT_v0_6_69_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_69_RU.md",
+    "nbdt-overview-v069.css",
+    "tests/overview-liquid-v069.test.mjs"
+  ],
+  "verification": {
+    "automated_tests": "361 passed",
+    "runtime_symbols": "passed",
+    "isolated_chromium": "visible water and movement measured",
+    "full_vite_build": "not run: dependencies unavailable"
+  },
+  "total_file_count": 257
+}

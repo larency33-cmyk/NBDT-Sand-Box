@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.68 (Overview optical liquid depth).** Adds a synchronized lighter inner progress arc, a second moving water contour below the primary wave, and gentle glass/refraction highlights inside the existing four KPI spheres. Percentages and all other pages remain unchanged. `npm run smoke:production` continues checking live movement after production build. See `RELEASE_NOTES_v0_6_68_RU.md`. See `RELEASE_NOTES_v0_6_66_RU.md`.
+**Current package: v0.6.69 (flat animated liquid progress indicators).** Overview KPI water is now vividly colored, two animated SVG waves are clipped to a true percentage level, heavy 3D glass effects are completely hidden and each progress indicator is a single smooth SVG arc without overlapping duplicate lines. The rest of NBDT is preserved. See `RELEASE_NOTES_v0_6_69_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

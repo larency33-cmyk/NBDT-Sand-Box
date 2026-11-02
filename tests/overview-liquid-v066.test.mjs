@@ -34,7 +34,7 @@ test('bubbles are gentle, colored progress is explicit, accessibility protected'
  assert.match(kpi,/role="img" aria-label=/);
 });
 test('release browser smoke test measures actual fluid movement',()=>{
- assert.match(smoke,/nb66-liquid-surface--front/);
+ assert.match(smoke,/nb69-water-wave--front/);
  assert.match(smoke,/first\.transform===second\.transform/);
  assert.match(smoke,/ringCount!==4/);
 });

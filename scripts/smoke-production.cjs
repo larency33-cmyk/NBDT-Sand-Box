@@ -48,18 +48,18 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
       const rings=page.locator('.nb66-liquid-ring');
       const ringCount=await rings.count();
       if(ringCount!==4)throw Error(`Overview: expected 4 KPI rings, got ${ringCount}`);
-      const getSurface=async()=>page.locator('.nb66-liquid-surface--front').first().evaluate(el=>({
+      const getSurface=async()=>page.locator('.nb69-water-wave--front').first().evaluate(el=>({
         animation:getComputedStyle(el).animationName,
         transform:getComputedStyle(el).transform
       }));
       const first=await getSurface();
-      if(!first.animation.includes('nb66-wave-front'))throw Error(`Overview: liquid animation missing, got ${first.animation}`);
+      if(!first.animation.includes('nb69-wave-front'))throw Error(`Overview: liquid animation missing, got ${first.animation}`);
       if(!await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)){
         await page.waitForTimeout(700);
         const second=await getSurface();
         if(first.transform===second.transform)throw Error('Overview: liquid surface is static despite motion enabled');
       }
-      console.log('PASS Overview KPI fluid animation and 4 indicators');
+      console.log('PASS Overview flat SVG water animation and 4 clean progress indicators');
     }
     console.log('PASS browser boot: '+label);
    }catch(e){

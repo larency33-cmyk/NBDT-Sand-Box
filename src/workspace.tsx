@@ -973,6 +973,7 @@ export function Overview({project,onNavigate}:any){
     const circumference=2*Math.PI*48;
     const innerCircumference=2*Math.PI*41.5;
     const ringId=`nb64-ring-${item.accent}`;
+    const waterline=100-percent*.8;
     return <button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`} onClick={()=>onNavigate(item.tab)}>
      <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
      <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
@@ -1007,11 +1008,21 @@ export function Overview({project,onNavigate}:any){
           <stop offset="100%" stopColor={item.colors.dark}/>
          </linearGradient>
         </defs>
-        {/* Inner light guide: a smaller, softer arc adds depth beneath the main progress arc. */}
-        <circle cx="60" cy="60" r="41.5" fill="none" stroke="#ffffff" strokeOpacity=".56" strokeWidth="1.2"/>
-        <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="9"/>
+        {/* Flat, vividly colored liquid: two independently moving waves,
+            clipped to a mathematically clean inner circle. No 3D glass filters. */}
+        <clipPath id={`${ringId}-water-clip`}><circle cx="60" cy="60" r="39.4"/></clipPath>
+        <circle className="nb69-water-background" cx="60" cy="60" r="39.4" fill={item.colors.track}/>
+        {percent>0&&<g className="nb69-water-window" clipPath={`url(#${ringId}-water-clip)`}>
+         <g transform={`translate(0 ${waterline.toFixed(3)})`}>
+          <path className="nb69-water-wave nb69-water-wave--back" fill={item.colors.light} fillOpacity=".83" d="M -160 0 C -140 -7 -120 -7 -100 0 S -60 7 -40 0 S 0 -7 20 0 S 60 7 80 0 S 120 -7 140 0 S 180 7 200 0 S 240 -7 260 0 L 260 160 L -160 160 Z"/>
+          <path className="nb69-water-wave nb69-water-wave--front" fill={item.colors.primary} fillOpacity=".69" d="M -160 0 C -140 8 -120 8 -100 0 S -60 -8 -40 0 S 0 8 20 0 S 60 -8 80 0 S 120 8 140 0 S 180 -8 200 0 S 240 8 260 0 L 260 160 L -160 160 Z"/>
+         </g>
+        </g>}
+        <circle className="nb69-water-outline" cx="60" cy="60" r="39.4" fill="none" stroke={item.colors.track} strokeWidth=".8"/>
+        {/* Single non-overlaid progress arc; no duplicate highlights or jagged joins. */}
+        <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="8"/>
         {percent>0&&<circle className="nb68-secondary-arc" cx="60" cy="60" r="41.5" fill="none" stroke={item.colors.light} strokeOpacity=".76" strokeWidth="2.6" strokeDasharray={`${(percent/100*innerCircumference).toFixed(3)} ${innerCircumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
-        {percent>0&&<circle cx="60" cy="60" r="48" fill="none" stroke={`url(#${ringId})`} strokeWidth="9" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
+        {percent>0&&<circle className="nb69-progress-arc" cx="60" cy="60" r="48" fill="none" stroke={item.colors.primary} strokeWidth="8" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
         <path d="M 30 42 A 39 39 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".72" strokeWidth="2.2" strokeLinecap="round"/>
         <path d="M 91 75 A 37 37 0 0 1 66 96" fill="none" stroke="#ffffff" strokeOpacity=".3" strokeWidth="1.4" strokeLinecap="round"/>
        </svg>

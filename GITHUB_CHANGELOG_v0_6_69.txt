@@ -1,0 +1,1 @@
+NBDT v0.6.69 (from v0.6.68): remove 3D glass appearance inside Overview KPI rings, show flat vivid animated dual-wave SVG water, render progress via a single clean round-capped arc, update browser animation smoke test.
