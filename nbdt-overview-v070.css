@@ -1,0 +1,169 @@
+/* NBDT 0.6.70 — richer flat liquid with 5 color shades, extra bubbles,
+   and per-KPI unsynchronised motion styles. Builds on v0.6.69. */
+.nb-overview-premium .nb70-liquid-ring{
+  filter:none !important;
+  isolation:isolate;
+}
+.nb-overview-premium .nb70-liquid-ring .nb66-liquid-chamber{
+  display:none !important;
+}
+.nb-overview-premium .nb70-water-stack{
+  transform-box:view-box;
+  transform-origin:center;
+  will-change:transform;
+}
+.nb-overview-premium .nb69-water-background{
+  opacity:.62;
+}
+.nb-overview-premium .nb70-water-wave,
+.nb-overview-premium .nb69-water-wave{
+  stroke:none;
+  transform-box:view-box;
+  transform-origin:center;
+  will-change:transform,opacity;
+}
+.nb-overview-premium .nb70-water-wave--shade1{animation:nb70-layer-1 8.4s ease-in-out infinite alternate;}
+.nb-overview-premium .nb70-water-wave--shade2{animation:nb70-layer-2 7.1s ease-in-out infinite alternate;}
+.nb-overview-premium .nb70-water-wave--shade3{animation:nb70-layer-3 6.2s ease-in-out infinite alternate;}
+/* One transform animation per wave: concurrent transform animations can cancel
+   each other and make the water look static. */
+.nb-overview-premium .nb69-water-wave--back{animation:nb69-wave-back 4.8s ease-in-out infinite alternate;}
+.nb-overview-premium .nb69-water-wave--front{animation:nb69-wave-front 4.1s ease-in-out infinite alternate;}
+.nb-overview-premium .nb70-water-base{opacity:.95;pointer-events:none;}
+.nb-overview-premium .nb70-liquid-ring--base .nb69-water-wave--front{animation-duration:4.1s;animation-delay:-.6s;}
+.nb-overview-premium .nb70-liquid-ring--ready .nb69-water-wave--front{animation-duration:5.2s;animation-delay:-2.7s;animation-direction:reverse;}
+.nb-overview-premium .nb70-liquid-ring--deployed .nb69-water-wave--front{animation-duration:6.8s;animation-delay:-1.8s;}
+.nb-overview-premium .nb70-liquid-ring--cyber .nb69-water-wave--front{animation-duration:3.7s;animation-delay:-3.2s;animation-direction:reverse;}
+.nb-overview-premium .nb70-liquid-ring--ready .nb69-water-wave--back{animation-duration:3.6s;animation-delay:-1.2s;}
+.nb-overview-premium .nb70-liquid-ring--deployed .nb69-water-wave--back{animation-duration:7.3s;animation-delay:-4.7s;animation-direction:reverse;}
+.nb-overview-premium .nb70-liquid-ring--cyber .nb69-water-wave--back{animation-duration:5.3s;animation-delay:-2.3s;}
+
+
+.nb-overview-premium .nb70-water-bubble{
+  transform-box:fill-box;
+  transform-origin:center;
+  will-change:transform,opacity;
+  stroke:#fff;
+  stroke-opacity:.38;
+  stroke-width:.65;
+}
+.nb-overview-premium .nb70-water-bubble--0{animation:nb70-bubble-a 6.4s ease-in-out infinite;}
+.nb-overview-premium .nb70-water-bubble--1{animation:nb70-bubble-b 4.9s ease-in-out infinite;}
+.nb-overview-premium .nb70-water-bubble--2{animation:nb70-bubble-c 5.7s ease-in-out infinite;}
+.nb-overview-premium .nb70-water-bubble--3{animation:nb70-bubble-d 6.1s ease-in-out infinite;}
+.nb-overview-premium .nb70-water-bubble--4{animation:nb70-bubble-e 5.2s ease-in-out infinite;}
+.nb-overview-premium .nb70-water-bubble--5{animation:nb70-bubble-f 4.4s ease-in-out infinite;}
+
+/* Different “boiling” personalities for each KPI — same system, different motion. */
+.nb-overview-premium .nb70-liquid-ring--base .nb70-water-stack{animation:nb70-stack-base 9.4s ease-in-out infinite;}
+.nb-overview-premium .nb70-liquid-ring--ready .nb70-water-stack{animation:nb70-stack-ready 6.8s cubic-bezier(.52,.08,.46,1) infinite;}
+.nb-overview-premium .nb70-liquid-ring--deployed .nb70-water-stack{animation:nb70-stack-deployed 11.2s ease-in-out infinite;}
+.nb-overview-premium .nb70-liquid-ring--cyber .nb70-water-stack{animation:nb70-stack-cyber 7.6s cubic-bezier(.47,.05,.37,.97) infinite;}
+
+/* Bubbles receive individual offsets/durations inline; themed wave stacks
+   add a further layer of independent motion to the four indicators. */
+
+.nb-overview-premium .nb69-water-outline{
+  opacity:.44;
+}
+.nb-overview-premium .nb69-progress-arc{
+  shape-rendering:geometricPrecision;
+  stroke-linejoin:round;
+  stroke-linecap:round;
+}
+
+@keyframes nb70-layer-1{
+  0%{transform:translate(-18px,-5px) scaleY(.98)}
+  50%{transform:translate(0,-2px) scaleY(1.02)}
+  100%{transform:translate(18px,-4px) scaleY(.99)}
+}
+@keyframes nb70-layer-2{
+  0%{transform:translate(14px,-2px)}
+  50%{transform:translate(-4px,2px)}
+  100%{transform:translate(-16px,-1px)}
+}
+@keyframes nb70-layer-3{
+  0%{transform:translate(-10px,2px)}
+  50%{transform:translate(6px,-1px)}
+  100%{transform:translate(12px,3px)}
+}
+@keyframes nb70-layer-4{
+  0%{transform:translate(-7px,2px) scaleY(1)}
+  50%{transform:translate(4px,-2px) scaleY(1.03)}
+  100%{transform:translate(9px,1px) scaleY(.99)}
+}
+@keyframes nb70-layer-5{
+  0%{transform:translate(10px,1px) scaleY(1.01)}
+  50%{transform:translate(-6px,-3px) scaleY(.98)}
+  100%{transform:translate(-12px,2px) scaleY(1.02)}
+}
+
+@keyframes nb70-stack-base{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(-1px,-1px)}
+  50%{transform:translate(1px,1px)}
+  75%{transform:translate(0,2px)}
+}
+@keyframes nb70-stack-ready{
+  0%,100%{transform:translate(0,0) rotate(0deg)}
+  30%{transform:translate(1px,-1px) rotate(.35deg)}
+  60%{transform:translate(-1px,2px) rotate(-.45deg)}
+}
+@keyframes nb70-stack-deployed{
+  0%,100%{transform:translate(0,0) scaleY(1)}
+  40%{transform:translate(0,1px) scaleY(1.015)}
+  75%{transform:translate(-1px,-1px) scaleY(.992)}
+}
+@keyframes nb70-stack-cyber{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(1px,-2px)}
+  55%{transform:translate(-1px,1px)}
+  80%{transform:translate(1px,2px)}
+}
+
+@keyframes nb70-bubble-a{
+  0%,100%{transform:translate(0,0) scale(.96);opacity:.15}
+  20%{opacity:.55}
+  60%{transform:translate(-2px,-10px) scale(1);opacity:.48}
+  85%{transform:translate(1px,-18px) scale(1.04);opacity:.08}
+}
+@keyframes nb70-bubble-b{
+  0%,100%{transform:translate(0,0) scale(.85);opacity:.1}
+  25%{opacity:.45}
+  70%{transform:translate(2px,-13px) scale(1.08);opacity:.38}
+  90%{transform:translate(-1px,-19px) scale(.96);opacity:.06}
+}
+@keyframes nb70-bubble-c{
+  0%,100%{transform:translate(0,0) scale(.88);opacity:.12}
+  30%{opacity:.42}
+  68%{transform:translate(-1px,-9px) scale(.98);opacity:.36}
+  88%{transform:translate(1px,-14px) scale(1.06);opacity:.04}
+}
+@keyframes nb70-bubble-d{
+  0%,100%{transform:translate(0,0) scale(.9);opacity:.12}
+  15%{opacity:.5}
+  65%{transform:translate(-2px,-12px) scale(1.03);opacity:.45}
+  92%{transform:translate(2px,-20px) scale(.94);opacity:.05}
+}
+@keyframes nb70-bubble-e{
+  0%,100%{transform:translate(0,0) scale(.92);opacity:.08}
+  35%{opacity:.4}
+  72%{transform:translate(1px,-11px) scale(1.02);opacity:.35}
+  95%{transform:translate(-1px,-17px) scale(1.05);opacity:.03}
+}
+@keyframes nb70-bubble-f{
+  0%,100%{transform:translate(0,0) scale(.82);opacity:.07}
+  28%{opacity:.36}
+  74%{transform:translate(2px,-8px) scale(.98);opacity:.3}
+  90%{transform:translate(-2px,-15px) scale(1.02);opacity:.02}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .nb-overview-premium .nb70-water-stack,
+  .nb-overview-premium .nb70-water-wave,
+  .nb-overview-premium .nb69-water-wave,
+  .nb-overview-premium .nb70-water-bubble{
+    animation:none !important;
+    transform:none !important;
+  }
+}

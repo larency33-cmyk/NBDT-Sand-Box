@@ -1,0 +1,1 @@
+NBDT v0.6.70 relative to v0.6.69: five shades of water in each Overview KPI, nine animated bubbles per circle, four independent fluid animation profiles, fixed water-level transform. No other pages modified.

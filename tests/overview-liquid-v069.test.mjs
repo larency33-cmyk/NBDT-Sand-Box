@@ -26,8 +26,8 @@ test('progress is a single smooth accurate percentage arc without gradient overl
 test('bright, percent-based two-layer water is clipped and animated in flat SVG',()=>{
  assert.match(section,/const waterline=100-percent\*\.8/);
  assert.match(section,/clipPath id=\{`\$\{ringId\}-water-clip`\}/);
- assert.match(section,/className="nb69-water-wave nb69-water-wave--front"/);
- assert.match(section,/className="nb69-water-wave nb69-water-wave--back"/);
+ assert.match(section,/nb69-water-wave--front/);
+ assert.match(section,/nb69-water-wave--back/);
  assert.match(css,/@keyframes nb69-wave-front/);
  assert.match(css,/@keyframes nb69-wave-back/);
  assert.match(css,/prefers-reduced-motion:reduce/);

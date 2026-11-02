@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.69 (flat animated liquid progress indicators).** Overview KPI water is now vividly colored, two animated SVG waves are clipped to a true percentage level, heavy 3D glass effects are completely hidden and each progress indicator is a single smooth SVG arc without overlapping duplicate lines. The rest of NBDT is preserved. See `RELEASE_NOTES_v0_6_69_RU.md`.
+**Current package: v0.6.70 (multi-shade liquid KPI rings).** Overview KPI water stays flat but now uses at least five color shades per ring, extra bubbles, and non-synchronised motion styles for each of the four KPI circles. The smooth SVG progress arcs remain preserved. See `RELEASE_NOTES_v0_6_70_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

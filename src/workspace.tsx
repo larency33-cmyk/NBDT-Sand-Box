@@ -942,10 +942,10 @@ export function Overview({project,onNavigate}:any){
   return date.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
  };
  const kpis=[
-  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base',Icon:Settings2,colors:{primary:'#2377f3',light:'#78c7ff',dark:'#0b58d7',track:'#dcecff'}},
-  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready',Icon:Rocket,colors:{primary:'#8065ed',light:'#c8b4ff',dark:'#5743d5',track:'#eee9ff'}},
-  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3,colors:{primary:'#10b2cc',light:'#7fe7ed',dark:'#068ca7',track:'#d9f6fa'}},
-  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck,colors:{primary:'#12ab87',light:'#75eac4',dark:'#07886b',track:'#dcf8ee'}},
+  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base',Icon:Settings2,colors:{primary:'#2377f3',light:'#78c7ff',dark:'#0b58d7',track:'#dcecff',shades:['#f7fbff','#dff1ff','#bcdfff','#84c7ff','#2377f3']}},
+  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready',Icon:Rocket,colors:{primary:'#8065ed',light:'#c8b4ff',dark:'#5743d5',track:'#eee9ff',shades:['#fbf9ff','#efe5ff','#dac9ff','#b292ff','#8065ed']}},
+  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3,colors:{primary:'#10b2cc',light:'#7fe7ed',dark:'#068ca7',track:'#d9f6fa',shades:['#f2feff','#d8fbff','#b2f3fa','#76e1eb','#10b2cc']}},
+  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck,colors:{primary:'#12ab87',light:'#75eac4',dark:'#07886b',track:'#dcf8ee',shades:['#f2fffb','#dbfff1','#baf7e0','#7be6bc','#12ab87']}},
  ];
  const miniProgress=(value:number,total:number,variant:string)=> <div className="nb-overview-progress"><span>{total>0?`${Math.round(value/total*100)}%`:'—'}</span><div className="nb-overview-progress-track"><i className={`nb-overview-progress-fill nb-overview-progress-fill--${variant}`} style={{width:`${total>0?Math.max(4,Math.min(100,Math.round(value/total*100))):0}%`}}/></div></div>;
  return <section className="nb-overview nb-overview-premium">
@@ -974,6 +974,14 @@ export function Overview({project,onNavigate}:any){
     const innerCircumference=2*Math.PI*41.5;
     const ringId=`nb64-ring-${item.accent}`;
     const waterline=100-percent*.8;
+    const bubbleDepth=Math.max(7,100-waterline);
+    const bubbles=[
+     {x:31,depth:.84,r:2.6},{x:44,depth:.51,r:1.7},
+     {x:55,depth:.91,r:2.4},{x:67,depth:.65,r:1.6},
+     {x:77,depth:.81,r:2.3},{x:88,depth:.56,r:1.9},
+     {x:60,depth:.35,r:1.5},{x:39,depth:.72,r:1.8},
+     {x:73,depth:.42,r:1.9}
+    ];
     return <button type="button" key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`} onClick={()=>onNavigate(item.tab)}>
      <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
      <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
@@ -985,7 +993,7 @@ export function Overview({project,onNavigate}:any){
         <div className="nb64-kpi-figures"><strong>{percent}%</strong><p>{item.count}</p></div>
        </div>
       </div>
-      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb66-liquid-ring ${percent===0?'nb66-liquid-ring--empty':''}`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{'--nb66-primary':item.colors.primary,'--nb66-light':item.colors.light,'--nb66-track':item.colors.track,'--nb66-fill':`${percent}%`} as React.CSSProperties}>
+      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb66-liquid-ring nb70-liquid-ring nb70-liquid-ring--${item.accent} ${percent===0?'nb66-liquid-ring--empty':''}`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{'--nb66-primary':item.colors.primary,'--nb66-light':item.colors.light,'--nb66-track':item.colors.track,'--nb66-fill':`${percent}%`} as React.CSSProperties}>
        <span className="nb66-liquid-chamber" aria-hidden="true">
         <span className="nb66-liquid-fill">
          <span className="nb66-liquid-surface nb66-liquid-surface--back"/>
@@ -1007,15 +1015,31 @@ export function Overview({project,onNavigate}:any){
           <stop offset="45%" stopColor={item.colors.primary}/>
           <stop offset="100%" stopColor={item.colors.dark}/>
          </linearGradient>
+         {/* The underlying water gradient spans only the actual filled part
+             of the circle, so even 12% visibly contains all five shades. */}
+         <linearGradient id={`${ringId}-water-five`} x1="15" y1="0" x2="92" y2={Math.max(8,100-waterline)} gradientUnits="userSpaceOnUse">
+          {item.colors.shades.map((shade:string,index:number)=><stop key={index} offset={`${index*25}%`} stopColor={shade}/>)}
+         </linearGradient>
+         <radialGradient id={`${ringId}-water-bubble`} cx="30%" cy="24%" r="75%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity=".82"/>
+          <stop offset="52%" stopColor={item.colors.shades[1]} stopOpacity=".42"/>
+          <stop offset="100%" stopColor={item.colors.shades[4]} stopOpacity=".38"/>
+         </radialGradient>
         </defs>
-        {/* Flat, vividly colored liquid: two independently moving waves,
-            clipped to a mathematically clean inner circle. No 3D glass filters. */}
+        {/* Flat, animated, theme-colored water: exactly one smooth ring. */}
         <clipPath id={`${ringId}-water-clip`}><circle cx="60" cy="60" r="39.4"/></clipPath>
         <circle className="nb69-water-background" cx="60" cy="60" r="39.4" fill={item.colors.track}/>
         {percent>0&&<g className="nb69-water-window" clipPath={`url(#${ringId}-water-clip)`}>
          <g transform={`translate(0 ${waterline.toFixed(3)})`}>
-          <path className="nb69-water-wave nb69-water-wave--back" fill={item.colors.light} fillOpacity=".83" d="M -160 0 C -140 -7 -120 -7 -100 0 S -60 7 -40 0 S 0 -7 20 0 S 60 7 80 0 S 120 -7 140 0 S 180 7 200 0 S 240 -7 260 0 L 260 160 L -160 160 Z"/>
-          <path className="nb69-water-wave nb69-water-wave--front" fill={item.colors.primary} fillOpacity=".69" d="M -160 0 C -140 8 -120 8 -100 0 S -60 -8 -40 0 S 0 8 20 0 S 60 -8 80 0 S 120 8 140 0 S 180 -8 200 0 S 240 8 260 0 L 260 160 L -160 160 Z"/>
+          <g className="nb70-water-stack">
+          <path className="nb70-water-base" fill={`url(#${ringId}-water-five)`} d="M -170 0 H 274 V 160 H -170 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade1" fill={item.colors.shades[0]} fillOpacity=".48" d="M -170 -3 C -148 -11 -126 -10 -104 -3 S -60 6 -38 -2 S 10 -10 32 -3 S 76 6 98 -2 S 142 -11 164 -3 S 208 6 230 -1 S 252 -9 274 -2 L 274 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade2" fill={item.colors.shades[1]} fillOpacity=".42" d="M -170 6 C -148 -2 -126 -2 -104 6 S -60 14 -38 6 S 10 -2 32 6 S 76 14 98 6 S 142 -2 164 6 S 208 14 230 6 S 252 -2 274 6 L 274 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade3" fill={item.colors.shades[2]} fillOpacity=".40" d="M -170 14 C -146 6 -122 6 -98 14 S -50 22 -26 14 S 22 6 46 14 S 94 22 118 14 S 166 6 190 14 S 238 22 262 14 L 262 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade4 nb69-water-wave nb69-water-wave--back" fill={item.colors.shades[3]} fillOpacity=".47" d="M -170 22 C -146 14 -122 14 -98 22 S -50 30 -26 22 S 22 14 46 22 S 94 30 118 22 S 166 14 190 22 S 238 30 262 22 L 262 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade5 nb69-water-wave nb69-water-wave--front" fill={item.colors.shades[4]} fillOpacity=".53" d="M -170 29 C -144 38 -118 38 -92 29 S -40 20 -14 29 S 38 38 64 29 S 116 20 142 29 S 194 38 220 29 S 246 20 272 29 L 272 160 L -170 160 Z"/>
+          {bubbles.map((bubble,index)=><circle key={index} className={`nb70-water-bubble nb70-water-bubble--${index%6}`} cx={bubble.x} cy={Math.max(5,bubbleDepth*bubble.depth)} r={bubble.r} fill={`url(#${ringId}-water-bubble)`} stroke="#ffffff" strokeOpacity=".52" strokeWidth=".6" style={{animationDelay:`-${(index*1.11+{base:0,ready:1.4,deployed:2.7,cyber:4.2}[item.accent as 'base'|'ready'|'deployed'|'cyber']).toFixed(2)}s`,animationDuration:`${(3.7+(index%4)*.72+({base:0,ready:.45,deployed:1.1,cyber:.7}[item.accent as 'base'|'ready'|'deployed'|'cyber'])).toFixed(2)}s`}}/>)}
+          </g>
          </g>
         </g>}
         <circle className="nb69-water-outline" cx="60" cy="60" r="39.4" fill="none" stroke={item.colors.track} strokeWidth=".8"/>
