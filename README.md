@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.64 (Overview vector liquid progress rings).** The four top KPI cards now use precise SVG progress arcs instead of multi-layer conic gradients, a restrained animated liquid fill, and larger report-consistent icons directly to the left of each percentage. All four KPI values and the v0.6.63 activity history remain unchanged. See `RELEASE_NOTES_v0_6_64_RU.md`.
+**Current package: v0.6.65 (Overview KPI indicators color + motion fix).** All four SVG rings now use explicitly defined theme colors rather than relying on CSS custom properties inside SVG presentation attributes. Native SVG wave animation is attached directly to each indicator, preserving the data, layout and all other routes. See `RELEASE_NOTES_v0_6_65_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

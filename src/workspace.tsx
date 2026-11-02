@@ -942,10 +942,10 @@ export function Overview({project,onNavigate}:any){
   return date.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
  };
  const kpis=[
-  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base',Icon:Settings2},
-  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready',Icon:Rocket},
-  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3},
-  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck},
+  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'base',Icon:Settings2,colors:{primary:'#2377f3',light:'#78c7ff',dark:'#0b58d7',track:'#dcecff'}},
+  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'ready',Icon:Rocket,colors:{primary:'#8065ed',light:'#c8b4ff',dark:'#5743d5',track:'#eee9ff'}},
+  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3,colors:{primary:'#10b2cc',light:'#7fe7ed',dark:'#068ca7',track:'#d9f6fa'}},
+  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck,colors:{primary:'#12ab87',light:'#75eac4',dark:'#07886b',track:'#dcf8ee'}},
  ];
  const miniProgress=(value:number,total:number,variant:string)=> <div className="nb-overview-progress"><span>{total>0?`${Math.round(value/total*100)}%`:'—'}</span><div className="nb-overview-progress-track"><i className={`nb-overview-progress-fill nb-overview-progress-fill--${variant}`} style={{width:`${total>0?Math.max(4,Math.min(100,Math.round(value/total*100))):0}%`}}/></div></div>;
  return <section className="nb-overview nb-overview-premium">
@@ -981,28 +981,39 @@ export function Overview({project,onNavigate}:any){
       <div className="nb-overview-kpi-copy nb64-kpi-copy">
        <h3>{item.label}</h3>
        <div className="nb64-kpi-reading">
-        <span className="nb64-kpi-symbol" aria-hidden="true"><item.Icon size={37} strokeWidth={1.85}/></span>
+        <span className="nb64-kpi-symbol" aria-hidden="true" style={{width:50,height:50,flex:'0 0 50px',display:'grid',placeItems:'center',color:item.colors.primary,background:`linear-gradient(145deg,#ffffff,${item.colors.track})`,border:`1px solid ${item.colors.track}`,borderRadius:14,boxShadow:'0 3px 11px rgba(23,60,110,.10)'}}><item.Icon size={37} color={item.colors.primary} strokeWidth={1.9}/></span>
         <div className="nb64-kpi-figures"><strong>{percent}%</strong><p>{item.count}</p></div>
        </div>
       </div>
-      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent}`} role="img" aria-label={`${item.label}: ${percent}% complete`}>
-       <svg viewBox="0 0 120 120" focusable="false" aria-hidden="true">
+      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb65-liquid-ring`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{width:108,height:108,flex:'0 0 108px',display:'block',position:'relative',filter:'drop-shadow(0 5px 8px rgba(24,70,128,.12))'}}>
+       <svg className="nb65-liquid-svg" viewBox="0 0 120 120" width="100%" height="100%" style={{display:'block',overflow:'visible'}} focusable="false" aria-hidden="true">
         <defs>
-         <linearGradient id={ringId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="var(--nb64-bright)"/>
-          <stop offset="50%" stopColor="var(--nb64-accent)"/>
-          <stop offset="100%" stopColor="var(--nb64-deep)"/>
+         <linearGradient id={ringId} x1="0%" y1="0%" x2="95%" y2="100%">
+          <stop offset="0%" stopColor={item.colors.light}/>
+          <stop offset="45%" stopColor={item.colors.primary}/>
+          <stop offset="100%" stopColor={item.colors.dark}/>
          </linearGradient>
-         <clipPath id={waveId}><circle cx="60" cy="60" r="41"/></clipPath>
+         <linearGradient id={`${ringId}-water`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={item.colors.light} stopOpacity=".48"/>
+          <stop offset="100%" stopColor={item.colors.primary} stopOpacity=".52"/>
+         </linearGradient>
+         <clipPath id={waveId}><circle cx="60" cy="60" r="40"/></clipPath>
         </defs>
-        <circle className="nb64-ring-center" cx="60" cy="60" r="41"/>
+        <circle cx="60" cy="60" r="41" fill="#ffffff" fillOpacity=".7" stroke="#ffffff" strokeWidth="2"/>
         <g clipPath={`url(#${waveId})`}>
-         <path className="nb64-liquid-wave nb64-liquid-wave--back" d={`M -150 ${waveY+5} C -110 ${waveY-3}, -70 ${waveY+13}, -30 ${waveY+5} S 50 ${waveY+5}, 90 ${waveY+5} S 170 ${waveY+5}, 210 ${waveY+5} L 210 155 L -150 155 Z`}/>
-         <path className="nb64-liquid-wave nb64-liquid-wave--front" d={`M -150 ${waveY} C -110 ${waveY-7}, -70 ${waveY+7}, -30 ${waveY} S 50 ${waveY}, 90 ${waveY} S 170 ${waveY}, 210 ${waveY} L 210 155 L -150 155 Z`}/>
+         <path d={`M -145 ${waveY+5} Q -125 ${waveY-5}, -105 ${waveY+5} T -65 ${waveY+5} T -25 ${waveY+5} T 15 ${waveY+5} T 55 ${waveY+5} T 95 ${waveY+5} T 135 ${waveY+5} T 175 ${waveY+5} L 175 155 L -145 155 Z`} fill={item.colors.light} fillOpacity=".34">
+          <animateTransform attributeName="transform" type="translate" values="-16 -1;16 1;-16 -1" keyTimes="0;.5;1" dur="5.6s" repeatCount="indefinite"/>
+         </path>
+         <path d={`M -145 ${waveY} Q -125 ${waveY-9}, -105 ${waveY} T -65 ${waveY} T -25 ${waveY} T 15 ${waveY} T 55 ${waveY} T 95 ${waveY} T 135 ${waveY} T 175 ${waveY} L 175 155 L -145 155 Z`} fill={`url(#${ringId}-water)`}>
+          <animateTransform attributeName="transform" type="translate" values="16 1;-16 -1;16 1" keyTimes="0;.5;1" dur="4.8s" repeatCount="indefinite"/>
+         </path>
+         <ellipse cx="47" cy="46" rx="28" ry="15" fill="#ffffff" fillOpacity=".13">
+          <animate attributeName="opacity" values=".2;.5;.2" dur="4.8s" repeatCount="indefinite"/>
+         </ellipse>
         </g>
-        <circle className="nb64-ring-track" cx="60" cy="60" r="48"/>
-        {percent>0&&<circle className="nb64-ring-progress" cx="60" cy="60" r="48" stroke={`url(#${ringId})`} strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
-        <path className="nb64-ring-highlight" d="M 28 43 A 38 38 0 0 1 62 22"/>
+        <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="9"/>
+        {percent>0&&<circle cx="60" cy="60" r="48" fill="none" stroke={`url(#${ringId})`} strokeWidth="9" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
+        <path d="M 28 43 A 38 38 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".83" strokeWidth="2.6" strokeLinecap="round"/>
        </svg>
       </span>
      </div>
