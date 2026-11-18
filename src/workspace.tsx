@@ -67,7 +67,7 @@ const GuideTechnicalReadout = ({values,deviceVisualType,editingSection,isAdmin,f
     ["IP scope",values.ipScope,field('ipScope','IP scope')],["Reservation",values.ipReservation,field('ipReservation','Reservation')]]}/>
    <GuideDetailGroup {...common} title="Access & management" icon={ShieldCheck} editing={editingSection==='access'} onEdit={()=>onEdit('access')} fields={[
     ["Service account",values.serviceAccount,field('serviceAccount','Service account')],["Domain / OU",values.domainOU,field('domainOU','Domain / OU')],
-    ["AirWatch tags",values.airWatchTags,field('airWatchTags','AirWatch tags')],["User account",values.userAccount,field('userAccount','User account')],
+    ["AirWatch tags",values.airWatchTags,field('airWatchTags','AirWatch tags')],["User Account",values.userAccount,field('userAccount','User Account')],
     ["Documentation URL",'',<input aria-label="Documentation URL" type="url" value={documentationUrl} onChange={e=>onDocumentationChange(e.target.value)}/>],
     ["Authentication",'',field('logonType','Authentication')]]
     .filter((row:any)=>editingSection==='access'||!['Documentation URL','Authentication'].includes(row[0]))}/>
