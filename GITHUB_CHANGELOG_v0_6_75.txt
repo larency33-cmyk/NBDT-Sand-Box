@@ -1,0 +1,15 @@
+NBDT Hub v0.6.75 — changed/new files relative to v0.6.74
+
+src/workspace.tsx
+src/lessons-learned-section.tsx
+src/lessons-formatting.mjs
+src/guide-excel-import.mjs
+src/guide-excel-import-modal.tsx
+nbdt-guide-excel-v075.css
+tests/guide-excel-import-v075.test.mjs
+index.tsx
+package.json
+README.md
+RELEASE_NOTES_v0_6_75_RU.md
+GITHUB_CHANGELOG_v0_6_75.txt
+NBDT_v0_6_75_GitHub_Manifest.json

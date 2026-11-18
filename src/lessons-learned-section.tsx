@@ -1,16 +1,17 @@
 import React,{useState,useEffect} from 'react';
 import {Ship,Plus,Trash2,ClipboardPaste} from 'lucide-react';
 import {groupLessons,normalizeLesson,parseExcelLesson,isLessonPopulated,sameLesson,SUGGESTED_VESSELS,LESSON_COLUMNS,UNASSIGNED_VESSEL} from './lessons-learned.mjs';
+import {formatLessonBlocks} from './lessons-formatting.mjs';
 
 const COLUMNS=[['lessonLearned','Lesson Learned'],['issueProfile','Issue Profile'],['detailsCorrectiveAction','Details / Corrective Action'],['resolvedBy','Resolved By']];
-const FIELDS=['Description','Application','Area / Venue','Category','Author','Type','Owner','Product Team','Comments','Tracking','Ticket','Ticket Date','Corrective Action','Notes','Doc Needed'];
 function FormattedCell({value}:{value:string}){
- const lines=String(value||'').split('\n');
- return <div className="nb74-cell-lines">{lines.map((line,index)=>{
-  const match=line.match(/^\s*([\w /-]{2,35})\s*:\s*(.*)$/);
-  const label=match?.[1]?.trim();
-  const matched=label&&FIELDS.some(item=>item.toLowerCase()===label.toLowerCase());
-  return <div key={index} className={line.trim()?'nb74-cell-line':'nb74-cell-gap'}>{matched?<><strong>{label}:</strong>{match[2]?' '+match[2]:''}</>:line||'\u00a0'}</div>;
+ const blocks=formatLessonBlocks(value);
+ return <div className="nb74-cell-lines nb75-cell-lines">{blocks.map((block:any,index:number)=>{
+  if(block.kind==='spacer')return <div key={index} className="nb74-cell-gap"/>;
+  if(block.kind==='field')return <div key={index} className={`nb74-cell-line nb75-cell-field nb75-cell-field--${block.layout}`}>
+   <strong>{block.label}{block.layout==='inline'?':':''}</strong>{block.value&&<span>{block.layout==='inline'?' ':''}{block.value}</span>}
+  </div>;
+  return <div key={index} className="nb74-cell-line">{block.value}</div>;
  })}</div>;
 }
 function LessonsTable({vessel,lessons}:{vessel:string,lessons:any[]}){

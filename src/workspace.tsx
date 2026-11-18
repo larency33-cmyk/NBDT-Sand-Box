@@ -1,5 +1,7 @@
 import {Migration,download,useUnsaved} from './enhancements';
 import {LessonsLearnedBody} from './lessons-learned-section';
+import {GuideExcelImportModal} from './guide-excel-import-modal';
+import {applyGuideExcelImport} from './guide-excel-import.mjs';
 import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
@@ -62,7 +64,7 @@ const GuideTechnicalReadout = ({values,owner,editingSection,isAdmin,field,ownerI
     ["IP scope",values.ipScope,field('ipScope','IP scope')],["Reservation",values.ipReservation,field('ipReservation','Reservation')]]}/>
    <GuideDetailGroup {...common} title="Access & management" icon={ShieldCheck} editing={editingSection==='access'} onEdit={()=>onEdit('access')} fields={[
     ["Service account",values.serviceAccount,field('serviceAccount','Service account')],["Domain / OU",values.domainOU,field('domainOU','Domain / OU')],
-    ["MDM / AirWatch",values.airWatchTags,field('airWatchTags','MDM / AirWatch')],["Owner",owner,ownerInput],
+    ["AirWatch tags",values.airWatchTags,field('airWatchTags','AirWatch tags')],["Owner",owner,ownerInput],
     ["Documentation URL",'',<input aria-label="Documentation URL" type="url" value={documentationUrl} onChange={e=>onDocumentationChange(e.target.value)}/>],
     ["User account",'',field('userAccount','User account')],["Authentication",'',field('logonType','Authentication')]]
     .filter((row:any)=>editingSection==='access'||!['Documentation URL','User account','Authentication'].includes(row[0]))}/>
@@ -89,6 +91,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const legacyLessons=()=>Array.isArray(sys.lessonsLearnedItems)?sys.lessonsLearnedItems:(sys.lessonsLearned?[{id:'legacy-lesson-'+sys.id,text:String(sys.lessonsLearned),checked:false}]:[]);
  const [lessonDraft,setLessonDraft]=useState<any[]>(legacyLessons);
  const [saving,setSaving]=useState(false);
+ const [showExcelImport,setShowExcelImport]=useState(false);
  const pending=useRef(false);
  const device=(sys.devices||[]).find((d:any)=>d.id===deviceId);
  const run=runFor(sys,device);
@@ -169,10 +172,22 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   }
   return false;
  };
+ const applyExcelImport=async(parsed:any)=>{
+  if(!isAdmin||editingSection||pending.current)return false;
+  const next=applyGuideExcelImport(sys,beginGuideEdit(sys),parsed,uid);
+  if(!String(next.name||'').trim()){setMessage('System name is required.');return false;}
+  if(next.guideDraft?.technicalSnapshot?.os!==guideTechnicalValues(sys).os && (sys.deviceRuns||[]).some((r:any)=>!r.archived)){
+   setMessage('Platform changes require a new endpoint profile when active device runs exist.');return false;
+  }
+  const saved=await update(next);
+  if(saved){setShowExcelImport(false);setDraft(next.guideDraft);setIdentity(guideIdentity(next));}
+  return saved;
+ };
  const editControls=(section:string)=>editingSection===section?<div className="nb41-inline-actions"><B primary disabled={saving} onClick={saveSection}><Check size={15}/> Save</B><B disabled={saving} onClick={cancelEdit}>Cancel</B></div>:null;
  const editing=!!editingSection;
  return <section className="nb-guide-page nb40-guide-page nb41-guide-page">
-  <header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
+  <header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{isAdmin&&!editing&&<B className="nb75-import-button" onClick={()=>setShowExcelImport(true)}><ClipboardCheck size={16}/> Import from Excel</B>}{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
+  {showExcelImport&&<GuideExcelImportModal busy={saving} onClose={()=>setShowExcelImport(false)} onApply={applyExcelImport}/> }
   <div className="nb-guide-body">
    <section className="nb-technical">
     <button type="button" className="nb-section-toggle" onClick={()=>setTechnical(v=>!v)} aria-expanded={technical}><span>Technical essentials</span><span>{technical?'Collapse':'Expand'}</span></button>
