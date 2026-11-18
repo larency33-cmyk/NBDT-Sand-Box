@@ -1,7 +1,7 @@
 import {Migration,download,useUnsaved} from './enhancements';
 import {LessonsLearnedBody} from './lessons-learned-section';
 import {GuideExcelImportModal} from './guide-excel-import-modal';
-import {applyGuideExcelImport} from './guide-excel-import.mjs';
+import {applyGuideExcelImport,isFalsePlaceholder,normalizeApplications} from './guide-excel-import.mjs';
 import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
 import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
@@ -39,7 +39,7 @@ const guideIdentity = (sys:any) => ({
 /** Approved read-only Guide layout; all values come from the same Guide snapshot used by Registry. */
 const GuideValue = ({value}: {value:any}) => {
  const text=String(value??'').trim();
- return <>{text && text!=='undefined' && text!=='null' ? text : 'Not specified'}</>;
+ return <>{text && text!=='undefined' && text!=='null' && !isFalsePlaceholder(value) ? text : 'Not specified'}</>;
 };
 /** The same three approved detail cards; individual fields turn into inputs in place. */
 const GuideDetailGroup = ({title,icon:Icon,fields,editing,onEdit,onSave,onCancel,isAdmin,saving}:any) =>
@@ -50,7 +50,7 @@ const GuideDetailGroup = ({title,icon:Icon,fields,editing,onEdit,onSave,onCancel
   <dl>{fields.map(([label,value,editor]:any)=><React.Fragment key={label}><dt>{label}</dt><dd>{editing?editor:<GuideValue value={value}/>}</dd></React.Fragment>)}</dl>
   {editing&&<div className="nb41-inline-actions"><B primary disabled={saving} onClick={onSave}><Check size={15}/> Save</B><B disabled={saving} onClick={onCancel}>Cancel</B></div>}
  </section>;
-const GuideTechnicalReadout = ({values,deviceVisualType,owner,editingSection,isAdmin,field,ownerInput,identityName,onNameChange,documentationUrl,onDocumentationChange,onEdit,onSave,onCancel,saving}:any) => {
+const GuideTechnicalReadout = ({values,deviceVisualType,editingSection,isAdmin,field,identityName,onNameChange,documentationUrl,onDocumentationChange,onEdit,onSave,onCancel,saving}:any) => {
  const os=[values.os,values.osVersion].filter(Boolean).join(' ');
  const model=deviceModelValue({deviceModel:values.deviceModel,deviceType:values.deviceType});
  const common={isAdmin,onSave,onCancel,saving};
@@ -67,14 +67,14 @@ const GuideTechnicalReadout = ({values,deviceVisualType,owner,editingSection,isA
     ["IP scope",values.ipScope,field('ipScope','IP scope')],["Reservation",values.ipReservation,field('ipReservation','Reservation')]]}/>
    <GuideDetailGroup {...common} title="Access & management" icon={ShieldCheck} editing={editingSection==='access'} onEdit={()=>onEdit('access')} fields={[
     ["Service account",values.serviceAccount,field('serviceAccount','Service account')],["Domain / OU",values.domainOU,field('domainOU','Domain / OU')],
-    ["AirWatch tags",values.airWatchTags,field('airWatchTags','AirWatch tags')],["Owner",owner,ownerInput],
+    ["AirWatch tags",values.airWatchTags,field('airWatchTags','AirWatch tags')],["User account",values.userAccount,field('userAccount','User account')],
     ["Documentation URL",'',<input aria-label="Documentation URL" type="url" value={documentationUrl} onChange={e=>onDocumentationChange(e.target.value)}/>],
-    ["User account",'',field('userAccount','User account')],["Authentication",'',field('logonType','Authentication')]]
-    .filter((row:any)=>editingSection==='access'||!['Documentation URL','User account','Authentication'].includes(row[0]))}/>
+    ["Authentication",'',field('logonType','Authentication')]]
+    .filter((row:any)=>editingSection==='access'||!['Documentation URL','Authentication'].includes(row[0]))}/>
   </div>;
 };
 const GuideApplications = ({value,isAdmin,editing,onEdit,onSave,onCancel,onChange,saving}:any) => {
- const apps=String(value||'').split(/[,;\n\r]+/g).map(v=>v.trim()).filter(Boolean);
+ const apps=normalizeApplications(value).split('\n').filter(Boolean);
  return <section className={'nb40-applications'+(editing?' nb41-active-editor':'')} aria-label="Applications">
    <div className="nb40-apps-heading"><span className="nb40-apps-icon" aria-hidden="true"><LayoutGrid size={26} strokeWidth={2}/></span><div><h2>Applications</h2><p>{apps.length?'Required software':'No applications specified'}</p></div></div>
    {editing?<div className="nb41-apps-edit"><label htmlFor="nb41-apps-text">Applications · one per line</label><textarea id="nb41-apps-text" aria-label="Required applications" rows={4} value={String(value||'')} onChange={e=>onChange(e.target.value)}/><div className="nb41-inline-actions"><B primary disabled={saving} onClick={onSave}><Check size={15}/> Save</B><B disabled={saving} onClick={onCancel}>Cancel</B></div></div>
@@ -111,7 +111,6 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  useEffect(()=>{const handler=(e:KeyboardEvent)=>{if(e.key==='Escape')close();};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[dirty,onClose]);
  const url=safeUrl(sys.documentationUrl);
  const technicalValues=editingSection&&editingSection!=='lessons'?draft.technicalSnapshot:guideTechnicalValues(sys);
- const owner=sys.assignmentOwnerLabel||project.members.find((m:any)=>m.id===(editingSection==='access'?identity.assigneeId:sys.assigneeId))?.name||'Unassigned';
  const items=guide?.stages?.[stage]||[];
  const previewItems=items.length?items:(sys.checkSheetData?.[stage]||[]);
  const reviewRun=run||{...reviewDraft,snapshot:guide};
@@ -125,10 +124,11 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const setMeta=(key:string,value:string)=>setIdentity((prev:any)=>({...prev,[key]:value}));
  const inlineField=(key:string,label:string,options?:readonly string[])=>options?
   <select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:
-  <input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>;
- const ownerInput=sys.assignmentOwnerLabel?<span className="nb52-managed-owner" title="Manage ownership in Assignment">{sys.assignmentOwnerLabel} · Managed in Assignment</span>:<select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>;
+  <input aria-label={label} value={isFalsePlaceholder(technicalValues[key])?'':String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>;
  const beginEdit=(section:string)=>{if(!isAdmin||editingSection)return;if(reviewDirty&&!confirm('Discard unsaved checklist progress?'))return;
-  setReviewDraft(savedReview);setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons().map(normalizeLesson));setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
+  const nextDraft=beginGuideEdit(sys);
+  if(section==='applications')nextDraft.technicalSnapshot={...nextDraft.technicalSnapshot,appList:normalizeApplications(nextDraft.technicalSnapshot?.appList)};
+  setReviewDraft(savedReview);setDraft(nextDraft);setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons().map(normalizeLesson));setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
  };
  const cancelEdit=()=>{if(sectionDirty&&!confirm('Discard unsaved section changes?'))return;setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setEditingSection(null);setMessage('');};
  const validateDetails=()=>{
@@ -137,7 +137,10 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   if(draft.technicalSnapshot.os!==guideTechnicalValues(sys).os&&(sys.deviceRuns||[]).some((r:any)=>!r.archived)){setMessage('Platform changes require a new endpoint profile when device runs exist.');return false;}
   return true;
  };
- const updatedSystem=(guideChanges:any)=>({...sys,...guideChanges.technicalSnapshot,...identity,name:identity.name.trim(),description:identity.description,guideDraft:guideChanges});
+ const updatedSystem=(guideChanges:any)=>{
+  const technicalSnapshot={...guideChanges.technicalSnapshot,appList:normalizeApplications(guideChanges.technicalSnapshot?.appList)};
+  return {...sys,...technicalSnapshot,...identity,name:identity.name.trim(),description:identity.description,guideDraft:{...guideChanges,technicalSnapshot}};
+ };
  const saveSection=async()=>{if(!validateDetails())return;
   if(editingSection==='checklist'){
    const errors=validateGuide({...sys,os:draft.technicalSnapshot.os},draft);
@@ -208,7 +211,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   <div className="nb-guide-body">
    <section className="nb-technical">
     <button type="button" className="nb-section-toggle" onClick={()=>setTechnical(v=>!v)} aria-expanded={technical}><span>Technical essentials</span><span>{technical?'Collapse':'Expand'}</span></button>
-    {technical&&<GuideTechnicalReadout values={technicalValues} deviceVisualType={registryVisualType({...sys,guideDraft:{technicalSnapshot:{...technicalValues,deviceCategory:technicalValues.deviceCategory||sys.deviceCategory}}})} owner={owner} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} ownerInput={ownerInput} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
+    {technical&&<GuideTechnicalReadout values={technicalValues} deviceVisualType={registryVisualType({...sys,guideDraft:{technicalSnapshot:{...technicalValues,deviceCategory:technicalValues.deviceCategory||sys.deviceCategory}}})} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
    </section>
    <GuideApplications value={technicalValues.appList} isAdmin={isAdmin&&!editing} editing={editingSection==='applications'} onEdit={()=>beginEdit('applications')} onChange={(v:string)=>setTech('appList',v)} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
    <details className={'nb-lessons nb41-lessons nb74-lessons nb79-lessons '+(!lessonCount?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
