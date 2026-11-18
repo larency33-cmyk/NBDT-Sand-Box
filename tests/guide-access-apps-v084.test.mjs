@@ -8,7 +8,7 @@ import {registryCardFields,deviceModelValue} from '../src/registry-metadata.mjs'
 test('Owner stays on external Registry card, imported User account appears in Guide Access & management',()=>{
  const guide=readFileSync(new URL('../src/workspace.tsx',import.meta.url),'utf8');
  const registry=readFileSync(new URL('../index.tsx',import.meta.url),'utf8');
- assert.match(guide,/\["User account",values\.userAccount,field\('userAccount','User account'\)\]/);
+ assert.match(guide,/\["User Account",values\.userAccount,field\('userAccount','User Account'\)\]/);
  assert.doesNotMatch(guide,/\["Owner",owner,ownerInput\]/);
  assert.match(guide,/!\['Documentation URL','Authentication'\]\.includes/);
  assert.match(registry,/Owner: <strong>\{sys\.assignmentOwnerLabel\}/);
