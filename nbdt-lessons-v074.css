@@ -1,0 +1,55 @@
+/* v0.6.74 — Excel-style Lessons Learned integrated with existing Guide design.
+   Orange belongs to the enclosing card; vessel bands and table are quiet blue. */
+.nb41-guide-page .nb74-lessons{border-radius:11px;overflow:hidden}
+.nb41-guide-page .nb74-lessons summary{background:#fff9f2}
+.nb41-guide-page .nb74-lessons .nb74-lessons-body{padding:8px 13px 15px 13px;background:#fffdfb;display:grid;gap:12px;min-width:0}
+.nb74-ship-group{min-width:0;border:1px solid #dce8f5;border-radius:9px;overflow:hidden;background:#fff}
+.nb74-ship-header{display:flex;align-items:center;gap:10px;min-height:36px;padding:7px 13px;background:linear-gradient(95deg,#d9e8fa,#e7f0fc);color:#133968;font-size:12px;letter-spacing:.03em}
+.nb74-ship-header strong{font-weight:740}
+.nb74-ship-icon{display:grid;place-items:center;width:24px;height:21px;border-radius:6px;color:#2874b2;font-size:19px;line-height:1}
+.nb74-ship-count{margin-left:2px;padding:2px 9px;border-radius:20px;color:#526f91;background:#ffffffaa;font-size:10px;letter-spacing:0;white-space:nowrap}
+.nb74-table-scroll{max-width:100%;overflow-x:auto}
+.nb74-lesson-table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:685px;color:#193253;font-size:11.5px;line-height:1.48}
+.nb74-lesson-table .nb74-title-col{width:17%}.nb74-lesson-table .nb74-profile-col{width:24%}.nb74-lesson-table .nb74-details-col{width:47%}.nb74-lesson-table .nb74-resolved-col{width:12%}
+.nb74-lesson-table th{padding:8px 11px;text-align:left;font-weight:760;color:#2c4e77;background:#f2f6fc;border-bottom:1px solid #dce6f1;vertical-align:top}
+.nb74-lesson-table th+th,.nb74-lesson-table td+td{border-left:1px solid #e2eaf3}
+.nb74-lesson-table td{padding:13px 11px;vertical-align:top;border-top:1px solid #e5ecf5;overflow-wrap:anywhere;white-space:normal}
+.nb74-lesson-table tbody tr:nth-child(2n){background:#fbfdff}
+.nb74-lesson-table tbody tr:first-child td{border-top:0}
+.nb74-title-cell{color:#112e56;font-weight:700}
+.nb74-title-cell strong{font-size:12px;font-weight:760}
+.nb74-cell-lines{white-space:pre-wrap;overflow-wrap:anywhere}
+.nb74-cell-line{min-height:1.1em}.nb74-cell-line strong{font-weight:730;color:#2b466b}
+.nb74-cell-gap{height:.65em;min-height:0;font-size:0}
+.nb74-resolved-cell{font-weight:650;color:#274469}
+.nb74-empty{font-size:12px;color:#6f86a6;padding:7px 10px 9px}
+.nb74-import-panel{padding:13px;border:1px solid #dce7f5;border-radius:9px;background:#f7faff;display:grid;gap:10px}
+.nb74-import-heading{display:flex;gap:8px;align-items:center;color:#204c7a;font-size:12px}
+.nb74-import-heading strong{font-size:13px}.nb74-import-heading span{color:#7890a9;font-size:11px;margin-left:5px}
+.nb74-paste-layout{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(0,2fr);gap:12px}
+.nb74-paste-layout label,.nb74-edit-vessel,.nb74-edit-fields label{font-size:11px;color:#526d8f;font-weight:650;display:flex;flex-direction:column;gap:6px;min-width:0}
+.nb74-paste-layout input,.nb74-paste-layout textarea,.nb74-edit-fields textarea,.nb74-edit-vessel input{border:1px solid #ccdcf1;border-radius:7px;background:#fff;color:#1a365a;padding:8px 10px;width:100%;font-size:12px;line-height:1.4;min-width:0}
+.nb74-paste-layout textarea,.nb74-edit-fields textarea{resize:vertical}
+.nb74-paste-layout input:focus,.nb74-paste-layout textarea:focus,.nb74-edit-fields textarea:focus,.nb74-edit-vessel input:focus{border-color:#73abec}
+.nb74-import-actions,.nb74-editor-footer{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.nb74-import-actions button,.nb74-editor-footer button{display:inline-flex;align-items:center;gap:6px;min-height:33px;border-radius:7px;padding:6px 12px;font-size:11.5px;font-weight:650;border:1px solid #c8d9ef}
+.nb74-secondary{background:#fff;color:#2a5b91}
+.nb74-primary{background:#f17617;color:#fff;border-color:#f17617!important}
+.nb74-primary:hover{background:#e56b11}
+.nb74-import-actions button:disabled,.nb74-editor-footer button:disabled{opacity:.45;cursor:not-allowed}
+.nb74-import-error{color:#a83e2e;font-size:12px}
+.nb74-import-preview{display:grid;gap:7px;padding-top:10px;border-top:1px solid #d6e4f5}
+.nb74-import-preview-heading{font-size:11px;font-weight:700;color:#47698d}
+.nb74-existing-heading{font-size:12px;font-weight:760;color:#25476e}
+.nb74-empty-edit{font-size:12px;color:#8093a9}
+.nb74-edit-lesson{border:1px solid #dce8f4;border-radius:9px;background:#fff;padding:12px;display:grid;gap:10px}
+.nb74-edit-lesson-header{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#173b66}
+.nb74-edit-lesson-header button{display:inline-flex;align-items:center;gap:5px;background:transparent;border:0;color:#a95843;font-size:11px;padding:5px 8px}
+.nb74-edit-lesson-header button:hover{background:#fff2ed;border-radius:6px}
+.nb74-edit-fields{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(160px,1.1fr) minmax(180px,2fr) minmax(120px,.8fr);gap:10px;align-items:start}
+.nb74-edit-fields textarea{min-height:70px}
+.nb74-editor-footer{justify-content:space-between;align-items:center;gap:12px;padding-top:6px}
+.nb74-editor-footer>div{display:flex;gap:8px}
+.nb41-guide-page .nb74-lessons .nb41-lesson-pencil{color:#e96d0c}
+@media(max-width:1000px){.nb74-edit-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.nb41-guide-page .nb74-lessons .nb74-lessons-body{padding:8px 9px 12px}.nb74-paste-layout,.nb74-edit-fields{grid-template-columns:1fr}.nb74-import-heading{flex-wrap:wrap}.nb74-import-heading span{margin-left:0;flex-basis:100%}.nb74-editor-footer{justify-content:flex-end}.nb74-editor-footer>button{margin-right:auto}}

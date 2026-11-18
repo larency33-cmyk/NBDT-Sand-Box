@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.73 (white empty KPI chamber + stage-aware Configuration Remaining).** Unfilled KPI water is white at 70% opacity; Overview now shows the correct active stage and its own percentage: Base Configuration → Ready for Deployment → Deployed. Near-complete stages (95%+) can yield attention to the next stage if it has a substantial backlog. See `RELEASE_NOTES_v0_6_73_RU.md`.
+**Current package: v0.6.74 (Lessons Learned — vessel-grouped Excel import).** The Guide's existing orange Lessons Learned card now shows four Excel-aligned columns and separates lessons by vessel. Admins can open the pencil, paste one four-cell Excel row, review the fields, and save the lesson without losing existing records. The previous Overview and configuration changes remain intact. See `RELEASE_NOTES_v0_6_74_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

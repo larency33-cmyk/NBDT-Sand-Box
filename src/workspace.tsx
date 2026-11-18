@@ -1,4 +1,6 @@
 import {Migration,download,useUnsaved} from './enhancements';
+import {LessonsLearnedBody} from './lessons-learned-section';
+import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
@@ -95,7 +97,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const savedReview=loadGuideReview(sys.guideReview,guide);
  const [reviewDraft,setReviewDraft]=useState<any>(()=>savedReview);
  const reviewDirty=!run&&JSON.stringify(reviewDraft)!==JSON.stringify(savedReview);
- const sectionDirty=editingSection!==null&&(JSON.stringify(draft)!==JSON.stringify(beginGuideEdit(sys))||JSON.stringify(identity)!==JSON.stringify(guideIdentity(sys))||JSON.stringify(lessonDraft)!==JSON.stringify(legacyLessons()));
+ const sectionDirty=editingSection!==null&&(JSON.stringify(draft)!==JSON.stringify(beginGuideEdit(sys))||JSON.stringify(identity)!==JSON.stringify(guideIdentity(sys))||(editingSection==='lessons'&&JSON.stringify(lessonDraft)!==JSON.stringify(legacyLessons().map(normalizeLesson))));
  const dirty=sectionDirty||reviewDirty;
  useDirty(dirty);useUnsaved(dirty);
  useEffect(()=>{if(!reviewDirty)setReviewDraft(loadGuideReview(sys.guideReview,guide));},[sys.guideReview,guideKey]);
@@ -117,7 +119,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   <input aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}/>;
  const ownerInput=sys.assignmentOwnerLabel?<span className="nb52-managed-owner" title="Manage ownership in Assignment">{sys.assignmentOwnerLabel} · Managed in Assignment</span>:<select aria-label="Deployment owner" value={identity.assigneeId} onChange={e=>setMeta('assigneeId',e.target.value)}><option value="">Unassigned</option>{project.members.map((m:any)=><option key={m.id} value={m.id}>{m.name}</option>)}</select>;
  const beginEdit=(section:string)=>{if(!isAdmin||editingSection)return;if(reviewDirty&&!confirm('Discard unsaved checklist progress?'))return;
-  setReviewDraft(savedReview);setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
+  setReviewDraft(savedReview);setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons().map(normalizeLesson));setMessage('');setEditingSection(section);if(section==='device'||section==='network'||section==='access')setTechnical(true);
  };
  const cancelEdit=()=>{if(sectionDirty&&!confirm('Discard unsaved section changes?'))return;setDraft(beginGuideEdit(sys));setIdentity(guideIdentity(sys));setLessonDraft(legacyLessons());setEditingSection(null);setMessage('');};
  const validateDetails=()=>{
@@ -132,7 +134,8 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
    const errors=validateGuide({...sys,os:draft.technicalSnapshot.os},draft);
    if(errors.length){setMessage(errors.join('; '));return;}
   }
-  const next=editingSection==='lessons'?{...sys,lessonsLearnedItems:lessonDraft.map(i=>({...i,text:i.text.trim()})).filter(i=>i.text),lessonsLearned:lessonDraft.map(i=>i.text.trim()).filter(Boolean).join('\n\n')}:updatedSystem(draft);
+  if(editingSection==='lessons'&&lessonDraft.some((item:any)=>isLessonPopulated(item)&&!String(item.lessonLearned||'').trim())){setMessage('Each lesson must have a title.');return;}
+  const next=editingSection==='lessons'?{...sys,...serializeLessons(lessonDraft)}:updatedSystem(draft);
   if(await update(next))setEditingSection(null);
  };
  const publish=async()=>{
@@ -157,7 +160,15 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
   const index=STAGES.indexOf(stage);if(index<STAGES.length-1){setStage(STAGES[index+1]);onNavigationChange?.({deviceId,stage:STAGES[index+1]});}
  }catch(error:any){setMessage(error.message);}};
  const displayedLessons=Array.isArray(sys.lessonsLearnedItems)?sys.lessonsLearnedItems:legacyLessons();
- const toggleLesson=async(id:string,checked:boolean)=>{const next=displayedLessons.map((item:any)=>item.id===id?{...item,checked}:item);await update({...sys,lessonsLearnedItems:next});};
+ const lessonCount=displayedLessons.map(normalizeLesson).filter(isLessonPopulated).length;
+ const importLesson=async(row:any)=>{
+  if(!isAdmin||editingSection!=='lessons')return false;
+  const next=[...lessonDraft,{id:uid(),...row,text:'',checked:false}];
+  if(await update({...sys,...serializeLessons(next)})){
+   setLessonDraft(next);setEditingSection(null);return true;
+  }
+  return false;
+ };
  const editControls=(section:string)=>editingSection===section?<div className="nb41-inline-actions"><B primary disabled={saving} onClick={saveSection}><Check size={15}/> Save</B><B disabled={saving} onClick={cancelEdit}>Cancel</B></div>:null;
  const editing=!!editingSection;
  return <section className="nb-guide-page nb40-guide-page nb41-guide-page">
@@ -168,14 +179,9 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
     {technical&&<GuideTechnicalReadout values={technicalValues} owner={owner} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} ownerInput={ownerInput} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
    </section>
    <GuideApplications value={technicalValues.appList} isAdmin={isAdmin&&!editing} editing={editingSection==='applications'} onEdit={()=>beginEdit('applications')} onChange={(v:string)=>setTech('appList',v)} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
-   <details className={'nb-lessons nb41-lessons '+(!displayedLessons.length?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
-    <summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {displayedLessons.length?`${displayedLessons.length} lesson${displayedLessons.length===1?'':'s'}`:'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary>
-    <div className="nb41-lessons-body">
-    {editingSection==='lessons'?<>
-     {lessonDraft.map((item:any,i:number)=><div key={item.id} className="nb41-lesson-edit-row"><label className="nb41-lesson-check"><input type="checkbox" checked={!!item.checked} onChange={e=>setLessonDraft(prev=>prev.map(v=>v.id===item.id?{...v,checked:e.target.checked}:v))}/><span>Completed</span></label><textarea aria-label={'Lesson '+(i+1)+' description'} placeholder="Describe the lesson, impact and recommended action..." rows={4} value={item.text} onChange={e=>setLessonDraft(prev=>prev.map(v=>v.id===item.id?{...v,text:e.target.value}:v))}/><button type="button" className="nb41-delete-step" aria-label={'Remove lesson '+(i+1)} onClick={()=>setLessonDraft(prev=>prev.filter(v=>v.id!==item.id))}><Trash2 size={17}/></button></div>)}
-     <div className="nb41-lesson-bottom"><B onClick={()=>setLessonDraft(prev=>[...prev,{id:uid(),text:'',checked:false}])}><Plus size={15}/> Add lesson</B>{editControls('lessons')}</div>
-    </>:displayedLessons.length?<ul className="nb41-lesson-list">{displayedLessons.map((item:any)=><li key={item.id}><label><input type="checkbox" aria-label={'Complete lesson '+item.id} disabled={!isAdmin||saving||!!editingSection} checked={!!item.checked} onChange={e=>toggleLesson(item.id,e.target.checked)}/><span className={item.checked?'nb41-lesson-done':''}>{item.text}</span></label></li>)}</ul>:<p className="nb-note">No lessons learned have been added.</p>}
-    </div>
+   <details className={'nb-lessons nb41-lessons nb74-lessons '+(!lessonCount?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
+    <summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {lessonCount?`${lessonCount} lesson${lessonCount===1?'':'s'}`:'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary>
+    <LessonsLearnedBody items={displayedLessons} editing={editingSection==='lessons'} draft={lessonDraft.map(normalizeLesson)} onDraftChange={setLessonDraft} onImportSave={importLesson} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
     {isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil nb41-lesson-pencil" aria-label="Edit Lessons Learned" title="Edit lessons" onClick={()=>beginEdit('lessons')}><Pencil size={16}/></button>}
    </details>
    <section className="nb-config-workspace" aria-label="Configuration checklists">

@@ -1,0 +1,19 @@
+{
+  "version": "0.6.74",
+  "base_version": "0.6.73",
+  "description": "Ship-grouped Excel Lessons Learned in the existing Guide",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_74.txt",
+    "NBDT_v0_6_74_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_74_RU.md",
+    "index.tsx",
+    "nbdt-lessons-v074.css",
+    "package.json",
+    "src/lessons-learned-section.tsx",
+    "src/lessons-learned.mjs",
+    "src/workspace.tsx",
+    "tests/lessons-learned-v074.test.mjs"
+  ],
+  "removed_files": []
+}
