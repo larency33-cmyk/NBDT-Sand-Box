@@ -1,4 +1,4 @@
-/** NBDT 0.6.83: Excel clipboard import for one system's Guide.
+/** NBDT 0.6.84: Excel clipboard import for one system's Guide.
  * No external services; no clipboard HTML is inserted into the document.
  * Input may be pasted from worksheet cells (TSV / HTML) or a text template.
  */
@@ -15,6 +15,14 @@ export const GUIDE_FIELD_GROUPS = [
 export const GUIDE_STAGE_LABELS={configuration:'Base configuration',readyForDeployment:'Ready for deployment',deployment:'Deployment'};
 const fold = value=>String(value??'').normalize('NFKC').toLowerCase().replace(/\u00a0/g,' ').replace(/&/g,' and ').replace(/[^\p{L}\p{N}]+/gu,' ').trim().replace(/\s+/g,' ');
 const lineText=value=>String(value??'').replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ').replace(/\uFEFF/g,'').trim();
+/** Spreadsheet checkbox columns sometimes paste a literal 'false' beside application names. */
+export const isFalsePlaceholder=value=>value===false||String(value??'').trim().toLowerCase()==='false';
+export function normalizeApplications(value){
+ return String(value??'').split(/[,;\n\r\t]+/g)
+  .map(part=>part.trim().replace(/\s+false\s*$/i,'').trim())
+  .filter(part=>part&&!isFalsePlaceholder(part))
+  .join('\n');
+}
 const FIELD_ALIASES={
  name:['system name','system title','system','name','application name'],
  description:['description','system description','overview','system overview'],
@@ -96,9 +104,13 @@ function readRows(rows){
  const leftovers=[];
  const addField=(key,value)=>{
   const clean=key==='appList'?cleanFieldText(value).replace(/^[•●▪◦‣*-]\s*/u,''):cleanFieldText(value);
-  if(!clean)return;
+  if(!clean||isFalsePlaceholder(clean))return;
   if(key!=='name' && key!=='description')introOpen=false;
-  if(key==='appList')fields[key]=fields[key]?[fields[key],clean].join('\n'):clean;
+  if(key==='appList'){
+   const list=normalizeApplications(clean);
+   if(!list)return;
+   fields[key]=normalizeApplications([fields[key],list].filter(Boolean).join('\n'));
+  }
   else if(key==='description' && fields[key] && fields[key]!==clean)fields[key]+='\n'+clean;
   else fields[key]=clean;
   if(key==='deviceModel')fields.deviceType=clean; // v0.6.75 backward-compatible model alias
@@ -227,7 +239,7 @@ export function parseGuideExcel({text='',html='',Parser}={}){
    if(candidate.stages[stage]?.length > (stages[stage]?.length||0))stages[stage]=candidate.stages[stage];
   }
  }
- const unrecognized=[...new Set(primary.unrecognized.filter(line=>!isKnownValue(line,fields)))];
+ const unrecognized=[...new Set(primary.unrecognized.filter(line=>!isFalsePlaceholder(line)&&!isKnownValue(line,fields)))];
  return {fields,stages,unrecognized};
 }
 export function applyGuideExcelImport(system,baseGuide,parsed,makeId){
@@ -236,7 +248,8 @@ export function applyGuideExcelImport(system,baseGuide,parsed,makeId){
  for(const [key,value] of Object.entries(parsed.fields||{})){
   if(key==='name'||key==='description')identity[key]=value;
   else if(key==='deviceModel'||key==='deviceType'){tech.deviceModel=value;tech.deviceType=value;}
-  else tech[key]=value;
+  else if(key==='appList')tech.appList=normalizeApplications(value);
+  else if(!isFalsePlaceholder(value))tech[key]=value;
  }
  const stages={...baseGuide.stages};
  for(const stage of STAGES){
