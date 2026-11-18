@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.77 (resilient Lessons Learned Excel paste).** The Guide now normalizes blank/merged Excel columns and maps fragmented labels into the four lesson fields. If automatic parsing cannot determine the layout, the entire clipboard text stays in an editable Preview instead of stopping with a column-count error. The paste panel has a discreet `v0.6.77` version marker so users can confirm that Vercel serves the updated build. See `RELEASE_NOTES_v0_6_77_RU.md`.
+**Current package: v0.6.78 (Current Ship Review for Lessons Learned).** Every historical lesson now has a separate current-project review with Pending review / In progress / Confirmed, a checkbox, reviewer name, optional note and automatic timestamp. This review is stored through the existing Guide update flow and is scoped by project ID, so a different/copied project starts unreviewed. The Excel lesson import and existing editing remain intact. See `RELEASE_NOTES_v0_6_78_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

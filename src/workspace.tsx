@@ -3,6 +3,7 @@ import {LessonsLearnedBody} from './lessons-learned-section';
 import {GuideExcelImportModal} from './guide-excel-import-modal';
 import {applyGuideExcelImport} from './guide-excel-import.mjs';
 import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
+import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
@@ -164,6 +165,7 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  }catch(error:any){setMessage(error.message);}};
  const displayedLessons=Array.isArray(sys.lessonsLearnedItems)?sys.lessonsLearnedItems:legacyLessons();
  const lessonCount=displayedLessons.map(normalizeLesson).filter(isLessonPopulated).length;
+ const currentShipLessonReviews=lessonReviewCounts(displayedLessons.map(normalizeLesson).filter(isLessonPopulated),project.id);
  const importLesson=async(row:any)=>{
   if(!isAdmin||editingSection!=='lessons')return false;
   const next=[...lessonDraft,{id:uid(),...row,text:'',checked:false}];
@@ -171,6 +173,16 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
    setLessonDraft(next);setEditingSection(null);return true;
   }
   return false;
+ };
+ const saveCurrentShipLessonReview=async(id:string,values:any)=>{
+  if(!isAdmin||editingSection||pending.current)return false;
+  const items=legacyLessons().map(normalizeLesson);
+  const idx=items.findIndex((item:any)=>item.id===id);
+  if(idx<0)throw new Error('The lesson no longer exists. Refresh and try again.');
+  const updated=setLessonReview(items[idx],project.id,values);
+  if(updated===items[idx])return true;
+  const next=items.map((item:any,index:number)=>index===idx?updated:item);
+  return update({...sys,...serializeLessons(next)});
  };
  const applyExcelImport=async(parsed:any)=>{
   if(!isAdmin||editingSection||pending.current)return false;
@@ -195,8 +207,8 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
    </section>
    <GuideApplications value={technicalValues.appList} isAdmin={isAdmin&&!editing} editing={editingSection==='applications'} onEdit={()=>beginEdit('applications')} onChange={(v:string)=>setTech('appList',v)} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
    <details className={'nb-lessons nb41-lessons nb74-lessons '+(!lessonCount?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
-    <summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {lessonCount?`${lessonCount} lesson${lessonCount===1?'':'s'}`:'No notes recorded'}</span><ChevronDown size={19} className="nb-lessons-chevron"/></summary>
-    <LessonsLearnedBody items={displayedLessons} editing={editingSection==='lessons'} draft={lessonDraft.map(normalizeLesson)} onDraftChange={setLessonDraft} onImportSave={importLesson} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
+    <summary><BookOpen size={22} aria-hidden="true"/><strong>Lessons Learned</strong><span>· {lessonCount?`${lessonCount} lesson${lessonCount===1?'':'s'}`:'No notes recorded'}</span>{lessonCount>0&&<span className="nb78-review-summary">· {currentShipLessonReviews.confirmed} confirmed · {currentShipLessonReviews['in-progress']} in progress · {currentShipLessonReviews.pending} pending</span>}<ChevronDown size={19} className="nb-lessons-chevron"/></summary>
+    <LessonsLearnedBody items={displayedLessons} editing={editingSection==='lessons'} draft={lessonDraft.map(normalizeLesson)} onDraftChange={setLessonDraft} onImportSave={importLesson} onSave={saveSection} onCancel={cancelEdit} saving={saving} projectId={project.id} canReview={isAdmin&&!editing} onReviewSave={saveCurrentShipLessonReview}/>
     {isAdmin&&!editing&&<button type="button" className="nb41-edit-pencil nb41-lesson-pencil" aria-label="Edit Lessons Learned" title="Edit lessons" onClick={()=>beginEdit('lessons')}><Pencil size={16}/></button>}
    </details>
    <section className="nb-config-workspace" aria-label="Configuration checklists">

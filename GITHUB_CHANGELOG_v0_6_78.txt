@@ -1,0 +1,13 @@
+NBDT 0.6.78 changed/new files from 0.6.77
+
+README.md
+RELEASE_NOTES_v0_6_78_RU.md
+GITHUB_CHANGELOG_v0_6_78.txt
+NBDT_v0_6_78_GitHub_Manifest.json
+package.json
+index.tsx
+src/lesson-review.mjs
+src/lessons-learned-section.tsx
+src/workspace.tsx
+nbdt-lessons-v078.css
+tests/lesson-review-v078.test.mjs

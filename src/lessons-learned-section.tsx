@@ -1,5 +1,6 @@
 import React,{useState,useEffect,useRef} from 'react';
-import {Ship,Plus,Trash2,ClipboardPaste} from 'lucide-react';
+import {Ship,Plus,Trash2,ClipboardPaste,Check,Square,CheckSquare,Pencil} from 'lucide-react';
+import {getLessonReview,LESSON_REVIEW_LABELS} from './lesson-review.mjs';
 import {groupLessons,normalizeLesson,isLessonPopulated,sameLesson,SUGGESTED_VESSELS,LESSON_COLUMNS,UNASSIGNED_VESSEL,extractExcelHtmlRows} from './lessons-learned.mjs';
 import {parseExcelLessonFlexible} from './lessons-smart-import.mjs';
 import {formatLessonBlocks} from './lessons-formatting.mjs';
@@ -15,22 +16,81 @@ function FormattedCell({value}:{value:string}){
   return <div key={index} className="nb74-cell-line">{block.value}</div>;
  })}</div>;
 }
-function LessonsTable({vessel,lessons}:{vessel:string,lessons:any[]}){
+/** A new-ship review is separate from historical issue / corrective action text. */
+function LessonReviewCell({lesson,projectId,canReview,saving,onReviewSave}:any){
+ const review=getLessonReview(lesson,projectId);
+ const [editingReview,setEditingReview]=useState(false);
+ const [reviewStatus,setReviewStatus]=useState('pending');
+ const [reviewedBy,setReviewedBy]=useState('');
+ const [reviewNote,setReviewNote]=useState('');
+ const [reviewError,setReviewError]=useState('');
+ const [busy,setBusy]=useState(false);
+ const startReview=(nextStatus=review.status)=>{
+  if(!canReview||saving||busy)return;
+  setReviewStatus(nextStatus);setReviewedBy(review.reviewedBy);setReviewNote(review.note);
+  setReviewError('');setEditingReview(true);
+ };
+ const cancelReview=()=>{setEditingReview(false);setReviewError('');};
+ const saveReview=async()=>{
+  if(!canReview||busy||saving)return;
+  if(reviewStatus!=='pending'&&!reviewedBy.trim()){
+   setReviewError('Enter the person who checked this lesson before updating its status.');return;
+  }
+  setBusy(true);setReviewError('');
+  try{
+   if(await onReviewSave(lesson.id,{status:reviewStatus,reviewedBy,note:reviewNote}))setEditingReview(false);
+   else setReviewError('Could not save this review. Please try again.');
+  }catch(error:any){setReviewError(error?.message||'Could not save this review.');}
+  finally{setBusy(false);}
+ };
+ const stamp=review.status==='confirmed'?review.confirmedAt:review.updatedAt;
+ const date=stamp?new Date(stamp):null;
+ const dateLabel=date&&!Number.isNaN(date.getTime())?date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
+ return <td className="nb78-review-cell">
+  <div className="nb78-review-display">
+   <div className="nb78-review-leading">
+    {canReview?<input className="nb78-confirm-checkbox" type="checkbox" checked={review.status==='confirmed'} disabled={saving||busy||editingReview} onChange={e=>startReview(e.target.checked?'confirmed':'pending')} aria-label={`Confirm ${lesson.lessonLearned||'lesson'} for current ship`}/>
+     :<span className="nb78-review-check-icon" aria-hidden="true">{review.status==='confirmed'?<CheckSquare size={17}/>:<Square size={17}/>}</span>}
+    <span className={`nb78-review-status nb78-review-status--${review.status}`}>{LESSON_REVIEW_LABELS[review.status]}</span>
+   </div>
+   {review.reviewedBy&&<div className="nb78-review-meta"><strong>{review.status==='confirmed'?'Reviewed by':'Updated by'}:</strong> {review.reviewedBy}{dateLabel&&<> · {dateLabel}</>}</div>}
+   {review.note&&<p className="nb78-review-note">{review.note}</p>}
+   {canReview&&!editingReview&&<button type="button" className="nb78-review-edit" disabled={saving||busy} onClick={()=>startReview()} aria-label={`Update review for ${lesson.lessonLearned||'lesson'}`}><Pencil size={12}/> Update review</button>}
+  </div>
+  {editingReview&&<div className="nb78-review-editor">
+   <label>Current ship review
+    <select aria-label={`Review status for ${lesson.lessonLearned||'lesson'}`} value={reviewStatus} disabled={busy} onChange={e=>{setReviewStatus(e.target.value);setReviewError('');}}>
+     <option value="pending">{LESSON_REVIEW_LABELS.pending}</option>
+     <option value="in-progress">{LESSON_REVIEW_LABELS['in-progress']}</option>
+     <option value="confirmed">{LESSON_REVIEW_LABELS.confirmed}</option>
+    </select>
+   </label>
+   <label className="nb78-review-checklabel"><input type="checkbox" checked={reviewStatus==='confirmed'} disabled={busy} onChange={e=>{setReviewStatus(e.target.checked?'confirmed':'in-progress');setReviewError('');}}/> Addressed on this ship</label>
+   <label>Reviewed by {reviewStatus!=='pending'?'*':''}<input value={reviewedBy} disabled={busy} onChange={e=>setReviewedBy(e.target.value)} placeholder="Person who checked this lesson"/></label>
+   <label>Notes (optional)<textarea rows={3} value={reviewNote} disabled={busy} onChange={e=>setReviewNote(e.target.value)} placeholder="How this was addressed or what remains"/></label>
+   {reviewError&&<p className="nb78-review-error" role="alert">{reviewError}</p>}
+   <div className="nb78-review-actions"><button type="button" onClick={cancelReview} disabled={busy}>Cancel</button><button type="button" className="nb78-review-save" disabled={busy||saving} onClick={saveReview}><Check size={12}/> {busy?'Saving…':'Save review'}</button></div>
+  </div>}
+ </td>;
+}
+function LessonsTable({vessel,lessons,projectId='',canReview=false,saving=false,onReviewSave=async()=>false}:any){
  return <section className="nb74-ship-group" aria-label={`Lessons from ${vessel}`}>
   <div className="nb74-ship-header"><span className="nb74-ship-icon" aria-hidden="true"><Ship size={16}/></span><strong>{vessel}</strong><span className="nb74-ship-count">{lessons.length} {lessons.length===1?'lesson':'lessons'}</span></div>
-  <div className="nb74-table-scroll"><table className="nb74-lesson-table"><colgroup><col className="nb74-title-col"/><col className="nb74-profile-col"/><col className="nb74-details-col"/><col className="nb74-resolved-col"/></colgroup>
-   <thead><tr>{COLUMNS.map(([,label])=><th key={label} scope="col">{label}</th>)}</tr></thead>
-   <tbody>{lessons.map((lesson,i)=><tr key={lesson.id||i}>
+  <div className="nb74-table-scroll"><table className="nb74-lesson-table nb78-lesson-table"><colgroup><col className="nb74-title-col"/><col className="nb74-profile-col"/><col className="nb74-details-col"/><col className="nb74-resolved-col"/><col className="nb78-review-col"/></colgroup>
+   <thead><tr>{COLUMNS.map(([,label])=><th key={label} scope="col">{label}</th>)}<th scope="col">Current Ship Review</th></tr></thead>
+   <tbody>{lessons.map((lesson:any,i:number)=><tr key={lesson.id||i}>
     <td className="nb74-title-cell"><strong>{lesson.lessonLearned||'—'}</strong></td>
     <td><FormattedCell value={lesson.issueProfile}/></td>
     <td><FormattedCell value={lesson.detailsCorrectiveAction}/></td>
     <td className="nb74-resolved-cell"><FormattedCell value={lesson.resolvedBy}/></td>
+    <LessonReviewCell lesson={lesson} projectId={projectId} canReview={canReview} saving={saving} onReviewSave={onReviewSave}/>
    </tr>)}</tbody>
   </table></div>
  </section>;
 }
-export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSave,onSave,onCancel,saving}:{
+export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSave,onSave,onCancel,saving,projectId,canReview,onReviewSave}:{
  items:any[],editing:boolean,draft:any[],onDraftChange:(next:any[])=>void,onImportSave:(lesson:any)=>Promise<boolean>,onSave:()=>void,onCancel:()=>void,saving:boolean,
+ projectId:string,canReview:boolean,onReviewSave:(id:string,review:any)=>Promise<boolean>,
 }){
  const [vessel,setVessel]=useState('');
  const [raw,setRaw]=useState('');
@@ -114,6 +174,6 @@ export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSa
     <div className="nb74-edit-fields">{COLUMNS.map(([key,label])=><label key={key}>{label}<textarea rows={key==='lessonLearned'||key==='resolvedBy'?2:4} value={lesson[key]||''} onChange={e=>setField(lesson.id,key,e.target.value)}/></label>)}</div>
    </div>):<p className="nb74-empty-edit">No lessons recorded yet.</p>}
    <div className="nb74-editor-footer"><button className="nb74-secondary" type="button" disabled={saving} onClick={()=>onDraftChange([...draft,{id:`lesson-${Date.now()}-${Math.random().toString(36).slice(2)}`,vessel:vessel.trim(),lessonLearned:'',issueProfile:'',detailsCorrectiveAction:'',resolvedBy:'',text:''}])}><Plus size={15}/> Add manually</button><div><button type="button" className="nb74-secondary" disabled={saving} onClick={onCancel}>Cancel</button><button type="button" className="nb74-primary" disabled={saving||draft.some(l=>isLessonPopulated(l)&&!l.lessonLearned.trim())} onClick={onSave}>{saving?'Saving…':'Save changes'}</button></div></div>
-  </>:displayed.length?displayed.map(group=><LessonsTable key={group.vessel} {...group}/>):<p className="nb74-empty">No lessons learned have been added.</p>}
+  </>:displayed.length?displayed.map(group=><LessonsTable key={group.vessel} {...group} projectId={projectId} canReview={canReview} saving={saving} onReviewSave={onReviewSave}/>):<p className="nb74-empty">No lessons learned have been added.</p>}
  </div>;
 }

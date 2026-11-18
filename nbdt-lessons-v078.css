@@ -1,0 +1,39 @@
+/* v0.6.78 — current-ship acknowledgement for Lessons Learned.
+   Historical source fields stay in the existing 4 columns. The fifth
+   column has quiet semantic state and small edit controls. */
+.nb41-guide-page .nb78-lesson-table{min-width:990px}
+.nb41-guide-page .nb78-lesson-table .nb74-title-col{width:14%}
+.nb41-guide-page .nb78-lesson-table .nb74-profile-col{width:21%}
+.nb41-guide-page .nb78-lesson-table .nb74-details-col{width:38%}
+.nb41-guide-page .nb78-lesson-table .nb74-resolved-col{width:10%}
+.nb41-guide-page .nb78-lesson-table .nb78-review-col{width:17%}
+.nb78-review-summary{color:#9b684a;font-size:10.5px;font-weight:600;white-space:normal}
+.nb78-review-cell{color:#234566;font-size:11px;min-width:165px}
+.nb78-review-leading{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.nb78-confirm-checkbox{appearance:none;flex:none;width:17px;height:17px;border:1.6px solid #8da5c0;background:#fff;border-radius:4px;cursor:pointer;position:relative;margin:0;vertical-align:middle}
+.nb78-confirm-checkbox:checked{background:#16a66f;border-color:#16a66f}
+.nb78-confirm-checkbox:checked:after{content:'';position:absolute;width:8px;height:4px;top:3.7px;left:3px;transform:rotate(-45deg);border:solid #fff;border-width:0 0 2px 2px}
+.nb78-confirm-checkbox:disabled{cursor:default;opacity:.65}
+.nb78-review-check-icon{color:#96a9c3;line-height:0}
+.nb78-review-status{display:inline-block;border-radius:100px;padding:3px 9px;font-size:10.5px;font-weight:700;line-height:1.5;white-space:nowrap}
+.nb78-review-status--pending{color:#94621e;background:#fff1dc}
+.nb78-review-status--in-progress{color:#1b65a8;background:#e5f1ff}
+.nb78-review-status--confirmed{color:#0c7746;background:#dbf6e8}
+.nb78-review-meta{margin:8px 0 0;font-size:10px;line-height:1.45;color:#637b98;overflow-wrap:anywhere}
+.nb78-review-meta strong{color:#405e7b}
+.nb78-review-note{margin:6px 0 0;color:#526e8f;font-size:10.5px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.nb78-review-edit{margin-top:8px;display:inline-flex;align-items:center;gap:4px;border:1px solid #d5e3f3;border-radius:6px;background:#fff;color:#2465aa;padding:5px 8px;font-size:10px;font-weight:670;cursor:pointer}
+.nb78-review-edit:hover{background:#f3f8fe;border-color:#b5d1f0}
+.nb78-review-edit:disabled{opacity:.5;cursor:not-allowed}
+.nb78-review-editor{display:grid;gap:9px;margin-top:10px;border-top:1px solid #e6edf6;padding-top:10px}
+.nb78-review-editor>label{display:grid;gap:5px;color:#526e90;font-size:10px;font-weight:650}
+.nb78-review-editor input:not([type=checkbox]),.nb78-review-editor select,.nb78-review-editor textarea{width:100%;min-width:0;padding:7px 8px;border:1px solid #cdddf0;border-radius:6px;color:#183b61;background:#fff;font:inherit;font-size:11px}
+.nb78-review-editor textarea{resize:vertical;line-height:1.45}
+.nb78-review-editor .nb78-review-checklabel{display:flex;align-items:center;gap:7px;line-height:1.4;color:#3f6486}
+.nb78-review-checklabel input{accent-color:#16a66f}
+.nb78-review-error{color:#b24738;font-size:10px;line-height:1.45;margin:0}
+.nb78-review-actions{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.nb78-review-actions button{border:1px solid #cdddf0;border-radius:6px;background:#fff;color:#28557f;padding:5px 8px;font-size:10px;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+.nb78-review-actions .nb78-review-save{background:#1476dd;border-color:#1476dd;color:#fff;font-weight:650}
+.nb78-review-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:750px){.nb78-review-summary{display:none}}
