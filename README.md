@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.75 (Excel configuration import + normalized Lessons Learned).** The Guide header now offers **Import from Excel**, which previews and maps a pasted system configuration (including Device, Network, Access, Applications and Base/Ready/Deployment checklists) while preserving all existing individual editors. Lessons Learned automatically bolds labels even when copied from Excel as standalone uppercase lines. Access & management now reads **AirWatch tags**. See `RELEASE_NOTES_v0_6_75_RU.md`.
+**Current package: v0.6.76 (flexible Lessons Learned import).** The Guide Lessons Learned editor now accepts three-, four- and irregular multi-column Excel selections, uses rich Excel clipboard tables when available, offers editable field review, and preserves all source text rather than rejecting an unusual table. An absent Resolved By column remains optional. All configuration-import functionality from v0.6.75 is preserved. See `RELEASE_NOTES_v0_6_76_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

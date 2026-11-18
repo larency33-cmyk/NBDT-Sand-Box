@@ -1,0 +1,14 @@
+NBDT Hub v0.6.76 — changed files relative to v0.6.75
+
+README.md
+RELEASE_NOTES_v0_6_76_RU.md
+GITHUB_CHANGELOG_v0_6_76.txt
+NBDT_v0_6_76_GitHub_Manifest.json
+package.json
+index.tsx
+nbdt-lessons-v076.css
+src/lessons-learned-section.tsx
+src/lessons-smart-import.mjs
+tests/lessons-smart-import-v076.test.mjs
+
+No existing project data was changed.

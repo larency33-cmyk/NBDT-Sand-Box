@@ -1,6 +1,7 @@
-import React,{useState,useEffect} from 'react';
+import React,{useState,useEffect,useRef} from 'react';
 import {Ship,Plus,Trash2,ClipboardPaste} from 'lucide-react';
-import {groupLessons,normalizeLesson,parseExcelLesson,isLessonPopulated,sameLesson,SUGGESTED_VESSELS,LESSON_COLUMNS,UNASSIGNED_VESSEL} from './lessons-learned.mjs';
+import {groupLessons,normalizeLesson,isLessonPopulated,sameLesson,SUGGESTED_VESSELS,LESSON_COLUMNS,UNASSIGNED_VESSEL,extractExcelHtmlRows} from './lessons-learned.mjs';
+import {parseExcelLessonFlexible} from './lessons-smart-import.mjs';
 import {formatLessonBlocks} from './lessons-formatting.mjs';
 
 const COLUMNS=[['lessonLearned','Lesson Learned'],['issueProfile','Issue Profile'],['detailsCorrectiveAction','Details / Corrective Action'],['resolvedBy','Resolved By']];
@@ -34,47 +35,68 @@ export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSa
  const [vessel,setVessel]=useState('');
  const [raw,setRaw]=useState('');
  const [parsed,setParsed]=useState<any|null>(null);
+ const [parseNotes,setParseNotes]=useState<string[]>([]);
+ const lastClipboard=useRef({html:'',text:''});
  const [error,setError]=useState('');
  const [importing,setImporting]=useState(false);
- useEffect(()=>{if(!editing){setRaw('');setParsed(null);setError('');}},[editing]);
+ useEffect(()=>{if(!editing){setRaw('');setParsed(null);setParseNotes([]);setError('');lastClipboard.current={html:'',text:''};}},[editing]);
  const displayed=groupLessons(items);
  const known=[...new Set([...SUGGESTED_VESSELS,...draft.map(l=>l.vessel),...items.map(l=>l.vessel)].filter(Boolean))];
  const setField=(id:string,key:string,value:string)=>onDraftChange(draft.map(item=>item.id===id?{...item,[key]:value}:item));
  const attemptPaste=(html:string,text:string)=>{
-  setRaw(text);setParsed(null);setError('');
-  try{setParsed(parseExcelLesson({html,text}));}catch(err:any){setError(err?.message||'Unable to parse Excel cells.');}
+  // Retain the real HTML clipboard table: it preserves Excel cell boundaries even
+  // when a copied cell contains embedded tabs, quotes or multiple paragraphs.
+  lastClipboard.current={html,text};
+  const pastedText=text||extractExcelHtmlRows(html).map(row=>row.join('\t')).join('\n');
+  setRaw(pastedText);setParsed(null);setParseNotes([]);setError('');
+  try{
+   const result=parseExcelLessonFlexible({html,text:pastedText});
+   setParsed(result.lesson);setParseNotes(result.warnings);
+  }catch(err:any){setError(err?.message||'Unable to parse Excel cells.');}
+ };
+ const updateParsedField=(key:string,value:string)=>{
+  setParsed((previous:any)=>previous?{...previous,[key]:value}:previous);
+  setError('');
  };
  const importLesson=async()=>{
-  if(!parsed||!vessel.trim()||importing||saving)return;
+  if(!parsed||!parsed.lessonLearned?.trim()||!vessel.trim()||importing||saving)return;
   const record={...parsed,vessel:vessel.trim()};
   if(draft.some(lesson=>sameLesson(lesson,record))){setError('This lesson already exists for this vessel.');return;}
   setImporting(true);setError('');
-  try{const ok=await onImportSave(record);if(ok){setRaw('');setParsed(null);}else setError('Could not save the lesson. Please try again.');}
+  try{const ok=await onImportSave(record);if(ok){setRaw('');setParsed(null);setParseNotes([]);lastClipboard.current={html:'',text:''};}else setError('Could not save the lesson. Please try again.');}
   catch(err:any){setError(err?.message||'Unable to save the lesson.');}
   finally{setImporting(false);}
  };
  return <div className="nb74-lessons-body">
   {editing?<>
    <div className="nb74-import-panel">
-    <div className="nb74-import-heading"><ClipboardPaste size={18}/><strong>Paste from Excel</strong><span>Copy four cells from one lesson row</span></div>
+    <div className="nb74-import-heading"><ClipboardPaste size={18}/><strong>Paste from Excel</strong><span>Copy a lesson from Excel (3 or 4 columns, or mixed formatting)</span></div>
     <div className="nb74-paste-layout">
      <label className="nb74-vessel-field">Vessel / project
       <input value={vessel} onChange={e=>{setVessel(e.target.value);setError('');}} list="nb74-vessels" placeholder="Select or enter ship name" aria-label="Vessel for imported lesson"/>
       <datalist id="nb74-vessels">{known.map(name=><option value={name} key={name}/>)}</datalist>
      </label>
      <label className="nb74-paste-field">Paste Excel cells here
-      <textarea rows={3} value={raw} onChange={e=>{setRaw(e.target.value);setParsed(null);setError('');}} onPaste={e=>{
+      <textarea rows={3} value={raw} onChange={e=>{setRaw(e.target.value);setParsed(null);setParseNotes([]);setError('');lastClipboard.current={html:'',text:''};}} onPaste={e=>{
        const html=e.clipboardData.getData('text/html');const text=e.clipboardData.getData('text/plain');
        if(html||text){e.preventDefault();attemptPaste(html,text);}
-      }} placeholder="Select four cells in Excel, copy and press Ctrl+V" aria-label="Paste Excel lesson cells"/>
+      }} placeholder="Copy a lesson from Excel and press Ctrl+V. A missing Resolved By column is OK." aria-label="Paste Excel lesson cells"/>
      </label>
     </div>
     <div className="nb74-import-actions">
-     <button type="button" className="nb74-secondary" disabled={!raw.trim()||saving||importing} onClick={()=>attemptPaste('',raw)}>Preview</button>
-     <button type="button" className="nb74-primary" disabled={!parsed||!vessel.trim()||saving||importing} onClick={importLesson}>{importing?'Saving…':'Save Lesson'}</button>
+     <button type="button" className="nb74-secondary" disabled={!raw.trim()||saving||importing} onClick={()=>{if(!parsed)attemptPaste(lastClipboard.current.text===raw?lastClipboard.current.html:'',raw);}}>Preview</button>
+     <button type="button" className="nb74-primary" disabled={!parsed||!parsed.lessonLearned?.trim()||!vessel.trim()||saving||importing} onClick={importLesson}>{importing?'Saving…':'Save Lesson'}</button>
     </div>
     {error&&<p className="nb74-import-error" role="alert">{error}</p>}
-    {parsed&&<div className="nb74-import-preview"><div className="nb74-import-preview-heading">Preview · {vessel.trim()||'Choose vessel'}</div><LessonsTable vessel={vessel.trim()||'Selected vessel'} lessons={[{...parsed,id:'preview'}]}/></div>}
+    {parsed&&<div className="nb74-import-preview">
+     <div className="nb74-import-preview-heading">Review detected fields · {vessel.trim()||'Choose vessel'}</div>
+     {parseNotes.length>0&&<div className="nb76-import-notes" aria-label="Excel import notes">{parseNotes.map((note,i)=><p key={i}>{note}</p>)}</div>}
+     <div className="nb76-import-review-fields">{COLUMNS.map(([key,label])=><label key={key}>{label}{key==='lessonLearned'&&<span className="nb76-required"> · required</span>}
+      {key==='lessonLearned'||key==='resolvedBy'?<input value={parsed[key]||''} onChange={e=>updateParsedField(key,e.target.value)} placeholder={key==='lessonLearned'?'Enter lesson name if missing':'Optional'}/>:<textarea rows={key==='detailsCorrectiveAction'?5:4} value={parsed[key]||''} onChange={e=>updateParsedField(key,e.target.value)}/>}
+     </label>)}</div>
+     {!parsed.lessonLearned?.trim()&&<p className="nb76-import-title-hint">Enter the lesson title above to enable Save Lesson.</p>}
+     <LessonsTable vessel={vessel.trim()||'Selected vessel'} lessons={[{...parsed,id:'preview'}]}/>
+    </div>}
    </div>
    <div className="nb74-existing-heading">Existing lessons</div>
    {draft.length?draft.map((lesson:any,index:number)=><div className="nb74-edit-lesson" key={lesson.id}>
