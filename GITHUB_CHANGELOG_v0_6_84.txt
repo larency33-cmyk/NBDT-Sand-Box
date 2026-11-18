@@ -1,0 +1,6 @@
+NBDT Hub v0.6.84 (relative to v0.6.83)
+- Access & management Guide now displays the actual User account (view/edit) instead of system Owner.
+- System Registry external card still shows Owner (Assignment unchanged).
+- Excel import drops standalone FALSE/false checkbox values and trailing false in Applications.
+- Guide / Registry hide legacy false placeholders; edits save a cleaned Applications list.
+- Added regression tests for import, display, persistence and ownership separation.
