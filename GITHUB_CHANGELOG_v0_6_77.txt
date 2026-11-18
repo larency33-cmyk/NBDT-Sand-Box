@@ -1,0 +1,12 @@
+NBDT Hub v0.6.77 — GitHub changes relative to v0.6.76
+
+README.md
+RELEASE_NOTES_v0_6_77_RU.md
+GITHUB_CHANGELOG_v0_6_77.txt
+NBDT_v0_6_77_GitHub_Manifest.json
+package.json
+index.tsx
+nbdt-lessons-v077.css
+src/lessons-learned-section.tsx
+src/lessons-smart-import.mjs
+tests/lessons-smart-import-v077.test.mjs

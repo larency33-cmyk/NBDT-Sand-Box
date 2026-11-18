@@ -47,12 +47,21 @@ export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSa
   // Retain the real HTML clipboard table: it preserves Excel cell boundaries even
   // when a copied cell contains embedded tabs, quotes or multiple paragraphs.
   lastClipboard.current={html,text};
-  const pastedText=text||extractExcelHtmlRows(html).map(row=>row.join('\t')).join('\n');
+  let pastedText=text;
+  if(!pastedText){try{pastedText=extractExcelHtmlRows(html).map(row=>row.join('\t')).join('\n');}catch{pastedText='';}}
   setRaw(pastedText);setParsed(null);setParseNotes([]);setError('');
   try{
    const result=parseExcelLessonFlexible({html,text:pastedText});
    setParsed(result.lesson);setParseNotes(result.warnings);
-  }catch(err:any){setError(err?.message||'Unable to parse Excel cells.');}
+  }catch(err:any){
+   // A nonstandard/merged Excel selection should NEVER permanently block Preview.
+   // Keep the complete original data in a field so the user can move it without
+   // copying again. Do not guess an unknown title or silently lose text.
+   if(pastedText.trim()){
+    setParsed({lessonLearned:'',issueProfile:'',detailsCorrectiveAction:pastedText,resolvedBy:''});
+    setParseNotes([`Automatic field mapping was uncertain (${err?.message||'unknown Excel layout'}). All pasted text is preserved below. Enter a lesson title and adjust the fields before saving.`]);
+   }else setError('No readable Excel text was found. Copy the cells again.');
+  }
  };
  const updateParsedField=(key:string,value:string)=>{
   setParsed((previous:any)=>previous?{...previous,[key]:value}:previous);
@@ -70,7 +79,7 @@ export function LessonsLearnedBody({items,editing,draft,onDraftChange,onImportSa
  return <div className="nb74-lessons-body">
   {editing?<>
    <div className="nb74-import-panel">
-    <div className="nb74-import-heading"><ClipboardPaste size={18}/><strong>Paste from Excel</strong><span>Copy a lesson from Excel (3 or 4 columns, or mixed formatting)</span></div>
+    <div className="nb74-import-heading"><ClipboardPaste size={18}/><strong>Paste from Excel</strong><span>Copy one lesson from Excel — any column layout</span><small className="nb77-import-version">v0.6.77</small></div>
     <div className="nb74-paste-layout">
      <label className="nb74-vessel-field">Vessel / project
       <input value={vessel} onChange={e=>{setVessel(e.target.value);setError('');}} list="nb74-vessels" placeholder="Select or enter ship name" aria-label="Vessel for imported lesson"/>

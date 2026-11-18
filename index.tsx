@@ -55,6 +55,7 @@ import './nbdt-overview-v073.css';
 import './nbdt-lessons-v074.css';
 import './nbdt-guide-excel-v075.css';
 import './nbdt-lessons-v076.css';
+import './nbdt-lessons-v077.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
 import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
