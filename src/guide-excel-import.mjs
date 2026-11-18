@@ -9,7 +9,7 @@ export const GUIDE_FIELD_GROUPS = [
  ['System', [['name','System name'],['description','Description']]],
  ['Device', [['deviceModel','Endpoint / Device model'],['os','Platform'],['osVersion','OS version'],['deviceCategory','Device type'],['namingConvention','Naming convention']]],
  ['Network', [['network','Network type'],['vlan','VLAN'],['ipScope','IP scope'],['ipReservation','Reservation']]],
- ['Access & management', [['serviceAccount','Service account'],['userAccount','User account'],['logonType','Auth type'],['domainOU','Domain / OU'],['airWatchTags','AirWatch tags']]],
+ ['Access & management', [['serviceAccount','Service account'],['userAccount','User Account'],['logonType','Auth type'],['domainOU','Domain / OU'],['airWatchTags','AirWatch tags']]],
  ['Applications', [['appList','Applications list']]],
 ];
 export const GUIDE_STAGE_LABELS={configuration:'Base configuration',readyForDeployment:'Ready for deployment',deployment:'Deployment'};
