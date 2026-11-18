@@ -1,0 +1,18 @@
+{
+  "version": "v0.6.80",
+  "base_version": "v0.6.79",
+  "purpose": "Fix the Current Ship Review checkbox styling in Lessons Learned to match the approved mockup",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_80.txt",
+    "NBDT_v0_6_80_GitHub_Manifest.json",
+    "RELEASE_NOTES_v0_6_80_RU.md",
+    "index.tsx",
+    "nbdt-lessons-v080.css",
+    "src/lessons-learned-section.tsx"
+  ],
+  "removed_files": [],
+  "verification": {
+    "syntax": "not formally run",
+    "browser_visual_check": "not run in this environment"
+  }
+}

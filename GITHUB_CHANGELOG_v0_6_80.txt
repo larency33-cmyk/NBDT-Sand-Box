@@ -1,0 +1,4 @@
+NBDT Hub v0.6.80
+- Fixed Current Ship Review checkbox styling to match the approved Lessons Learned mockup more closely.
+- Added compact state-coloured checkbox styling for Pending, In progress and Confirmed.
+- Centered the check mark and removed the stretched/incorrect checkbox appearance seen in v0.6.79.

@@ -49,7 +49,7 @@ function LessonReviewCell({lesson,projectId,canReview,saving,onReviewSave}:any){
  return <td className="nb78-review-cell nb79-review-cell">
   <div className="nb78-review-display nb79-review-display">
    <div className="nb78-review-leading nb79-review-leading">
-    {canReview?<input className="nb78-confirm-checkbox" type="checkbox" checked={review.status==='confirmed'} disabled={saving||busy||editingReview} onChange={e=>startReview(e.target.checked?'confirmed':'pending')} aria-label={`Confirm ${lesson.lessonLearned||'lesson'} for current ship`}/>
+    {canReview?<input className={`nb78-confirm-checkbox nb80-confirm-checkbox nb80-confirm-checkbox--${review.status}`} type="checkbox" checked={review.status==='confirmed'} disabled={saving||busy||editingReview} onChange={e=>startReview(e.target.checked?'confirmed':'pending')} aria-label={`Confirm ${lesson.lessonLearned||'lesson'} for current ship`}/>
      :<span className={`nb78-review-check-icon nb79-review-check-icon ${review.status==='confirmed'?'nb79-review-check-icon--confirmed':''}`} aria-hidden="true">{review.status==='confirmed'?<CheckSquare size={22}/>:<Square size={22}/>}</span>}
     {canReview?<button type="button" className={`nb78-review-status nb78-review-status--${review.status} nb79-review-status-button`} disabled={saving||busy||editingReview} onClick={()=>startReview()} aria-label={`Edit ${LESSON_REVIEW_LABELS[review.status]} status for ${lesson.lessonLearned||'lesson'}`}>{LESSON_REVIEW_LABELS[review.status]}</button>
      :<span className={`nb78-review-status nb78-review-status--${review.status}`}>{LESSON_REVIEW_LABELS[review.status]}</span>}
