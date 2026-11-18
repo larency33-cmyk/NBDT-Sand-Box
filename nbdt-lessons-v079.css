@@ -1,0 +1,231 @@
+/* NBDT v0.6.79 — Lessons Learned view parity with the approved screenshot.
+   Review data, saved statuses, the Excel importer and standalone editors remain intact.
+   Orange frames only the section; blue is reserved for the vessel/table structure. */
+.nb41-guide-page .nb79-lessons{
+  border-radius:12px;
+  border-left:5px solid #ff730f !important;
+  border-top:1px solid #ffd8ac !important;
+  border-right:1px solid #ffd8ac !important;
+  border-bottom:1px solid #ffd8ac !important;
+  background:#fffdfb !important;
+  box-shadow:0 2px 11px rgba(158,91,22,.055);
+}
+.nb41-guide-page .nb79-lessons summary{
+  min-height:64px;
+  padding:14px 88px 14px 20px;
+  gap:12px;
+  flex-wrap:wrap;
+  background:linear-gradient(90deg,#fffaf5,#fffdfb) !important;
+}
+.nb41-guide-page .nb79-lessons summary strong{
+  color:#e96d0c !important;
+  font-size:20px !important;
+  font-weight:750 !important;
+  letter-spacing:-.025em;
+}
+.nb41-guide-page .nb79-lessons summary .nb79-lesson-total{
+  color:#915a2b;
+  font-size:13px;
+  font-weight:650;
+  margin-left:0;
+  white-space:nowrap;
+}
+.nb41-guide-page .nb79-lessons summary .nb79-review-summary{
+  margin-left:7px;
+  padding-left:17px;
+  border-left:1px solid #dbcabc;
+  display:inline-flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
+  color:#8d582d;
+  font-size:13px;
+  font-weight:640;
+  white-space:normal;
+}
+.nb41-guide-page .nb79-lessons summary .nb79-review-summary span{
+  color:inherit;
+  font-size:inherit;
+  font-weight:inherit;
+  margin:0;
+  white-space:nowrap;
+}
+.nb41-guide-page .nb79-lessons summary .nb79-review-summary .nb79-review-summary-dot{
+  color:#bc906c;
+}
+.nb41-guide-page .nb79-lessons .nb74-lessons-body{
+  padding:12px 13px 20px;
+  background:#fff !important;
+  gap:18px;
+}
+.nb41-guide-page .nb79-ship-group{
+  border:1px solid #cfdeed;
+  border-radius:10px;
+  background:#fff;
+  overflow:hidden;
+}
+.nb41-guide-page .nb79-ship-header{
+  min-height:47px;
+  padding:10px 17px;
+  gap:11px;
+  background:linear-gradient(95deg,#d9e9fd,#dbe8fa) !important;
+  color:#12315e;
+  font-size:15px;
+  letter-spacing:0;
+}
+.nb41-guide-page .nb79-ship-header strong{font-size:15px;font-weight:760;letter-spacing:-.015em}
+.nb41-guide-page .nb79-ship-header .nb74-ship-icon{
+  color:#1765c2;
+  width:26px;height:25px;
+}
+.nb41-guide-page .nb79-ship-header .nb74-ship-count{
+  font-size:11.5px;
+  font-weight:600;
+  color:#496688;
+  padding:4px 11px;
+  background:rgba(255,255,255,.8);
+}
+/* Keep the fifth column visible at desktop width and retain proportional sizes
+   from the reference (15 / 19 / 33 / 10 / 23). Narrow screens can scroll. */
+.nb41-guide-page .nb79-lesson-table{
+  min-width:1000px;
+  width:100%;
+  font-size:13px;
+  line-height:1.52;
+  color:#182c4e;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+.nb41-guide-page .nb79-lesson-table .nb74-title-col{width:15%}
+.nb41-guide-page .nb79-lesson-table .nb74-profile-col{width:19%}
+.nb41-guide-page .nb79-lesson-table .nb74-details-col{width:33%}
+.nb41-guide-page .nb79-lesson-table .nb74-resolved-col{width:10%}
+.nb41-guide-page .nb79-lesson-table .nb78-review-col{width:23%}
+.nb41-guide-page .nb79-lesson-table th{
+  background:#edf4fd;
+  color:#173760;
+  font-size:13px;
+  font-weight:750;
+  padding:12px 16px;
+  border-color:#d5e0ee;
+  vertical-align:middle;
+}
+.nb41-guide-page .nb79-lesson-table td{
+  padding:18px 16px;
+  border-color:#e0e8f1;
+  vertical-align:top;
+  background:transparent;
+  font-size:13px;
+  line-height:1.55;
+}
+.nb41-guide-page .nb79-lesson-table tbody tr:nth-child(even){background:#fbfdff}
+.nb41-guide-page .nb79-lesson-table tbody tr:hover{background:#f8fbff}
+.nb41-guide-page .nb79-lesson-table .nb74-title-cell strong{
+  font-size:15px;
+  line-height:1.36;
+  font-weight:760;
+  color:#102b53;
+}
+.nb41-guide-page .nb79-lesson-table .nb74-resolved-cell{font-weight:500;color:#183355}
+.nb41-guide-page .nb79-lesson-table .nb75-cell-field strong{
+  font-weight:760;
+  color:#172e52;
+}
+.nb41-guide-page .nb79-lesson-table .nb74-cell-gap{height:.7em}
+/* The primary element in the reference: a spacious checkbox and real state chip. */
+.nb41-guide-page .nb79-lesson-table td.nb79-review-cell{
+  padding:18px 17px;
+  min-width:0;
+  color:#1a355b;
+}
+.nb79-review-display{display:flex;flex-direction:column;align-items:flex-start;gap:0}
+.nb79-review-leading{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:31px;width:100%}
+.nb41-guide-page .nb79-lesson-table .nb78-confirm-checkbox{
+  appearance:none;
+  margin:0;
+  flex:none;
+  width:23px;height:23px;
+  border:1.8px solid #8292a4;
+  border-radius:5px;
+  background:#fff;
+  cursor:pointer;
+  transition:background .16s,border-color .16s;
+}
+.nb41-guide-page .nb79-lesson-table .nb78-confirm-checkbox:checked{
+  background:#2bad65;
+  border-color:#2bad65;
+}
+.nb41-guide-page .nb79-lesson-table .nb78-confirm-checkbox:checked::after{
+  content:'';
+  position:absolute;
+  top:5px;left:4px;
+  width:12px;height:7px;
+  border:solid #fff;border-width:0 0 2.8px 2.8px;
+  transform:rotate(-45deg);
+}
+.nb79-review-check-icon{width:23px;height:23px;display:inline-grid;place-items:center;color:#879bad}
+.nb79-review-check-icon--confirmed{color:#25ae65}
+.nb41-guide-page .nb79-lesson-table .nb78-review-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  border:0;
+  border-radius:30px;
+  padding:5px 16px;
+  font-size:13.5px;
+  font-weight:730;
+  line-height:1.25;
+  white-space:nowrap;
+  box-shadow:none;
+}
+.nb41-guide-page .nb79-lesson-table .nb78-review-status--pending{background:#fff0d7;color:#a26211}
+.nb41-guide-page .nb79-lesson-table .nb78-review-status--in-progress{background:#dfedff;color:#1762af}
+.nb41-guide-page .nb79-lesson-table .nb78-review-status--confirmed{background:#d9f4df;color:#087d3d}
+.nb79-review-status-button{cursor:pointer}
+.nb79-review-status-button:hover:not(:disabled){filter:brightness(.975)}
+.nb79-review-status-button:disabled{cursor:default}
+.nb41-guide-page .nb79-lesson-table .nb78-review-meta{
+  margin:11px 0 0 35px;
+  color:#435b7c;
+  font-size:12px;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+.nb41-guide-page .nb79-lesson-table .nb78-review-meta strong{color:#253f64;font-weight:735}
+.nb41-guide-page .nb79-lesson-table .nb78-review-note{
+  margin:7px 0 0 35px;
+  color:#435b7c;
+  font-size:12px;
+  line-height:1.52;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-placeholder{color:#5d7390}
+.nb41-guide-page .nb79-lesson-table .nb78-review-editor{
+  width:100%;
+  margin-top:14px;
+  padding:13px;
+  border:1px solid #d7e5f6;
+  border-radius:8px;
+  background:#f5f9ff;
+  gap:10px;
+}
+.nb41-guide-page .nb79-lesson-table .nb78-review-editor>label{font-size:11.5px;color:#314e74}
+.nb41-guide-page .nb79-lesson-table .nb78-review-editor input:not([type=checkbox]),
+.nb41-guide-page .nb79-lesson-table .nb78-review-editor select,
+.nb41-guide-page .nb79-lesson-table .nb78-review-editor textarea{font-size:12px;line-height:1.5}
+.nb41-guide-page .nb79-lesson-table .nb78-review-actions button{font-size:11px;min-height:31px}
+@media (max-width:1000px){
+  .nb41-guide-page .nb79-lessons summary{gap:8px}
+  .nb41-guide-page .nb79-lessons summary .nb79-review-summary{margin-left:0;flex-basis:100%;padding:3px 0 0;border:0}
+}
+@media (max-width:750px){
+  .nb41-guide-page .nb79-lessons summary .nb79-review-summary{display:inline-flex !important}
+}
+@media (max-width:610px){
+  .nb41-guide-page .nb79-lessons summary{padding:12px 76px 12px 12px}
+  .nb41-guide-page .nb79-lessons summary strong{font-size:17px !important}
+  .nb41-guide-page .nb79-lessons summary .nb79-lesson-total,
+  .nb41-guide-page .nb79-lessons summary .nb79-review-summary{font-size:11px}
+}

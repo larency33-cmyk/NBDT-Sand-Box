@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.78 (Current Ship Review for Lessons Learned).** Every historical lesson now has a separate current-project review with Pending review / In progress / Confirmed, a checkbox, reviewer name, optional note and automatic timestamp. This review is stored through the existing Guide update flow and is scoped by project ID, so a different/copied project starts unreviewed. The Excel lesson import and existing editing remain intact. See `RELEASE_NOTES_v0_6_78_RU.md`.
+**Current package: v0.6.79 (Lessons Learned review visual parity).** The existing current-ship review is now presented in the approved five-column screenshot style: larger checkbox and semantic status pill, distinct vessel bars, 5-column table spacing, reviewer/date/notes and a clear status summary in the orange section header. All stored review data, status editing, Excel import and individual field editing remain unchanged. See `RELEASE_NOTES_v0_6_79_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

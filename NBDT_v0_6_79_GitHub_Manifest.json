@@ -1,0 +1,25 @@
+{
+  "version": "v0.6.79",
+  "base_version": "v0.6.78",
+  "purpose": "Lessons Learned Current Ship Review styling aligned to approved mockup",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_79.txt",
+    "NBDT_v0_6_79_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_79_RU.md",
+    "index.tsx",
+    "nbdt-lessons-v079.css",
+    "package.json",
+    "src/lessons-learned-section.tsx",
+    "src/workspace.tsx",
+    "tests/lessons-review-layout-v079.test.mjs"
+  ],
+  "removed_files": [],
+  "verification": {
+    "node_tests": "430/430 passed",
+    "syntax": "passed",
+    "runtime_symbol_check": "passed",
+    "production_build": "not run: local dependencies missing",
+    "browser_visual_check": "not completed: Chromium hung in runtime"
+  }
+}

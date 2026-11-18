@@ -1,5 +1,5 @@
 import React,{useState,useEffect,useRef} from 'react';
-import {Ship,Plus,Trash2,ClipboardPaste,Check,Square,CheckSquare,Pencil} from 'lucide-react';
+import {Ship,Plus,Trash2,ClipboardPaste,Check,Square,CheckSquare} from 'lucide-react';
 import {getLessonReview,LESSON_REVIEW_LABELS} from './lesson-review.mjs';
 import {groupLessons,normalizeLesson,isLessonPopulated,sameLesson,SUGGESTED_VESSELS,LESSON_COLUMNS,UNASSIGNED_VESSEL,extractExcelHtmlRows} from './lessons-learned.mjs';
 import {parseExcelLessonFlexible} from './lessons-smart-import.mjs';
@@ -46,16 +46,16 @@ function LessonReviewCell({lesson,projectId,canReview,saving,onReviewSave}:any){
  const stamp=review.status==='confirmed'?review.confirmedAt:review.updatedAt;
  const date=stamp?new Date(stamp):null;
  const dateLabel=date&&!Number.isNaN(date.getTime())?date.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'';
- return <td className="nb78-review-cell">
-  <div className="nb78-review-display">
-   <div className="nb78-review-leading">
+ return <td className="nb78-review-cell nb79-review-cell">
+  <div className="nb78-review-display nb79-review-display">
+   <div className="nb78-review-leading nb79-review-leading">
     {canReview?<input className="nb78-confirm-checkbox" type="checkbox" checked={review.status==='confirmed'} disabled={saving||busy||editingReview} onChange={e=>startReview(e.target.checked?'confirmed':'pending')} aria-label={`Confirm ${lesson.lessonLearned||'lesson'} for current ship`}/>
-     :<span className="nb78-review-check-icon" aria-hidden="true">{review.status==='confirmed'?<CheckSquare size={17}/>:<Square size={17}/>}</span>}
-    <span className={`nb78-review-status nb78-review-status--${review.status}`}>{LESSON_REVIEW_LABELS[review.status]}</span>
+     :<span className={`nb78-review-check-icon nb79-review-check-icon ${review.status==='confirmed'?'nb79-review-check-icon--confirmed':''}`} aria-hidden="true">{review.status==='confirmed'?<CheckSquare size={22}/>:<Square size={22}/>}</span>}
+    {canReview?<button type="button" className={`nb78-review-status nb78-review-status--${review.status} nb79-review-status-button`} disabled={saving||busy||editingReview} onClick={()=>startReview()} aria-label={`Edit ${LESSON_REVIEW_LABELS[review.status]} status for ${lesson.lessonLearned||'lesson'}`}>{LESSON_REVIEW_LABELS[review.status]}</button>
+     :<span className={`nb78-review-status nb78-review-status--${review.status}`}>{LESSON_REVIEW_LABELS[review.status]}</span>}
    </div>
-   {review.reviewedBy&&<div className="nb78-review-meta"><strong>{review.status==='confirmed'?'Reviewed by':'Updated by'}:</strong> {review.reviewedBy}{dateLabel&&<> · {dateLabel}</>}</div>}
-   {review.note&&<p className="nb78-review-note">{review.note}</p>}
-   {canReview&&!editingReview&&<button type="button" className="nb78-review-edit" disabled={saving||busy} onClick={()=>startReview()} aria-label={`Update review for ${lesson.lessonLearned||'lesson'}`}><Pencil size={12}/> Update review</button>}
+   {review.reviewedBy&&<div className="nb78-review-meta"><strong>{review.status==='confirmed'?'Reviewed by':review.status==='in-progress'?'Reviewed by':'Updated by'} {review.reviewedBy}</strong>{dateLabel&&<> · {dateLabel}</>}</div>}
+   {review.note?<p className="nb78-review-note">{review.note}</p>:review.status==='pending'?<p className="nb78-review-note nb79-review-placeholder">Not yet reviewed for this ship.</p>:review.status==='in-progress'?<p className="nb78-review-note nb79-review-placeholder">Review in progress for this ship.</p>:null}
   </div>
   {editingReview&&<div className="nb78-review-editor">
    <label>Current ship review
@@ -74,9 +74,9 @@ function LessonReviewCell({lesson,projectId,canReview,saving,onReviewSave}:any){
  </td>;
 }
 function LessonsTable({vessel,lessons,projectId='',canReview=false,saving=false,onReviewSave=async()=>false}:any){
- return <section className="nb74-ship-group" aria-label={`Lessons from ${vessel}`}>
-  <div className="nb74-ship-header"><span className="nb74-ship-icon" aria-hidden="true"><Ship size={16}/></span><strong>{vessel}</strong><span className="nb74-ship-count">{lessons.length} {lessons.length===1?'lesson':'lessons'}</span></div>
-  <div className="nb74-table-scroll"><table className="nb74-lesson-table nb78-lesson-table"><colgroup><col className="nb74-title-col"/><col className="nb74-profile-col"/><col className="nb74-details-col"/><col className="nb74-resolved-col"/><col className="nb78-review-col"/></colgroup>
+ return <section className="nb74-ship-group nb79-ship-group" aria-label={`Lessons from ${vessel}`}>
+  <div className="nb74-ship-header nb79-ship-header"><span className="nb74-ship-icon" aria-hidden="true"><Ship size={16}/></span><strong>{vessel}</strong><span className="nb74-ship-count">{lessons.length} {lessons.length===1?'lesson':'lessons'}</span></div>
+  <div className="nb74-table-scroll"><table className="nb74-lesson-table nb78-lesson-table nb79-lesson-table"><colgroup><col className="nb74-title-col"/><col className="nb74-profile-col"/><col className="nb74-details-col"/><col className="nb74-resolved-col"/><col className="nb78-review-col"/></colgroup>
    <thead><tr>{COLUMNS.map(([,label])=><th key={label} scope="col">{label}</th>)}<th scope="col">Current Ship Review</th></tr></thead>
    <tbody>{lessons.map((lesson:any,i:number)=><tr key={lesson.id||i}>
     <td className="nb74-title-cell"><strong>{lesson.lessonLearned||'—'}</strong></td>

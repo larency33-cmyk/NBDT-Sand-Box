@@ -1,0 +1,15 @@
+NBDT Hub v0.6.79 — Changed files compared with v0.6.78
+
+GITHUB_CHANGELOG_v0_6_79.txt
+NBDT_v0_6_79_GitHub_Manifest.json
+README.md
+RELEASE_NOTES_v0_6_79_RU.md
+index.tsx
+nbdt-lessons-v079.css
+package.json
+src/lessons-learned-section.tsx
+src/workspace.tsx
+tests/lessons-review-layout-v079.test.mjs
+
+Usage: extract the update ZIP at the repository root, preserving relative directories.
+No existing user data is reset; visual changes only.
