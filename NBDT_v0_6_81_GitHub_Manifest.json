@@ -1,0 +1,24 @@
+{
+  "version": "v0.6.81",
+  "base_version": "v0.6.80",
+  "purpose": "Fix actual checkbox squashing and background overriding by global input CSS",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_81.txt",
+    "NBDT_v0_6_81_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_81_RU.md",
+    "index.tsx",
+    "nbdt-lessons-v081.css",
+    "package.json",
+    "src/lessons-learned-section.tsx",
+    "tests/lessons-checkbox-v081.test.mjs"
+  ],
+  "removed_files": [],
+  "verification": {
+    "node_tests": "433/433 passed",
+    "syntax": "passed",
+    "runtime_symbol_check": "passed",
+    "production_build": "not verified: local Vite dependency unavailable",
+    "browser_visual_check": "not completed: Chromium hung in runtime"
+  }
+}

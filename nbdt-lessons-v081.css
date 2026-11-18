@@ -1,0 +1,87 @@
+/* v0.6.81: review checkbox is rendered by a presentation span, not the form input.
+   Global NBDT input padding/background rules must never distort the visible box. */
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  flex:0 0 26px;
+  width:26px;
+  height:26px;
+  min-width:26px;
+  min-height:26px;
+  max-width:26px;
+  max-height:26px;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  border-radius:6px;
+  vertical-align:middle;
+  cursor:pointer;
+  isolation:isolate;
+}
+/* The real input remains accessible via screen readers and keyboard, but is
+   clipped instead of being used to paint the control. */
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox > input.nb78-confirm-checkbox {
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  max-width:1px !important;
+  max-height:1px !important;
+  inset:0 auto auto 0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  opacity:0 !important;
+  clip:rect(0,0,0,0) !important;
+  clip-path:inset(50%) !important;
+  overflow:hidden !important;
+  pointer-events:none;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox-box {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  min-width:26px;
+  min-height:26px;
+  box-sizing:border-box;
+  padding:0;
+  border:2px solid #a8b8cb;
+  border-radius:5px;
+  background:#fff;
+  color:#fff;
+  box-shadow:0 1px 2px rgba(29,62,101,.04);
+  transition:background-color .14s ease,border-color .14s ease,box-shadow .14s ease;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox-box svg {
+  display:block;
+  flex:none;
+  width:17px;
+  height:17px;
+  color:inherit;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox--in-progress .nb81-review-checkbox-box {
+  border-color:#3987dc;
+  background:#fff;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading .nb81-review-checkbox--confirmed .nb81-review-checkbox-box {
+  border-color:#27af62;
+  background:#2ebd6b;
+  color:#fff;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading label.nb81-review-checkbox:hover:not(:has(input:disabled)) .nb81-review-checkbox-box {
+  box-shadow:0 0 0 3px rgba(38,117,207,.11);
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading label.nb81-review-checkbox:focus-within .nb81-review-checkbox-box {
+  outline:3px solid rgba(32,112,226,.4);
+  outline-offset:2px;
+}
+.nb41-guide-page .nb79-lesson-table .nb79-review-leading label.nb81-review-checkbox:has(input:disabled) {
+  cursor:default;
+}

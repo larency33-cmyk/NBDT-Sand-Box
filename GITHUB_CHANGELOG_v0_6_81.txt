@@ -1,0 +1,14 @@
+NBDT Hub v0.6.81 — Current Ship Review checkbox rendering fix
+Base: v0.6.80
+
+- GITHUB_CHANGELOG_v0_6_81.txt
+- NBDT_v0_6_81_GitHub_Manifest.json
+- README.md
+- RELEASE_NOTES_v0_6_81_RU.md
+- index.tsx
+- nbdt-lessons-v081.css
+- package.json
+- src/lessons-learned-section.tsx
+- tests/lessons-checkbox-v081.test.mjs
+
+The native checkbox remains functional; a separate visual span renders the square without global input CSS conflicts.

@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.79 (Lessons Learned review visual parity).** The existing current-ship review is now presented in the approved five-column screenshot style: larger checkbox and semantic status pill, distinct vessel bars, 5-column table spacing, reviewer/date/notes and a clear status summary in the orange section header. All stored review data, status editing, Excel import and individual field editing remain unchanged. See `RELEASE_NOTES_v0_6_79_RU.md`.
+**Current package: v0.6.81 (Lessons Learned checkbox rendering fix).** The Current Ship Review checkbox is rendered by a dedicated square visual element that cannot inherit global input padding or background styles. Native accessible input remains for keyboard/click interaction, with preserved Pending / In progress / Confirmed, reviews, Excel import, and other NBDT functionality. See `RELEASE_NOTES_v0_6_81_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 
