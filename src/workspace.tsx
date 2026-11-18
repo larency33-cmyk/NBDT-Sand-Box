@@ -13,7 +13,8 @@ import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,today
 import {clampWeekViewport,moveWeekViewport} from './week-navigation.mjs';
 import {weekHeaderTone} from './week-palette.mjs';
 import {setResult} from './model.mjs';
-import {guideTechnicalValues,DEVICE_TYPES} from './registry-metadata.mjs';
+import {guideTechnicalValues,DEVICE_TYPES,registryVisualType,deviceModelValue} from './registry-metadata.mjs';
+import {DeviceTypeIcon} from './device-type-icon';
 import {guideReviewKey,loadGuideReview,changeGuideCheck,acceptGuideReviewStage} from './guide-review.mjs';
 import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
@@ -49,17 +50,18 @@ const GuideDetailGroup = ({title,icon:Icon,fields,editing,onEdit,onSave,onCancel
   <dl>{fields.map(([label,value,editor]:any)=><React.Fragment key={label}><dt>{label}</dt><dd>{editing?editor:<GuideValue value={value}/>}</dd></React.Fragment>)}</dl>
   {editing&&<div className="nb41-inline-actions"><B primary disabled={saving} onClick={onSave}><Check size={15}/> Save</B><B disabled={saving} onClick={onCancel}>Cancel</B></div>}
  </section>;
-const GuideTechnicalReadout = ({values,owner,editingSection,isAdmin,field,ownerInput,identityName,onNameChange,documentationUrl,onDocumentationChange,onEdit,onSave,onCancel,saving}:any) => {
+const GuideTechnicalReadout = ({values,deviceVisualType,owner,editingSection,isAdmin,field,ownerInput,identityName,onNameChange,documentationUrl,onDocumentationChange,onEdit,onSave,onCancel,saving}:any) => {
  const os=[values.os,values.osVersion].filter(Boolean).join(' ');
+ const model=deviceModelValue({deviceModel:values.deviceModel,deviceType:values.deviceType});
  const common={isAdmin,onSave,onCancel,saving};
  return <div className="nb40-details-grid">
-   <GuideDetailGroup {...common} title="Device" icon={Monitor} editing={editingSection==='device'} onEdit={()=>onEdit('device')} fields={[
-    ["Endpoint",values.deviceType||values.deviceCategory,field('deviceType','Endpoint')],
+   <GuideDetailGroup {...common} title="Device" icon={({size}:any)=><DeviceTypeIcon type={deviceVisualType} className="nb82-guide-device-icon"/>} editing={editingSection==='device'} onEdit={()=>onEdit('device')} fields={[
+    ["Endpoint",model,field('deviceModel','Device model')],
     ["OS",os,<div className="nb41-os-inputs" key="os">{field('os','Operating system',['Windows','Linux','iOS','iPadOS','Android','macOS','Other'])}{field('osVersion','OS version')}</div>],
     ["Naming",values.namingConvention,field('namingConvention','Naming')],
     ["Device type",values.deviceCategory,field('deviceCategory','Device type',DEVICE_TYPES)],
     ["System name",'',<input aria-label="System name" value={identityName} onChange={e=>onNameChange(e.target.value)}/>]
-   ].filter((row:any)=>editingSection==='device'||!['Device type','System name'].includes(row[0]))}/>
+   ].filter((row:any)=>editingSection==='device'||row[0]!=='System name')}/>
    <GuideDetailGroup {...common} title="Network" icon={Network} editing={editingSection==='network'} onEdit={()=>onEdit('network')} fields={[
     ["Connection",values.network,field('network','Connection',['Wired','WiFi','Offline'])],["VLAN",values.vlan,field('vlan','VLAN')],
     ["IP scope",values.ipScope,field('ipScope','IP scope')],["Reservation",values.ipReservation,field('ipReservation','Reservation')]]}/>
@@ -116,7 +118,10 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const marked=previewItems.filter((item:any)=>reviewRun.checks?.[item.id]).length;
  const update=async(next:any)=>{if(pending.current)return false;pending.current=true;setSaving(true);try{await onUpdateSystem(next);setMessage('Changes saved');return true;}catch(error:any){setMessage('Save failed: '+error.message);return false;}finally{pending.current=false;setSaving(false);}};
  const updateRun=(next:any)=>update({...sys,deviceRuns:[...(sys.deviceRuns||[]).filter((r:any)=>r.id!==next.id),next]});
- const setTech=(key:string,value:string)=>setDraft((prev:any)=>({...prev,technicalSnapshot:{...prev.technicalSnapshot,[key]:value}}));
+ const setTech=(key:string,value:string)=>{
+  if(key==='deviceModel')setDraft((prev:any)=>({...prev,technicalSnapshot:{...prev.technicalSnapshot,[key]:value,deviceType:value}}));
+  else setDraft((prev:any)=>({...prev,technicalSnapshot:{...prev.technicalSnapshot,[key]:value}}));
+ };
  const setMeta=(key:string,value:string)=>setIdentity((prev:any)=>({...prev,[key]:value}));
  const inlineField=(key:string,label:string,options?:readonly string[])=>options?
   <select aria-label={label} value={String(technicalValues[key]??'')} onChange={e=>setTech(key,e.target.value)}><option value="">Not specified</option>{options.map(v=><option key={v} value={v}>{v}</option>)}</select>:
@@ -198,12 +203,12 @@ export function Guide({sys,project,isAdmin,onClose,onUpdateSystem,initialDeviceI
  const editControls=(section:string)=>editingSection===section?<div className="nb41-inline-actions"><B primary disabled={saving} onClick={saveSection}><Check size={15}/> Save</B><B disabled={saving} onClick={cancelEdit}>Cancel</B></div>:null;
  const editing=!!editingSection;
  return <section className="nb-guide-page nb40-guide-page nb41-guide-page">
-  <header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {technicalValues.deviceType||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{isAdmin&&!editing&&<B className="nb75-import-button" onClick={()=>setShowExcelImport(true)}><ClipboardCheck size={16}/> Import from Excel</B>}{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
+  <header className="nb-page-header"><div><h1>{editing?identity.name:sys.name}</h1><p>System configuration guide · {deviceModelValue(technicalValues)||technicalValues.deviceCategory||'Device'} · {[technicalValues.os,technicalValues.osVersion].filter(Boolean).join(' ')}</p></div><div className="nb-actions">{isAdmin&&!editing&&<B className="nb75-import-button" onClick={()=>setShowExcelImport(true)}><ClipboardCheck size={16}/> Import from Excel</B>}{url&&<a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation ↗</a>}<B onClick={close}><ChevronLeft size={18} aria-hidden="true"/>Back to systems</B></div></header>
   {showExcelImport&&<GuideExcelImportModal busy={saving} onClose={()=>setShowExcelImport(false)} onApply={applyExcelImport}/> }
   <div className="nb-guide-body">
    <section className="nb-technical">
     <button type="button" className="nb-section-toggle" onClick={()=>setTechnical(v=>!v)} aria-expanded={technical}><span>Technical essentials</span><span>{technical?'Collapse':'Expand'}</span></button>
-    {technical&&<GuideTechnicalReadout values={technicalValues} owner={owner} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} ownerInput={ownerInput} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
+    {technical&&<GuideTechnicalReadout values={technicalValues} deviceVisualType={registryVisualType({...sys,guideDraft:{technicalSnapshot:{...technicalValues,deviceCategory:technicalValues.deviceCategory||sys.deviceCategory}}})} owner={owner} editingSection={editingSection} isAdmin={isAdmin&&!editing} field={inlineField} ownerInput={ownerInput} identityName={identity.name} onNameChange={(v:string)=>setMeta('name',v)} documentationUrl={identity.documentationUrl} onDocumentationChange={(v:string)=>setMeta('documentationUrl',v)} onEdit={beginEdit} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>}
    </section>
    <GuideApplications value={technicalValues.appList} isAdmin={isAdmin&&!editing} editing={editingSection==='applications'} onEdit={()=>beginEdit('applications')} onChange={(v:string)=>setTech('appList',v)} onSave={saveSection} onCancel={cancelEdit} saving={saving}/>
    <details className={'nb-lessons nb41-lessons nb74-lessons nb79-lessons '+(!lessonCount?'nb-neutral':'')} open={editingSection==='lessons'?true:undefined}>
@@ -245,7 +250,7 @@ export function SystemCreate({sys,project,isAdmin,onSave,onClose}:any){
  const [assigneeId,setAssigneeId]=useState(sys.assigneeId||'');
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const create=async()=>{if(!name.trim()){setError('Enter a system name.');return;}if(!isAdmin)return;
-  const snapshot={...Object.fromEntries(TECH_FIELDS.map(k=>[k,sys[k]??''])),deviceCategory:category,deviceType:''};
+  const snapshot={...Object.fromEntries(TECH_FIELDS.map(k=>[k,sys[k]??''])),deviceCategory:category,deviceModel:'',deviceType:''};
   const next={...sys,name:name.trim(),description,deviceCategory:category,assigneeId,
    guideDraft:{...newGuide(),technicalSnapshot:snapshot}};
   setBusy(true);try{await onSave(next);}catch(e:any){setError(e.message)}finally{setBusy(false);}

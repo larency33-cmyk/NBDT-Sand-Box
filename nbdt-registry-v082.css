@@ -1,0 +1,9 @@
+/* NBDT 0.6.82 — use the same device-type SVG in the Registry and Guide. */
+.nb41-guide-page .nb82-guide-device-icon {
+  display: block;
+  width: 27px;
+  height: 27px;
+  min-width: 27px;
+  min-height: 27px;
+  flex: none;
+}

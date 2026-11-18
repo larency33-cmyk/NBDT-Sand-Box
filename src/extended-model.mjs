@@ -1,5 +1,5 @@
 import {STAGES,stageComplete,uid} from './model.mjs';
-export const TECH_FIELDS=['deviceType','deviceCategory','os','osVersion','network','vlan','ipScope','ipReservation','serviceAccount','userAccount','logonType','domainOU','airWatchTags','appList','namingConvention'];
+export const TECH_FIELDS=['deviceModel','deviceType','deviceCategory','os','osVersion','network','vlan','ipScope','ipReservation','serviceAccount','userAccount','logonType','domainOU','airWatchTags','appList','namingConvention'];
 export function profiles(system){return [{id:system.id,name:'Primary profile',...Object.fromEntries(TECH_FIELDS.map(k=>[k,system[k]])),publishedGuide:system.publishedGuide,guideDraft:system.guideDraft,valueStates:system.valueStates},...(system.endpointProfiles||[])];}
 export function profileView(system,id){const p=profiles(system).find(p=>p.id===id);if(!p)throw Error('Profile not found');return {...system,...p,...Object.fromEntries(TECH_FIELDS.map(k=>[k,p[k]||''])),publishedGuide:p.publishedGuide||null,guideDraft:p.guideDraft||null,valueStates:p.valueStates||{},name:system.name,profileName:p.name,systemId:system.id,devices:(system.devices||[]).filter(d=>(d.profileId||system.id)===id),deviceRuns:(system.deviceRuns||[]).filter(r=>r.profileId===id)};}
 export function mergeProfile(system,next){

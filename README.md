@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.81 (Lessons Learned checkbox rendering fix).** The Current Ship Review checkbox is rendered by a dedicated square visual element that cannot inherit global input padding or background styles. Native accessible input remains for keyboard/click interaction, with preserved Pending / In progress / Confirmed, reviews, Excel import, and other NBDT functionality. See `RELEASE_NOTES_v0_6_81_RU.md`.
+**Current package: v0.6.82 (separate Device Type, Device Model and Description).** Excel import treats Endpoint as the hardware model and the text beneath the hardware-deployment banner (before Endpoint) as the system description, including short text. Device Type remains a separate category and drives the same icon in System Registry and System Guide. All Lessons Learned improvements remain unchanged. See `RELEASE_NOTES_v0_6_82_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

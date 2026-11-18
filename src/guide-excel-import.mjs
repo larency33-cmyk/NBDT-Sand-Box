@@ -7,7 +7,7 @@ import {splitExcelText,extractExcelHtmlRows} from './lessons-learned.mjs';
 
 export const GUIDE_FIELD_GROUPS = [
  ['System', [['name','System name'],['description','Description']]],
- ['Device', [['deviceType','Endpoint'],['os','Platform'],['osVersion','OS version'],['deviceCategory','Device type'],['namingConvention','Naming convention']]],
+ ['Device', [['deviceModel','Endpoint / Device model'],['os','Platform'],['osVersion','OS version'],['deviceCategory','Device type'],['namingConvention','Naming convention']]],
  ['Network', [['network','Network type'],['vlan','VLAN'],['ipScope','IP scope'],['ipReservation','Reservation']]],
  ['Access & management', [['serviceAccount','Service account'],['userAccount','User account'],['logonType','Auth type'],['domainOU','Domain / OU'],['airWatchTags','AirWatch tags']]],
  ['Applications', [['appList','Applications list']]],
@@ -18,7 +18,7 @@ const lineText=value=>String(value??'').replace(/\r\n?/g,'\n').replace(/\u00a0/g
 const FIELD_ALIASES={
  name:['system name','system title','system','name','application name'],
  description:['description','system description','overview','system overview'],
- deviceType:['endpoint','endpoint model','device model','hardware','hardware endpoint'],
+ deviceModel:['endpoint','endpoint model','device model','hardware endpoint'],
  deviceCategory:['device type','device category','endpoint type'],
  os:['platform','operating system','os','os platform'],
  osVersion:['os version','operating system version','platform version'],
@@ -57,7 +57,7 @@ function prepareRows(text,html='',Parser){
  return [htmlRows,txtRows].filter(rows=>rows.length);
 }
 function readRows(rows){
- const fields={};const stages={};let section=null,activeField=null,consumed=0;let introOpen=true;
+ const fields={};const stages={};let section=null,activeField=null,consumed=0;let introOpen=true;let inIntroDescription=false;
  const leftovers=[];
  const addField=(key,value)=>{
   const clean=key==='appList'?lineText(value).replace(/^[•●▪◦‣*-]\s*/u,''):lineText(value);
@@ -66,6 +66,7 @@ function readRows(rows){
   if(key==='appList')fields[key]=fields[key]?[fields[key],clean].join('\n'):clean;
   else if(key==='description' && fields[key] && fields[key]!==clean)fields[key]+='\n'+clean;
   else fields[key]=clean;
+  if(key==='deviceModel')fields.deviceType=clean; // v0.6.75 backward-compatible model alias
   consumed++;
  };
  const addStep=value=>{
@@ -81,23 +82,24 @@ function readRows(rows){
    const line=lineText(raw);
    if(!line)continue;
    const heading=findGuideStage(line);
-   if(heading){section=heading;activeField=null;consumed++;continue;}
+   if(heading){section=heading;activeField=null;inIntroDescription=false;consumed++;continue;}
    const colon=line.match(/^([^:：]{2,36})\s*[:：]\s*(.+)$/);
    const field=findGuideField(colon?.[1]||line);
    if(field){
-    section=field==='appList'?'appList':null;activeField=field==='appList'?null:field;consumed++;
+    section=field==='appList'?'appList':null;activeField=field==='appList'?null:field;inIntroDescription=false;consumed++;
     if(colon)addField(field,colon[2]);
     continue;
    }
-   if(META_HEADINGS.has(fold(line))){section=null;activeField=null;continue;}
+   if(META_HEADINGS.has(fold(line))){section=null;activeField=null;inIntroDescription=fold(line)==='hardware deployment and configuration required'&&Boolean(fields.name);continue;}
    if(section && STAGES.includes(section)){addStep(line);continue;}
    if(section==='appList'){addField('appList',line);continue;}
    if(activeField){addField(activeField,line);activeField=null;continue;}
+   if(inIntroDescription && fields.name){addField('description',line);continue;}
    // The title and description in this worksheet have no explicit labels.
    if(allowTitle && !fields.name && !findGuideField(line) && line.length<90 && !/[.!?]$/.test(line)){
     addField('name',line);continue;
    }
-   if(fields.name && introOpen && line.length>18){addField('description',line);continue;}
+   if(fields.name && introOpen && !/[\t]/.test(line)){addField('description',line);continue;}
    leftovers.push(line);
   }
  };
@@ -114,10 +116,10 @@ function readRows(rows){
   if(values && keys.filter(Boolean).length>=2 && values.length>=cells.length &&
      !values.some(value=>findGuideField(value)||findGuideStage(value))){
    keys.forEach((key,j)=>{if(key)addField(key,values[j]);});
-   skip.add(index+1);section=null;activeField=null;sawHeading=true;return;
+   skip.add(index+1);section=null;activeField=null;inIntroDescription=false;sawHeading=true;return;
   }
   if(cells.length>=2 && findGuideField(cells[0]) && !findGuideField(cells[1]) && !findGuideStage(cells[1])){
-   const key=findGuideField(cells[0]);addField(key,cells.slice(1).filter(Boolean).join('\n'));section=null;activeField=null;
+   const key=findGuideField(cells[0]);addField(key,cells.slice(1).filter(Boolean).join('\n'));section=null;activeField=null;inIntroDescription=false;
    return;
   }
   for(const cell of cells){
@@ -142,6 +144,7 @@ export function applyGuideExcelImport(system,baseGuide,parsed,makeId){
  const identity={};
  for(const [key,value] of Object.entries(parsed.fields||{})){
   if(key==='name'||key==='description')identity[key]=value;
+  else if(key==='deviceModel'||key==='deviceType'){tech.deviceModel=value;tech.deviceType=value;}
   else tech[key]=value;
  }
  const stages={...baseGuide.stages};

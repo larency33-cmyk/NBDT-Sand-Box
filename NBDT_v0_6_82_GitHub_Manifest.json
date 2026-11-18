@@ -1,0 +1,28 @@
+{
+  "version": "v0.6.82",
+  "base_version": "v0.6.81",
+  "purpose": "Separate Device Type, Device Model and Description; make Registry/Guide icons consistent",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_82.txt",
+    "NBDT_v0_6_82_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_82_RU.md",
+    "index.tsx",
+    "nbdt-registry-v082.css",
+    "package.json",
+    "src/device-type-icon.tsx",
+    "src/extended-model.mjs",
+    "src/guide-excel-import.mjs",
+    "src/registry-metadata.mjs",
+    "src/workspace.tsx",
+    "tests/registry-excel-v082.test.mjs"
+  ],
+  "removed_files": [],
+  "verification": {
+    "node_tests": "442/442 passed",
+    "syntax": "passed",
+    "runtime_symbol_check": "passed",
+    "production_build": "not verified: local Vite dependencies not installed",
+    "browser_visual_check": "not run"
+  }
+}

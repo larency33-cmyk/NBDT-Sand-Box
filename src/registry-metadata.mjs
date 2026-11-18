@@ -11,12 +11,19 @@ export function guideTechnicalValues(system) {
   return published && typeof published === 'object' ? published : (system || {});
 }
 
+/** Hardware model, never a broad category such as PC/Phone/Tablet. Supports old snapshots. */
+export function deviceModelValue(values) {
+  const clean=value=>String(value??'').trim();
+  const candidate=clean(values?.deviceModel)||clean(values?.deviceType);
+  return DEVICE_TYPES.some(type=>type.toLowerCase()===candidate.toLowerCase())?'':candidate;
+}
+
 export function registryCardFields(system) {
   const source = guideTechnicalValues(system);
   const text = value => typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim();
   const os = [text(source.os),text(source.osVersion)].filter(Boolean).join(' ');
   return {
-    model: text(source.deviceType) || text(source.deviceCategory) || '—',
+    model: deviceModelValue(source) || '—',
     os: os || '—',
     network: text(source.network) || '—',
     naming: text(source.namingConvention) || '—',
@@ -30,17 +37,12 @@ export function registryVisualType(system) {
   const category = fields.category.toLowerCase();
   const model = fields.model.toLowerCase();
   const name = String(system?.name || '').toLowerCase();
-  // Newly chosen categories are authoritative. The three legacy/demo entries
-  // below had device categories that did not agree with their device model.
-  if (category === 'app only' || category === 'app') return 'App only';
-  if (category === 'pos') return 'POS';
-  if ((/\bpoint of sale\b/.test(name) || /^pos[\s–-]*mobility\b/.test(name)) && !category.includes('phone')) {
-    return name.includes('mobility') ? 'Phone' : 'POS';
-  }
-  if (/\b(tc22|xcover|iphone|smartphone)\b/.test(model) && category === 'tablet') return 'Phone';
-  if (category === 'kiosk' || /\bkiosk\b/.test(name)) return 'Kiosk';
+  // Explicit Device Type is authoritative for BOTH registry and guide icons.
+  // Only use model/name heuristics when older profiles have no category saved.
+  if (category === 'app') return 'App only';
   const known = DEVICE_TYPES.find(type => type.toLowerCase() === category);
   if (known) return known;
+  if (/\bkiosk\b/.test(name)) return 'Kiosk';
   if (/\b(ipad|tablet)\b/.test(model)) return 'Tablet';
   if (/\b(laptop|notebook|macbook)\b/.test(model)) return 'Laptop';
   if (/\b(phone|xcover|tc22|iphone)\b/.test(model)) return 'Phone';

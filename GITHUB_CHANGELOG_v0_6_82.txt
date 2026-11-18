@@ -1,0 +1,3 @@
+NBDT Hub v0.6.82 (base v0.6.81)
+Device model and type are separated; short Excel descriptions no longer missed; a shared icon component keeps System Registry and System Guide consistent.
+See RELEASE_NOTES_v0_6_82_RU.md.
