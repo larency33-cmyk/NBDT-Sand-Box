@@ -2,6 +2,8 @@
  * Last saved guide draft wins; otherwise read the published version. Legacy
  * system fields are only a migration fallback for profiles not yet edited.
  */
+import {isFalsePlaceholder} from './guide-excel-import.mjs';
+
 export const DEVICE_TYPES = Object.freeze(['Phone','Tablet','PC','Laptop','Kiosk','POS','App only']);
 
 export function guideTechnicalValues(system) {
@@ -13,14 +15,14 @@ export function guideTechnicalValues(system) {
 
 /** Hardware model, never a broad category such as PC/Phone/Tablet. Supports old snapshots. */
 export function deviceModelValue(values) {
-  const clean=value=>String(value??'').trim();
+  const clean=value=>isFalsePlaceholder(value)?'':String(value??'').trim();
   const candidate=clean(values?.deviceModel)||clean(values?.deviceType);
   return DEVICE_TYPES.some(type=>type.toLowerCase()===candidate.toLowerCase())?'':candidate;
 }
 
 export function registryCardFields(system) {
   const source = guideTechnicalValues(system);
-  const text = value => typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim();
+  const text = value => isFalsePlaceholder(value)?'':(typeof value === 'string' ? value.trim() : value == null ? '' : String(value).trim());
   const os = [text(source.os),text(source.osVersion)].filter(Boolean).join(' ');
   return {
     model: deviceModelValue(source) || '—',
