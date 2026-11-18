@@ -1,4 +1,4 @@
-/** NBDT 0.6.75: Excel clipboard import for one system's Guide.
+/** NBDT 0.6.83: Excel clipboard import for one system's Guide.
  * No external services; no clipboard HTML is inserted into the document.
  * Input may be pasted from worksheet cells (TSV / HTML) or a text template.
  */
@@ -51,6 +51,41 @@ export function stripChecklistMarker(text){
  return String(text??'').replace(/^\s*(?:[•●▪◦‣*-]\s*|(?:\d+[.)]|\[[xX ✓✔☑]?\])\s*)+/u,'')
   .replace(/\s*(?:☑|☐|✅|✔|✓|\[x\]|\[ \])\s*$/iu,'').trim();
 }
+// Source worksheets often mix merged HTML cells and plain-text clipboard rows.
+// Recognize hardware model lines by model-like manufacturer/product tokens only
+// when repairing an unlabelled introduction, never in normal descriptions.
+const HARDWARE_MODEL_LINE=/^(?:lenovo|dell|hp|hewlett.packard|acer|asus|samsung|apple|zebra|panasonic|nino|ares|honeywell|getac|microsoft)\b[\s\S]*\b(?:desktop|thinkpad|thinkcentre|laptop|tablet|galaxy|ipad|iphone|xcover|elitebook|latitude|optiplex|tc\d+|gen\s*\d+|nino|model|surface)\b/i;
+function cleanFieldText(text){return lineText(text).replace(/^[*]{2}|[*]{2}$/g,'').trim();}
+function repairIntroFields(fields){
+ const value=fields.description;
+ if(!value)return;
+ const repaired=[];
+ for(const raw of value.split('\n')){
+  const line=raw.trim();
+  // If the Excel HTML collapses an Endpoint cell into the description,
+  // recover the hardware model instead of copying it to the registry summary.
+  const collapsed=line.match(/^(.*?)(?:\s{2,}|\s+)(?=((?:LENOVO|DELL|HP|SAMSUNG|ZEBRA|ACER|ASUS)\s*[-–]\s*(?:DESKTOP|LAPTOP|TABLET|THINKPAD|TC\d+|GALAXY))\b)/i);
+  const intro=collapsed?.[1]?.trim();
+  const model=collapsed?line.slice(intro.length).trim():line;
+  const duplicate=fields.deviceModel&&fold(model)===fold(fields.deviceModel);
+  if(duplicate){if(intro)repaired.push(intro);continue;}
+  if(!fields.deviceModel && HARDWARE_MODEL_LINE.test(model)){
+   fields.deviceModel=model;
+   fields.deviceType=model; // legacy hardware-model alias (not Device Type category)
+   if(intro)repaired.push(intro);
+   continue;
+  }
+  repaired.push(line);
+ }
+ if(repaired.length)fields.description=repaired.join('\n');
+ else delete fields.description;
+}
+function isKnownValue(value,fields){
+ return Object.values(fields).some(field=>String(field).split('\n').some(part=>fold(part)===fold(value)));
+}
+function candidateWeight(candidate){
+ return candidate.score + ['deviceModel','namingConvention','description'].reduce((n,key)=>n+(candidate.fields[key]?5:0),0);
+}
 function prepareRows(text,html='',Parser){
  const htmlRows=html?extractExcelHtmlRows(html,Parser):[];
  const txtRows=splitExcelText(lineText(text));
@@ -60,7 +95,7 @@ function readRows(rows){
  const fields={};const stages={};let section=null,activeField=null,consumed=0;let introOpen=true;let inIntroDescription=false;
  const leftovers=[];
  const addField=(key,value)=>{
-  const clean=key==='appList'?lineText(value).replace(/^[•●▪◦‣*-]\s*/u,''):lineText(value);
+  const clean=key==='appList'?cleanFieldText(value).replace(/^[•●▪◦‣*-]\s*/u,''):cleanFieldText(value);
   if(!clean)return;
   if(key!=='name' && key!=='description')introOpen=false;
   if(key==='appList')fields[key]=fields[key]?[fields[key],clean].join('\n'):clean;
@@ -84,6 +119,15 @@ function readRows(rows){
    const heading=findGuideStage(line);
    if(heading){section=heading;activeField=null;inIntroDescription=false;consumed++;continue;}
    const colon=line.match(/^([^:：]{2,36})\s*[:：]\s*(.+)$/);
+   // Some merged Excel cells flatten `Endpoint` and its value, or
+   // `Naming Convention` and the pattern, into a single text line.
+   const modelInline=line.match(/^(?:endpoint|device model)\s+(.+)$/i);
+   if(modelInline && HARDWARE_MODEL_LINE.test(modelInline[1])){
+    section=null;activeField=null;inIntroDescription=false;
+    addField('deviceModel',modelInline[1]);continue;
+   }
+   const namingInline=line.match(/^naming\s+conventions?\s+([A-Za-z0-9][\w.\-\[\]]{3,})$/i);
+   if(namingInline){section=null;activeField=null;inIntroDescription=false;addField('namingConvention',namingInline[1]);continue;}
    const field=findGuideField(colon?.[1]||line);
    if(field){
     section=field==='appList'?'appList':null;activeField=field==='appList'?null:field;inIntroDescription=false;consumed++;
@@ -99,7 +143,9 @@ function readRows(rows){
    if(allowTitle && !fields.name && !findGuideField(line) && line.length<90 && !/[.!?]$/.test(line)){
     addField('name',line);continue;
    }
-   if(fields.name && introOpen && !/[\t]/.test(line)){addField('description',line);continue;}
+   if(fields.name && introOpen && !fields.description && !HARDWARE_MODEL_LINE.test(line) && !/[\t]/.test(line)){
+    addField('description',line);introOpen=false;continue;
+   }
    leftovers.push(line);
   }
  };
@@ -118,7 +164,12 @@ function readRows(rows){
    keys.forEach((key,j)=>{if(key)addField(key,values[j]);});
    skip.add(index+1);section=null;activeField=null;inIntroDescription=false;sawHeading=true;return;
   }
-  if(cells.length>=2 && findGuideField(cells[0]) && !findGuideField(cells[1]) && !findGuideStage(cells[1])){
+  // A merged Excel heading may have several empty cells to its right.
+  // In that case process it as a standalone heading so the NEXT row becomes
+  // its value. Previously this branch discarded the heading entirely.
+  if(cells.length>=2 && findGuideField(cells[0]) &&
+     cells.slice(1).some(Boolean) &&
+     !cells.slice(1).some(cell=>findGuideField(cell)||findGuideStage(cell)||META_HEADINGS.has(fold(cell)))){
    const key=findGuideField(cells[0]);addField(key,cells.slice(1).filter(Boolean).join('\n'));section=null;activeField=null;inIntroDescription=false;
    return;
   }
@@ -131,13 +182,53 @@ function readRows(rows){
  });
  // Special case: a copied table can have a label/value pair separated by tabs
  // and a split software/checklist cell. `readRows` only fills recognized fields.
+ repairIntroFields(fields);
  return {fields,stages,unrecognized:leftovers,score:Object.keys(fields).length*3+Object.values(stages).reduce((n,a)=>n+a.length+1,0),consumed};
 }
 export function parseGuideExcel({text='',html='',Parser}={}){
- const candidates=prepareRows(text,html,Parser).map(readRows);
- const result=candidates.sort((a,b)=>b.score-a.score)[0];
- if(!result || !result.score)throw Error('No recognizable configuration fields found. Copy the System / Endpoint / Platform / Applications / Checklist area from Excel.');
- return {fields:result.fields,stages:result.stages,unrecognized:result.unrecognized};
+ const rowVariants=prepareRows(text,html,Parser);
+ const candidates=rowVariants.map(readRows);
+ const primary=[...candidates].sort((a,b)=>candidateWeight(b)-candidateWeight(a))[0];
+ if(!primary || !primary.score)throw Error('No recognizable configuration fields found. Copy the System / Endpoint / Platform / Applications / Checklist area from Excel.');
+ // Excel HTML may lose merged headings while plain text keeps them, and vice
+ // versa. Combine complementary fields instead of discarding an entire view.
+ const fields={...primary.fields};
+ const plain=candidates.length===2?candidates[1]:null;
+ const htmlCandidate=candidates.length===2?candidates[0]:null;
+ for(const candidate of candidates){
+  for(const [key,value] of Object.entries(candidate.fields)){
+   if(!fields[key])fields[key]=value;
+  }
+ }
+ // The natural-order text clipboard is authoritative for these specifically
+ // labelled/unlabelled intro fields when its model/naming boundaries are clear.
+ if(plain?.fields.deviceModel && plain.fields.namingConvention){
+  fields.deviceModel=plain.fields.deviceModel;
+  fields.deviceType=plain.fields.deviceModel;
+  fields.namingConvention=plain.fields.namingConvention;
+  if(plain.fields.description)fields.description=plain.fields.description;
+ } else {
+  for(const key of ['deviceModel','namingConvention']){
+   if(plain?.fields[key])fields[key]=plain.fields[key];
+  }
+  if(plain?.fields.description && (!fields.description ||
+      (fields.deviceModel && fields.description.includes(fields.deviceModel)))){
+   fields.description=plain.fields.description;
+  }
+ }
+ // If the HTML candidate is the only one with a well-formed hardware value,
+ // retain it, even when the text was flattened to a single paragraph.
+ if(!fields.deviceModel && htmlCandidate?.fields.deviceModel)fields.deviceModel=htmlCandidate.fields.deviceModel;
+ if(fields.deviceModel)fields.deviceType=fields.deviceModel;
+ repairIntroFields(fields);
+ const stages={...primary.stages};
+ for(const candidate of candidates){
+  for(const stage of STAGES){
+   if(candidate.stages[stage]?.length > (stages[stage]?.length||0))stages[stage]=candidate.stages[stage];
+  }
+ }
+ const unrecognized=[...new Set(primary.unrecognized.filter(line=>!isKnownValue(line,fields)))];
+ return {fields,stages,unrecognized};
 }
 export function applyGuideExcelImport(system,baseGuide,parsed,makeId){
  const tech={...(baseGuide.technicalSnapshot||{})};

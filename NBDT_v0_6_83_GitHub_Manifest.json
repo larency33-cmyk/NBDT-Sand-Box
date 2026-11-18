@@ -1,0 +1,22 @@
+{
+  "version": "v0.6.83",
+  "base_version": "v0.6.82",
+  "purpose": "Fix Excel merged-cell clipboard import of Description, Endpoint hardware model and Naming Convention",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_83.txt",
+    "NBDT_v0_6_83_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_83_RU.md",
+    "package.json",
+    "src/guide-excel-import.mjs",
+    "tests/guide-excel-import-v083.test.mjs"
+  ],
+  "removed_files": [],
+  "verification": {
+    "node_tests": "450/450 passed",
+    "syntax": "passed",
+    "runtime_symbol_check": "passed",
+    "production_build": "not verified: local Vite dependencies not installed",
+    "browser_visual_check": "not run"
+  }
+}

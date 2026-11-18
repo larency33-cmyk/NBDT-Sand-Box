@@ -1,6 +1,6 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.82 (separate Device Type, Device Model and Description).** Excel import treats Endpoint as the hardware model and the text beneath the hardware-deployment banner (before Endpoint) as the system description, including short text. Device Type remains a separate category and drives the same icon in System Registry and System Guide. All Lessons Learned improvements remain unchanged. See `RELEASE_NOTES_v0_6_82_RU.md`.
+**Current package: v0.6.83 (reliable Excel merged-cell import).** Fixed the failure where an Endpoint or Naming Convention heading followed by blank Excel cells was silently discarded: the subsequent hardware model was incorrectly treated as Description and the naming value was unrecognized. Imports now reconcile HTML and plain-text clipboard variants, keep the actual model, description and naming pattern separate, and preserve other sections. See `RELEASE_NOTES_v0_6_83_RU.md`.
 
 All changes from v0.6.59 are retained, including `Not Started` for legacy Cyber status, simplified Cyber editing, added-system highlight, Assignment column insertion, and the automatic ownership reference. The interface is React + Vite. POC credentials and roles remain browser-local; corporate deployment needs server-side authorization.
 

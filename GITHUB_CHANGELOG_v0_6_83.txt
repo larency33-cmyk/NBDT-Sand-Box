@@ -1,0 +1,6 @@
+NBDT Hub v0.6.83 (relative to v0.6.82)
+- Fixed Excel rows with an Endpoint / Naming Convention heading and trailing empty columns.
+- Corrected Description vs Device Model mapping and `xxBATCHP01` naming import.
+- Combined complementary fields from Excel text/plain and text/html clipboard formats.
+- Added 8 regression tests for OHC – Print Shop Excel cases.
+- No changes to Lessons Learned, checklist completion or manual editing.
