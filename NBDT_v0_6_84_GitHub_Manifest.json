@@ -1,0 +1,23 @@
+{
+  "version": "v0.6.84",
+  "base_version": "v0.6.83",
+  "purpose": "Display User account inside Access & management and suppress spreadsheet FALSE placeholders",
+  "changed_files": [
+    "src/guide-excel-import.mjs",
+    "src/workspace.tsx",
+    "src/registry-metadata.mjs",
+    "tests/guide-access-apps-v084.test.mjs",
+    "package.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_84_RU.md",
+    "GITHUB_CHANGELOG_v0_6_84.txt",
+    "NBDT_v0_6_84_GitHub_Manifest.json"
+  ],
+  "removed_files": [],
+  "verification": {
+    "node_tests": "pending",
+    "syntax": "pending",
+    "production_build": "not verified",
+    "browser_visual_check": "not run"
+  }
+}
