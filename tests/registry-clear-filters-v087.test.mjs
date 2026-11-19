@@ -29,7 +29,7 @@ test('Header Clear filters resets all Registry filter fields, including owner',(
  for(const command of ["setSystemSearch('')","setActiveFilters([])","setSystemOwnerFilter('')","setDeviceTypeFilter('')"]) {
   assert.ok(match.includes(command),command);
  }
- assert.match(match,/type="button"/);
+ assert.match(header,/<button type="button" className="nb-button nb87-clear-filters"/);
  assert.match(match,/aria-label="Clear system registry filters"/);
 });
 
@@ -38,7 +38,7 @@ test('The action remains available to guests and does not change other page expo
  const btnEnd=header.indexOf('Clear filters</button>');
  assert.ok(condStart>=0&&btnEnd>condStart);
  assert.doesNotMatch(header.slice(condStart,btnEnd),/isAdmin/);
- assert.match(ui,/<Download size=\{18\}/);
+ assert.match(ui,/> Export data</);
 });
 
 test('Clear filters styling is scoped to the Registry and has focus and hover states',()=>{
