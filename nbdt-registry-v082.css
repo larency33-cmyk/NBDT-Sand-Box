@@ -33,7 +33,7 @@
   background:transparent;
   color:#0d4386;
   padding:2px 16px 2px 3px;
-  font:700 10px/1.35 inherit;
+  font-family:inherit;
   font-size:10px;
   font-weight:700;
   line-height:1.35;
