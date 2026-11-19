@@ -52,6 +52,10 @@ export function resolveAssignmentOwner(roster,systemName){
  return names.length===0?{status:'none',names:[],personIds:[],label:null}:
   {status:names.length>1?'shared':'unique',names,personIds:ids,label:names.join(' · ')};
 }
+/** Registry owner filtering uses Assignment only; ignores old project assignee IDs. */
+export function systemMatchesAssignmentOwner(roster,systemName,personId){
+ return !personId || resolveAssignmentOwner(roster,systemName).personIds.includes(personId);
+}
 export function assignmentRows(roster){
  const counts=(roster?.people||[]).map(p=>(roster?.items||[]).filter(i=>i.personId===p.id).length);
  return Math.max(13,0,...counts);
