@@ -56,6 +56,25 @@ export function resolveAssignmentOwner(roster,systemName){
 export function systemMatchesAssignmentOwner(roster,systemName,personId){
  return !personId || resolveAssignmentOwner(roster,systemName).personIds.includes(personId);
 }
+/** Registry owner selector writes to Assignment, never to the legacy system.assigneeId.
+ * Selecting one person makes that person the sole owner of the named system.
+ * Selecting the empty option removes its Assignment rows. Other system entries stay intact.
+ */
+export function setSystemAssignmentOwner(roster,systemName,personId){
+ const key=assignmentKey(systemName);
+ if(!key)throw Error('A system name is required.');
+ if(personId && !(roster?.people||[]).some(person=>person.id===personId))throw Error('Choose an existing Assignment team member.');
+ const existing=(roster?.items||[]).filter(item=>assignmentKey(item.name)===key);
+ if(!personId){
+  if(!existing.length)return roster;
+  return {...roster,items:reorder(roster.items.filter(item=>assignmentKey(item.name)!==key))};
+ }
+ if(existing.length===1 && existing[0].personId===personId)return roster;
+ const keep=existing.find(item=>item.personId===personId)||existing[0];
+ const remaining=roster.items.filter(item=>assignmentKey(item.name)!==key);
+ const item=keep?{...keep,personId}:{id:globalThis.crypto?.randomUUID?.()||`assignment-${Date.now()}-${Math.random().toString(36).slice(2)}`,personId,name:String(systemName).trim()};
+ return {...roster,items:reorder([...remaining,item])};
+}
 export function assignmentRows(roster){
  const counts=(roster?.people||[]).map(p=>(roster?.items||[]).filter(i=>i.personId===p.id).length);
  return Math.max(13,0,...counts);
