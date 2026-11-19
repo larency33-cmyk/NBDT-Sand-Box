@@ -2914,7 +2914,7 @@ const App = () => {
                 <button type="button" className="nb-button" onClick={()=>{
                   const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
                   const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
-                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||project.members.find(m=>m.id===s.assigneeId)?.name||''])];
+                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||'Not assigned'])];
                   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
                   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
                 }}><Download size={18}/> Export</button>
