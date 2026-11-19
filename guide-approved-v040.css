@@ -58,3 +58,41 @@
 @media(max-width:1080px){.nb40-detail-card{padding:14px 12px}.nb40-detail-card dl{grid-template-columns:1fr;gap:3px}.nb40-detail-card dd{margin-bottom:8px}.nb40-applications{grid-template-columns:200px 1fr}.nb40-apps-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.nb40-guide-page .nb-page-header{flex-wrap:wrap}.nb40-guide-page .nb-page-header .nb-actions{justify-content:flex-start;flex-wrap:wrap}.nb40-details-grid{grid-template-columns:1fr}.nb40-detail-card{min-height:0}.nb40-detail-card dl{grid-template-columns:120px minmax(0,1fr)}.nb40-applications{grid-template-columns:1fr;gap:13px}.nb40-apps-heading{border-right:0;border-bottom:1px solid #ddcef8;padding:0 0 13px}.nb40-apps-list{padding:0;grid-template-columns:repeat(2,minmax(0,1fr))}.nb40-guide-page .nb-stage-tabs button{padding:6px 9px;gap:7px;font-size:11px}.nb40-guide-page .nb-stage-tabs button span{width:25px;height:25px;min-width:25px;font-size:13px}.nb40-guide-page .nb-guide-footer{flex-wrap:wrap}}
 @media(max-width:440px){.nb40-apps-list{grid-template-columns:1fr}.nb40-guide-page .nb-config-header{flex-wrap:wrap}.nb40-guide-page .nb-stage-tabs button{font-size:10px;gap:5px}.nb40-guide-page .nb-stage-tabs button span{width:22px;height:22px;min-width:22px}}
+
+/* v0.6.88 — Guide-only Documentation action; external Registry card button is unchanged. */
+.nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation{
+  min-height:46px;
+  padding:10px 17px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  border:1px solid #075fca!important;
+  border-radius:10px;
+  background:linear-gradient(135deg,#0874ed 0%,#075ecb 100%)!important;
+  color:#fff!important;
+  font-weight:750;
+  letter-spacing:.005em;
+  box-shadow:0 5px 14px rgba(13,91,199,.2);
+  text-decoration:none;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation>svg{
+  color:currentColor;
+  flex:none;
+}
+.nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation:hover{
+  background:linear-gradient(135deg,#0767d5 0%,#054fae 100%)!important;
+  border-color:#034a9f!important;
+  color:#fff!important;
+  box-shadow:0 8px 19px rgba(13,91,199,.27);
+  transform:translateY(-1px);
+}
+.nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation:focus-visible{
+  outline:3px solid #80baff;
+  outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+  .nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation{transition:none}
+  .nb40-guide-page .nb-page-header .nb-actions a.nb-button.nb88-guide-documentation:hover{transform:none}
+}
