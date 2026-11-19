@@ -95,6 +95,7 @@ Navigation,
   Edit2,
   Cloud,
   Download,
+  FilterX,
   Upload,
   Search,
   RefreshCw,
@@ -2911,13 +2912,7 @@ const App = () => {
             <header className="nb-registry-heading nb45-primary-header">
               <div><h1>System Registry</h1><p>{project.name} · {project.systems.length} systems · Configuration guides</p></div>
               <div className="nb-registry-actions">
-                <button type="button" className="nb-button" onClick={()=>{
-                  const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
-                  const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
-                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||'Not assigned'])];
-                  const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
-                  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-                }}><Download size={18}/> Export</button>
+                {(activeFilters.length>0||systemOwnerFilter||systemSearch.trim()||deviceTypeFilter)&&<button type="button" className="nb-button nb87-clear-filters" aria-label="Clear system registry filters" onClick={()=>{setSystemSearch('');setActiveFilters([]);setSystemOwnerFilter('');setDeviceTypeFilter('');}}><FilterX size={17} aria-hidden="true"/> Clear filters</button>}
                 {isAdmin&&<button type="button" className="nb-button nb-primary" onClick={()=>setDraftSystem({id:`sys-${Date.now()}`,name:'',deviceModel:'',deviceType:'',deviceCategory:'PC',os:'Windows',osVersion:'',network:'Wired',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',assigneeId:''})}><Plus size={18}/> Add system</button>}
 
               </div>
@@ -2928,7 +2923,6 @@ const App = () => {
               <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
               <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
               <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={systemOwnerFilter} onChange={e=>setSystemOwnerFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
-              {(activeFilters.length>0||systemOwnerFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setSystemOwnerFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>

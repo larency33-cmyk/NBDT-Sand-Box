@@ -44,3 +44,31 @@
 .nb-registry-page .nb86-owner-select:focus-visible{outline:2px solid #3a89f4;outline-offset:1px;border-color:#7bb5f7}
 .nb-registry-page .nb86-owner-select:disabled{opacity:.6;cursor:wait}
 .nb-registry-page .nb86-owner-error{font-size:11px;color:#b5283b;margin:-3px 4px 8px}
+
+/* v0.6.87 — Clear filters replaces Registry Export in the top-right header. */
+.nb-registry-page .nb-registry-actions .nb87-clear-filters{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:9px;
+ min-width:0;
+ padding:0 17px;
+ border:1px solid #c5daf1;
+ border-radius:10px;
+ background:#f6faff;
+ color:#2261a3;
+ font-size:14px;
+ font-weight:650;
+ white-space:nowrap;
+ cursor:pointer;
+}
+.nb-registry-page .nb-registry-actions .nb87-clear-filters svg{flex-shrink:0;color:#2874d9}
+.nb-registry-page .nb-registry-actions .nb87-clear-filters:hover{
+ border-color:#82b5f1;
+ background:#eaf3ff;
+ color:#1155aa;
+}
+.nb-registry-page .nb-registry-actions .nb87-clear-filters:focus-visible{
+ outline:2px solid #1873ef;
+ outline-offset:2px;
+}
