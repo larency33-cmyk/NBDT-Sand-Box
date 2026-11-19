@@ -1,6 +1,8 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.84 (User account display & clean Applications).** Guide → Access & management now shows the imported **User account** instead of the internally managed Owner; deployment Owner remains on System Registry cards. Standalone and trailing spreadsheet `false` placeholders are discarded by the Excel importer and suppressed in existing detail cards and Applications, including edit mode. No ownership or task assignments are changed. See `RELEASE_NOTES_v0_6_84_RU.md`.
+**Current package: v0.6.85 (Registry fixed card widths & Assignment-only owners).** System Registry now keeps stable three-column card sizing when searching/filtering to one or two systems (responsive two/one columns on narrower screens). The All owners dropdown uses only live Assignment roster members, with matching based on Assignment system ownership; legacy project-member options are gone. Issue Tracker team filtering is unchanged. See `RELEASE_NOTES_v0_6_85_RU.md`.
+
+**Previous v0.6.84 (User account display & clean Applications).** Guide → Access & management now shows the imported **User account** instead of the internally managed Owner; deployment Owner remains on System Registry cards. Standalone and trailing spreadsheet `false` placeholders are discarded by the Excel importer and suppressed in existing detail cards and Applications, including edit mode. No ownership or task assignments are changed. See `RELEASE_NOTES_v0_6_84_RU.md`.
 
 **Previous v0.6.83:** reliable Excel merged-cell import. Fixed the failure where an Endpoint or Naming Convention heading followed by blank Excel cells was silently discarded: the subsequent hardware model was incorrectly treated as Description and the naming value was unrecognized. Imports now reconcile HTML and plain-text clipboard variants, keep the actual model, description and naming pattern separate, and preserve other sections. See `RELEASE_NOTES_v0_6_83_RU.md`.
 

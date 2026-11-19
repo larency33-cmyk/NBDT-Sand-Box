@@ -8,7 +8,7 @@ import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhanceme
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
 import {AssignmentPage} from './src/assignment-page-v052';
-import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner} from './src/assignment-roster.mjs';
+import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner,systemMatchesAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
@@ -1796,7 +1796,8 @@ const App = () => {
   const [issueSearch, setIssueSearch] = useState('');
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [assigneeFilter, setAssigneeFilter] = useState<string>('');
+  const [assigneeFilter, setAssigneeFilter] = useState<string>(''); // Issue Tracker team filter
+  const [systemOwnerFilter, setSystemOwnerFilter] = useState<string>(''); // Registry Assignment owner filter
   const [issueStatusFilter, setIssueStatusFilter] = useState<string>('');
   const [issueSeverityFilter, setIssueSeverityFilter] = useState<string>('');
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -2574,11 +2575,11 @@ const App = () => {
         return netValue.includes(filterValue);
       }));
 
-      const assigneeMatch = !assigneeFilter || (assigneeFilter.startsWith('assignment:') ? resolveAssignmentOwner(assignmentRoster,s.name).personIds.includes(assigneeFilter.slice('assignment:'.length)) : s.assigneeId === assigneeFilter);
+      const assigneeMatch = systemMatchesAssignmentOwner(assignmentRoster,s.name,systemOwnerFilter);
 
       return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch;
     });
-  }, [project.systems, assignmentRoster, systemSearch, activeFilters, assigneeFilter, deviceTypeFilter]);
+  }, [project.systems, assignmentRoster, systemSearch, activeFilters, systemOwnerFilter, deviceTypeFilter]);
 
 
   const filteredIssues = useMemo(() => {
@@ -2906,8 +2907,8 @@ const App = () => {
               <DeviceTypeFilter value={deviceTypeFilter} onChange={setDeviceTypeFilter}/>
               <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
               <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
-              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={assigneeFilter} onChange={e=>setAssigneeFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={'assignment:'+person.id}>{person.name}</option>)}{project.members.map(m=><option key={m.id} value={m.id}>Legacy: {m.name}</option>)}</select></label>
-              {(activeFilters.length>0||assigneeFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setAssigneeFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
+              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={systemOwnerFilter} onChange={e=>setSystemOwnerFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+              {(activeFilters.length>0||systemOwnerFilter||systemSearch||deviceTypeFilter)&&<button className="nb-button nb-clear-filters" type="button" onClick={()=>{setSystemSearch('');setActiveFilters([]);setSystemOwnerFilter('');setDeviceTypeFilter('');}}>Clear filters</button>}
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>

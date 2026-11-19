@@ -2306,3 +2306,15 @@ body:has(.nb-tracker)::-webkit-scrollbar{
  .nb-overview-week-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
  .nb-overview-coverage{grid-template-columns:1fr}
 }
+
+/* v0.6.85 — keep Registry cards in fixed responsive columns when search returns one/two results.
+   auto-fit expands a single result to the entire row; explicit tracks preserve normal card width. */
+.nb-registry-page .nb-registry-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+@media (max-width:1040px){
+  .nb-registry-page .nb-registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:680px){
+  .nb-registry-page .nb-registry-grid{grid-template-columns:minmax(0,1fr)}
+}
