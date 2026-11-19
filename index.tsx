@@ -1247,7 +1247,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
         {owner.personIds.length>1&&<option value="__shared__" disabled>{owner.label}</option>}
         <option value="">Not assigned</option>
         {(assignmentRoster?.people||[]).map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}
-      </select>:<strong className={owner.label?'':'nb86-owner-unassigned'}>{owner.label||'Not assigned'}</strong>}
+      </select>:<strong className={owner.label?'':'nb86-owner-unassigned'} title={owner.label||'Not assigned'}>{owner.label||'Not assigned'}</strong>}
     </div>
     {ownerError&&<p role="alert" className="nb86-owner-error">{ownerError}</p>}
     {editingDescription?<div className="nb41-card-description-edit">
