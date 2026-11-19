@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {initialAssignmentRoster,resolveAssignmentOwner,systemMatchesAssignmentOwner,setSystemAssignmentOwner} from '../src/assignment-roster.mjs';
+import {initialAssignmentRoster,assignmentKey,resolveAssignmentOwner,systemMatchesAssignmentOwner,setSystemAssignmentOwner} from '../src/assignment-roster.mjs';
 
 const ui=readFileSync(new URL('../index.tsx',import.meta.url),'utf8');
 const css=readFileSync(new URL('../nbdt-registry-v082.css',import.meta.url),'utf8');
@@ -72,7 +72,7 @@ test('Shared ownership becomes exactly one selected owner without duplicate syst
  assert.equal(resolveAssignmentOwner(roster,name).status,'shared');
  const next=setSystemAssignmentOwner(roster,name,second);
  assert.deepEqual(resolveAssignmentOwner(next,name).personIds,[second]);
- assert.equal(next.items.filter(item=>item.name.trim().toLowerCase().includes('shared registry sample')).length,1);
+ assert.equal(next.items.filter(item=>assignmentKey(item.name)===assignmentKey(name)).length,1);
  assert.equal(next.items.some(item=>item.id==='shared-owner-2'),true);
  assert.equal(next.items.some(item=>item.id==='shared-owner-1'),false);
 });
