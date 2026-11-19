@@ -38,7 +38,7 @@ test('The action remains available to guests and does not change other page expo
  const btnEnd=header.indexOf('Clear filters</button>');
  assert.ok(condStart>=0&&btnEnd>condStart);
  assert.doesNotMatch(header.slice(condStart,btnEnd),/isAdmin/);
- assert.match(ui,/> Export data</);
+ assert.match(ui,/Export data/);
 });
 
 test('Clear filters styling is scoped to the Registry and has focus and hover states',()=>{
