@@ -22,7 +22,7 @@
 }
 .nb-registry-page .nb86-owner-in-registry>svg{flex:none;color:#7592b7}
 .nb-registry-page .nb86-owner-caption{flex:none}
-.nb-registry-page .nb86-owner-in-registry strong{font-size:10px;color:#0d4386;font-weight:700;overflow-wrap:anywhere}
+.nb-registry-page .nb86-owner-in-registry strong{font-size:10px;color:#0d4386;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nb-registry-page .nb86-owner-in-registry .nb86-owner-unassigned{color:#8397b2;font-weight:550}
 .nb-registry-page .nb86-owner-select{
   min-width:0;
