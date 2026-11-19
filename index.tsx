@@ -8,7 +8,7 @@ import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhanceme
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
 import {AssignmentPage} from './src/assignment-page-v052';
-import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner,systemMatchesAssignmentOwner} from './src/assignment-roster.mjs';
+import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner,systemMatchesAssignmentOwner,setSystemAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
 import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
@@ -1205,11 +1205,22 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
-const SystemRegistryCard = ({sys, project, isAdmin, onUpdateDescription, setActiveCheckSheetSys}: any) => {
+const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, setActiveCheckSheetSys}: any) => {
   const [editingDescription,setEditingDescription]=useState(false);
   const [descriptionDraft,setDescriptionDraft]=useState(String(sys.description||''));
   const [descriptionSaving,setDescriptionSaving]=useState(false);
   const [descriptionError,setDescriptionError]=useState('');
+  const [ownerSaving,setOwnerSaving]=useState(false);
+  const [ownerError,setOwnerError]=useState('');
+  const owner=resolveAssignmentOwner(assignmentRoster,sys.name);
+  const ownerSelection=owner.personIds.length>1?'__shared__':(owner.personIds[0]||'');
+  const changeOwner=async(personId:string)=>{
+    if(!isAdmin||ownerSaving)return;
+    setOwnerError('');setOwnerSaving(true);
+    try{await onAssignOwner(sys.name,personId);}
+    catch(error:any){setOwnerError(error?.message||'Unable to save Owner.');}
+    finally{setOwnerSaving(false);}
+  };
   const saveDescription=async()=>{
     setDescriptionSaving(true);setDescriptionError('');
     try{await onUpdateDescription(sys.id,descriptionDraft);setEditingDescription(false);}
@@ -1229,7 +1240,16 @@ const SystemRegistryCard = ({sys, project, isAdmin, onUpdateDescription, setActi
       {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setEditingDescription(true);}}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
-    {sys.assignmentOwnerLabel&&<div className="nb52-owner-in-registry"><User size={12}/><span>Owner: <strong>{sys.assignmentOwnerLabel}</strong></span></div>}
+    <div className="nb52-owner-in-registry nb86-owner-in-registry">
+      <User size={12} aria-hidden="true"/>
+      <span className="nb86-owner-caption">Owner:</span>
+      {isAdmin?<select aria-label={`Owner for ${sys.name}`} title="Change Owner in Assignment" className="nb86-owner-select" disabled={ownerSaving} value={ownerSelection} onChange={e=>{void changeOwner(e.target.value);}}>
+        {owner.personIds.length>1&&<option value="__shared__" disabled>{owner.label}</option>}
+        <option value="">Not assigned</option>
+        {(assignmentRoster?.people||[]).map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}
+      </select>:<strong className={owner.label?'':'nb86-owner-unassigned'} title={owner.label||'Not assigned'}>{owner.label||'Not assigned'}</strong>}
+    </div>
+    {ownerError&&<p role="alert" className="nb86-owner-error">{ownerError}</p>}
     {editingDescription?<div className="nb41-card-description-edit">
       <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
       <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
@@ -2894,7 +2914,7 @@ const App = () => {
                 <button type="button" className="nb-button" onClick={()=>{
                   const cols=['Code','Name','Endpoint','OS','Network','VLAN','Naming','Owner'];
                   const escape=(v:any)=>'"'+String(v??'').replaceAll('"','""')+'"';
-                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||project.members.find(m=>m.id===s.assigneeId)?.name||''])];
+                  const rows=[cols, ...filteredSystems.map(s=>[s.code||s.id,s.name,registryCardFields(s).model,registryCardFields(s).os,registryCardFields(s).network,s.vlan,registryCardFields(s).naming,resolveAssignmentOwner(assignmentRoster,s.name).label||'Not assigned'])];
                   const blob=new Blob(['\ufeff'+rows.map(r=>r.map(escape).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
                   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='NBDT-system-registry.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
                 }}><Download size={18}/> Export</button>
@@ -2913,7 +2933,7 @@ const App = () => {
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
             {filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} isAdmin={isAdmin} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             </div>
           </section>
