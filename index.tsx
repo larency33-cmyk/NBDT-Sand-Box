@@ -63,6 +63,7 @@ import './nbdt-lessons-v079.css';
 import './nbdt-lessons-v080.css';
 import './nbdt-lessons-v081.css';
 import './nbdt-registry-v082.css';
+import './nbdt-registry-v096.css';
 import './nbdt-tracker-v090.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
