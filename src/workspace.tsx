@@ -8,7 +8,7 @@ import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
-import {isTrackerNotOnSite,trackerDropPlacement} from './tracker-team.mjs';
+import {isTrackerNotOnSite,trackerDropPlacement,unlinkedTrackerTasks} from './tracker-team.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
@@ -349,7 +349,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  </article>;
 }
 
-export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
+export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onQuickTaskReassign,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -412,6 +412,16 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [reorderError,setReorderError]=useState('');
  const [presenceBusy,setPresenceBusy]=useState(false);
  const [presenceError,setPresenceError]=useState('');
+ const [showUnlinkedTasks,setShowUnlinkedTasks]=useState(false);
+ const [reassignBusyId,setReassignBusyId]=useState<string|null>(null);
+ const [reassignError,setReassignError]=useState('');
+ const reassignHistoricalTask=async(taskId:string,personId:string)=>{
+  if(!isAdmin||!personId||reassignBusyId)return;
+  setReassignBusyId(taskId);setReassignError('');
+  try{await onQuickTaskReassign(taskId,personId);}
+  catch(error:any){setReassignError(error?.message||'Could not reassign this task.');}
+  finally{setReassignBusyId(null);}
+ };
  const moveTeamRow=async(sourceId:string,targetId:string,placement:'before'|'after')=>{
   if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
   setReordering(true);setReorderError('');
@@ -526,13 +536,19 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const updateStart=async(value:string)=>{if(dateSaving||value===project.startDate)return;if(!validDate(value))throw Error('Choose a valid date.');setDateSaving(true);try{await onProjectStartChange(value);}finally{setDateSaving(false);}};
  const tasks=project.tasks.filter((t:any)=>!t.isMilestone).map((t:any)=>({...t,status:effectiveStatus(t,project.issues)}));
  const milestones=project.tasks.filter((t:any)=>t.isMilestone).sort((a:any,b:any)=>a.startWeek-b.startWeek||String(a.label).localeCompare(String(b.label)));
+ // Assignment determines people, row membership and task counts. Historical tasks
+ // with no current primary owner remain in storage for explicit reassignment.
+ const people=project.members.filter((m:any)=>!person||m.id===person);
+ const memberIds=new Set(project.members.map((m:any)=>m.id));
+ const linkedTasks=tasks.filter((t:any)=>assignments(t).some((id:string)=>memberIds.has(id)));
+ const unlinkedTasks=unlinkedTrackerTasks(project);
  const matches=(t:any)=>(!status||t.status===status)&&(!person||assignments(t).includes(person))&&(!query||(t.label+' '+assignments(t).map((id:string)=>project.members.find((m:any)=>m.id===id)?.name||'').join(' ')).toLowerCase().includes(query.toLowerCase()));
- const at=(id:string,w:number)=>tasks.filter((t:any)=>(id===UNASSIGNED_MEMBER_ID?(!t.memberId||!project.members.some((m:any)=>m.id===t.memberId)):assignments(t).includes(id))&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));
- // Keep historic assignments visible after a member is removed.
- const orphaned=(t:any)=>!t.memberId||!project.members.some((m:any)=>m.id===t.memberId);
- const hasOrphans=tasks.some(orphaned);
- const unassignedPerson={id:UNASSIGNED_MEMBER_ID,name:'Unassigned'};
- const people=[...project.members.filter((m:any)=>!person||m.id===person),...(!person&&hasOrphans?[unassignedPerson]:[])];
+ const at=(id:string,w:number)=>linkedTasks.filter((t:any)=>assignments(t).includes(id)&&t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t));
+ // Reset stale row selections when a person is removed from Assignment.
+ useEffect(()=>{
+  if(person&&!project.members.some((member:any)=>member.id===person))setPerson('');
+  if(selected&&!project.members.some((member:any)=>member.id===selected.id)){setSelected(null);setDetail(null);}
+ },[person,selected?.id,project.members]);
  const toggleOnSite=async(memberId:string,w:number)=>{
   if(!isAdmin||presenceBusy||memberId===UNASSIGNED_MEMBER_ID)return;
   const next=!isTrackerNotOnSite(project,memberId,w);
@@ -542,17 +558,17 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
   finally{setPresenceBusy(false);}
  };
  const weeks=Array.from({length:4},(_,i)=>clampWeekViewport(week)+i);
- const selectedPerson=people.find((m:any)=>m.id===selected?.id) || (selected?.id===UNASSIGNED_MEMBER_ID?unassignedPerson:undefined);
+ const selectedPerson=people.find((m:any)=>m.id===selected?.id);
  const chosen=selected?at(selected.id,selected.week):[];
  const open=(t:any)=>setDetail(t);
  const selectedIsoWeek=`Week ${selectedWeek+1}`;
  const weekIso=(w:number)=>`Week ${w+1}`;
  const weekDate=(w:number)=>projectWeekDate(project.startDate,w);
  const milestonesAt=(w:number)=>milestones.filter((m:any)=>m.startWeek===w);
- const closestScheduledWeek=tasks.length?tasks.map((t:any)=>t.startWeek).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
- const visibleWeeksHaveTasks=weeks.some(w=>tasks.some((t:any)=>t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t)));
- const currentWeekTasks=tasks.filter((t:any)=>t.startWeek<=selectedWeek&&t.startWeek+t.duration>selectedWeek&&matches(t));
- const visibleRangeTasks=tasks.filter((t:any)=>t.startWeek<week+4&&t.startWeek+t.duration>week&&matches(t));
+ const closestScheduledWeek=linkedTasks.length?linkedTasks.map((t:any)=>t.startWeek).sort((a:number,b:number)=>Math.abs(a-week)-Math.abs(b-week))[0]:null;
+ const visibleWeeksHaveTasks=weeks.some(w=>linkedTasks.some((t:any)=>t.startWeek<=w&&t.startWeek+t.duration>w&&matches(t)));
+ const currentWeekTasks=linkedTasks.filter((t:any)=>t.startWeek<=selectedWeek&&t.startWeek+t.duration>selectedWeek&&matches(t));
+ const visibleRangeTasks=linkedTasks.filter((t:any)=>t.startWeek<week+4&&t.startWeek+t.duration>week&&matches(t));
  const visibleRangeCount=new Set(visibleRangeTasks.map((t:any)=>t.id)).size;
  const currentWeekTaskCount=new Set(currentWeekTasks.map((t:any)=>t.id)).size;
  const blockedCount=new Set(currentWeekTasks.filter((t:any)=>t.status==='Blocked').map((t:any)=>t.id)).size;
