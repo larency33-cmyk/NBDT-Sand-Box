@@ -929,6 +929,61 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     </aside>
    </>,document.body)}
 
+  {reassignTask&&createPortal(
+   <div className="nb94-transfer-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!reassignBusy)setReassignTask(null);}}>
+    <section role="dialog" aria-modal="true" aria-labelledby="nb94-transfer-title" aria-describedby="nb94-transfer-desc"
+     className="nb94-transfer-dialog" onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();if(!reassignBusy)setReassignTask(null);}}}>
+     <header className="nb94-transfer-heading">
+      <div className="nb94-transfer-heading-icon"><Users size={21} aria-hidden="true"/></div>
+      <div><span className="nb94-transfer-eyebrow">WEEKLY TRACKER · TASK ASSIGNMENT</span>
+       <h2 id="nb94-transfer-title">Reassign task</h2>
+       <p id="nb94-transfer-desc">Select the responsible person and destination project week.</p>
+      </div>
+      <button type="button" className="nb94-transfer-close" aria-label="Close Reassign" disabled={reassignBusy} onClick={()=>setReassignTask(null)}><X size={19}/></button>
+     </header>
+     <form className="nb94-transfer-form" onSubmit={saveReassign}>
+      <div className="nb94-transfer-task">
+       <span className="nb94-transfer-task-caption">TASK</span>
+       <strong>{reassignTask.label}</strong>
+       <small>Currently: {project.members.find((person:any)=>person.id===reassignTask.memberId)?.name||project.trackerLegacyOwnerNames?.[reassignTask.memberId]||'Previous owner'} · Week {reassignTask.startWeek+1}{(reassignTask.duration||1)>1?`–${reassignTask.startWeek+(reassignTask.duration||1)}`:''}</small>
+      </div>
+      <div className="nb94-transfer-field">
+       <label htmlFor="nb94-transfer-person"><UserRound size={16} aria-hidden="true"/> Responsible person</label>
+       <select id="nb94-transfer-person" autoFocus required value={reassignMember} disabled={reassignBusy}
+        onChange={event=>{setReassignMember(event.target.value);setReassignError('');}}>
+        <option value="">Select from Assignment…</option>
+        {project.members.map((member:any)=><option key={member.id} value={member.id}>{member.name}{member.position?` · ${member.position}`:''}</option>)}
+       </select>
+       <small>Names are synchronized exclusively with Assignment.</small>
+      </div>
+      <div className="nb94-transfer-field">
+       <label htmlFor="nb94-transfer-week"><CalendarDays size={16} aria-hidden="true"/> Project week</label>
+       <div className="nb94-transfer-week-controls">
+        <button type="button" aria-label="Previous project week" disabled={reassignBusy||reassignWeek<=0} onClick={()=>setReassignWeek(week=>Math.max(0,week-1))}><ChevronLeft size={18}/></button>
+        <select id="nb94-transfer-week" value={reassignWeek} disabled={reassignBusy}
+         onChange={event=>{setReassignWeek(Number(event.target.value));setReassignError('');}}>
+         {Array.from({length:Math.max(0,521-(reassignTask.duration||1))},(_,index:number)=>
+          <option key={index} value={index}>Week {index+1} · {weekRange(project.startDate,index)}</option>)}
+        </select>
+        <button type="button" aria-label="Next project week" disabled={reassignBusy||reassignWeek>=520-(reassignTask.duration||1)}
+         onClick={()=>setReassignWeek(week=>Math.min(520-(reassignTask.duration||1),week+1))}><ChevronRight size={18}/></button>
+       </div>
+       <div className="nb94-transfer-week-preview">
+        <CalendarDays size={18} aria-hidden="true"/>
+        <span><strong>Week {reassignWeek+1}</strong><small>{weekRange(project.startDate,reassignWeek)}</small></span>
+       </div>
+       {(reassignTask.duration||1)>1&&<p className="nb94-transfer-duration">This task spans {reassignTask.duration} weeks. Its entire schedule will move together, without deleting other weeks.</p>}
+      </div>
+      {reassignError&&<p role="alert" className="nb94-transfer-error">{reassignError}</p>}
+      <footer className="nb94-transfer-actions">
+       <button type="button" className="nb94-transfer-cancel" disabled={reassignBusy} onClick={()=>setReassignTask(null)}>Cancel</button>
+       <button type="submit" className="nb94-transfer-submit" disabled={reassignBusy||!reassignMember||reassignWeek<0||reassignWeek+(reassignTask.duration||1)>520||(reassignMember===reassignTask.memberId&&reassignWeek===reassignTask.startWeek)}>
+        <Check size={16} aria-hidden="true"/>{reassignBusy?'Saving…':'Reassign task'}
+       </button>
+      </footer>
+     </form>
+    </section>
+   </div>,document.body)}
   {showUnlinkedTasks&&createPortal(
     <div className="nb93-unlinked-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!reassignBusyId)setShowUnlinkedTasks(false);}}>
      <section role="dialog" aria-modal="true" aria-labelledby="nb93-unlinked-title" className="nb93-unlinked-dialog">
