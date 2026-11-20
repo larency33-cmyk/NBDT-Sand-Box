@@ -308,6 +308,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
    </label></div>}
    {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
    {task.assignmentOwnerLabel&&<p className="nb52-task-owner">System Owner: <strong>{task.assignmentOwnerLabel}</strong></p>}
+   {project.trackerLegacyOwnerNames?.[task.memberId]&&<p className="nb90-legacy-owner">Previous Tracker owner: <strong>{project.trackerLegacyOwnerNames[task.memberId]}</strong></p>}
    {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
    {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
    {error&&<p role="alert" className="nb-quick-error">{error}</p>}
@@ -608,7 +609,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
 
   <div className="nb-summary">
    <div className="nb-summary-metrics">
-    <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.filter((m:any)=>m.id!==UNASSIGNED_MEMBER_ID).length} people</span>
+    <span className="nb-summary-pill" title="Team Lead plus current Assignment roster; task history from unmatched old names is preserved separately"><Users size={17} aria-hidden="true"/>{people.filter((m:any)=>m.id!==UNASSIGNED_MEMBER_ID).length} people</span>
     <span className="nb-summary-pill nb-selected-summary" title="Selection does not move the visible four-week window"><ClipboardCheck size={17} aria-hidden="true"/>{selectedIsoWeek} selected · {currentWeekTaskCount} unique tasks</span>
     <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked in selected week</span>
     <span className="nb-summary-pill nb-visible-summary">Viewing Weeks {week+1}–{Math.min(520,week+4)} · {visibleRangeCount} unique tasks</span>
