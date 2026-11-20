@@ -19,7 +19,7 @@ export function quickCreateAssignment(project,data,id){
  const label=String(data.label||'').trim();
  if(!label||label.length>160)throw Error('Task title must be 1–160 characters.');
  if(!Number.isInteger(data.startWeek)||data.startWeek<0||data.startWeek>=520)throw Error('Invalid project week.');
- if(!project.members.some(m=>m.id===data.memberId))throw Error('Selected employee no longer exists.');
+ if(!(project.trackerMembers||project.members).some(m=>m.id===data.memberId))throw Error('Selected employee no longer exists.');
  if(project.tasks.some(t=>t.id===id))throw Error('Duplicate task ID.');
  return {...project,tasks:[...project.tasks,{id,label,memberId:data.memberId,startWeek:data.startWeek,duration:1,status:'Planned',description:'',helperIds:[],checklist:[],version:1}]};
 }
@@ -74,7 +74,7 @@ export function quickEditTask(project,taskId,changes){
  const description=String(changes.description??task.description??'');
  if(description.length>10000)throw Error('Description is too long.');
  const memberId=changes.memberId??task.memberId;
- if(!project.members.some(m=>m.id===memberId))throw Error('Choose a valid owner.');
+ if(!(project.trackerMembers||project.members).some(m=>m.id===memberId))throw Error('Choose a valid owner.');
  const systemId=changes.systemId??task.systemId??'';
  if(systemId&&!project.systems.some(s=>s.id===systemId))throw Error('Selected system does not exist.');
  const startWeek=changes.startWeek===undefined?task.startWeek:Number(changes.startWeek);
