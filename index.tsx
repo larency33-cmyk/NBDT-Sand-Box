@@ -1,4 +1,5 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
+import {deleteRegistrySystem} from './src/registry-delete.mjs';
 import {deriveProjectActivity,deriveAssignmentActivity,mergeActivity} from './src/activity-log.mjs';
 import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
@@ -1208,11 +1209,66 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
-const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, setActiveCheckSheetSys}: any) => {
+/** Consistent custom listbox styling for System Registry filters.
+ * Mirrors Device Type while preserving the original exact filter values.
+ */
+const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:Icon}:{
+ label:string,placeholder:string,value:string,onChange:(next:string)=>void,
+ options:{value:string,label:string}[],icon:any
+})=>{
+ const [open,setOpen]=useState(false);
+ const root=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  if(!open)return;
+  const outside=(event:PointerEvent)=>{if(root.current&&!root.current.contains(event.target as Node))setOpen(false);};
+  const keyboard=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'){setOpen(false);root.current?.querySelector<HTMLButtonElement>('.nb-type-filter-trigger')?.focus();}
+  };
+  document.addEventListener('pointerdown',outside);
+  document.addEventListener('keydown',keyboard);
+  return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',keyboard);};
+ },[open]);
+ const selected=options.find(item=>item.value===value);
+ const choose=(next:string)=>{onChange(next);setOpen(false);};
+ return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(open?' nb-type-filter-open':'')}>
+  <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
+   aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
+   <Icon size={20} aria-hidden="true"/>
+   <span className="nb-type-filter-label">{selected?.label||placeholder}</span>
+   <ChevronDown size={17} className="nb-type-filter-chevron" aria-hidden="true"/>
+  </button>
+  {open&&<div className="nb-type-filter-menu" role="listbox" aria-label={label}>
+   <button type="button" role="option" aria-selected={!value}
+    className={'nb-type-filter-option'+(!value?' selected':'')}
+    onClick={()=>choose('')}>
+    <span className="nb-type-filter-option-all"><Icon size={18} aria-hidden="true"/></span>
+    <span>{placeholder}</span>{!value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
+   </button>
+   {options.map(item=><button type="button" role="option" aria-selected={value===item.value}
+    className={'nb-type-filter-option'+(value===item.value?' selected':'')}
+    key={item.value} onClick={()=>choose(item.value)}>
+    <span className="nb-type-filter-option-icon nb-tone-blue"><Icon size={18} aria-hidden="true"/></span>
+    <span className="nb96-dropdown-option-text">{item.label}</span>
+    {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
+   </button>)}
+  </div>}
+ </div>;
+};
+
+const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, onDeleteSystem, setActiveCheckSheetSys}: any) => {
   const [editingDescription,setEditingDescription]=useState(false);
   const [descriptionDraft,setDescriptionDraft]=useState(String(sys.description||''));
   const [descriptionSaving,setDescriptionSaving]=useState(false);
   const [descriptionError,setDescriptionError]=useState('');
+  const [confirmDelete,setConfirmDelete]=useState(false);
+  const [deletingSystem,setDeletingSystem]=useState(false);
+  const deleteSelectedSystem=async()=>{
+   if(!isAdmin||deletingSystem||descriptionSaving||!confirmDelete)return;
+   setDeletingSystem(true);setDescriptionError('');
+   try{await onDeleteSystem(sys.id);}
+   catch(error:any){setDescriptionError(error?.message||'Could not delete the system.');}
+   finally{setDeletingSystem(false);}
+  };
   const [ownerSaving,setOwnerSaving]=useState(false);
   const [ownerError,setOwnerError]=useState('');
   const owner=resolveAssignmentOwner(assignmentRoster,sys.name);
@@ -1240,7 +1296,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
-      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setEditingDescription(true);}}><Edit2 size={16}/></button>}
+      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setConfirmDelete(false);setEditingDescription(true);}}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <div className="nb52-owner-in-registry nb86-owner-in-registry">
@@ -1257,7 +1313,19 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
       <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
       <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
       {descriptionError&&<span role="alert">{descriptionError}</span>}
-      <div className="nb41-inline-actions"><button type="button" disabled={descriptionSaving} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button><button type="button" className="nb-button" disabled={descriptionSaving} onClick={()=>setEditingDescription(false)}>Cancel</button></div>
+      <div className="nb41-inline-actions nb96-card-edit-actions">
+       <button type="button" disabled={descriptionSaving||deletingSystem} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button>
+       <button type="button" className="nb-button" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(false);setEditingDescription(false);}}>Cancel</button>
+       <button type="button" className="nb-button nb96-delete-trigger" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(true);setDescriptionError('');}}><Trash2 size={15}/> Delete system</button>
+      </div>
+      {confirmDelete&&<div className="nb96-delete-confirm" role="group" aria-label={'Confirm deletion of '+sys.name}>
+       <strong>Delete “{sys.name}” permanently?</strong>
+       <p>This removes the system, its configuration guide, devices, checklists, history and linked issues. This cannot be undone.</p>
+       <div className="nb96-delete-confirm-actions">
+        <button type="button" className="nb-button" disabled={deletingSystem} onClick={()=>setConfirmDelete(false)}>Keep system</button>
+        <button type="button" className="nb-button nb96-delete-confirm-button" disabled={deletingSystem} onClick={()=>{void deleteSelectedSystem();}}><Trash2 size={15}/>{deletingSystem?'Deleting…':'Yes, delete system'}</button>
+       </div>
+      </div>}
     </div>:<ExpandableRegistryDescription text={description} tone={tone} />}
     <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
   </article>;
