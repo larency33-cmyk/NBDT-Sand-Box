@@ -23,4 +23,4 @@ jobs:
       - name: Production build (preflight + Vite)
         run: npm run build
       - name: Reassign and build-guard regression tests
-        run: node --test tests/tracker-reassign-v094.test.mjs tests/tracker-build-guard-v095.test.mjs
+        run: node --test tests/tracker-reassign-v094.test.mjs tests/tracker-build-guard-v095.test.mjs tests/registry-filter-delete-v096.test.mjs

@@ -1,4 +1,5 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
+import {deleteRegistrySystem} from './src/registry-delete.mjs';
 import {deriveProjectActivity,deriveAssignmentActivity,mergeActivity} from './src/activity-log.mjs';
 import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
@@ -62,6 +63,7 @@ import './nbdt-lessons-v079.css';
 import './nbdt-lessons-v080.css';
 import './nbdt-lessons-v081.css';
 import './nbdt-registry-v082.css';
+import './nbdt-registry-v096.css';
 import './nbdt-tracker-v090.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
@@ -1208,11 +1210,66 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
-const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, setActiveCheckSheetSys}: any) => {
+/** Consistent custom listbox styling for System Registry filters.
+ * Mirrors Device Type while preserving the original exact filter values.
+ */
+const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:Icon}:{
+ label:string,placeholder:string,value:string,onChange:(next:string)=>void,
+ options:{value:string,label:string}[],icon:any
+})=>{
+ const [open,setOpen]=useState(false);
+ const root=useRef<HTMLDivElement>(null);
+ useEffect(()=>{
+  if(!open)return;
+  const outside=(event:PointerEvent)=>{if(root.current&&!root.current.contains(event.target as Node))setOpen(false);};
+  const keyboard=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'){setOpen(false);root.current?.querySelector<HTMLButtonElement>('.nb-type-filter-trigger')?.focus();}
+  };
+  document.addEventListener('pointerdown',outside);
+  document.addEventListener('keydown',keyboard);
+  return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',keyboard);};
+ },[open]);
+ const selected=options.find(item=>item.value===value);
+ const choose=(next:string)=>{onChange(next);setOpen(false);};
+ return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(open?' nb-type-filter-open':'')}>
+  <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
+   aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
+   <Icon size={20} aria-hidden="true"/>
+   <span className="nb-type-filter-label">{selected?.label||placeholder}</span>
+   <ChevronDown size={17} className="nb-type-filter-chevron" aria-hidden="true"/>
+  </button>
+  {open&&<div className="nb-type-filter-menu" role="listbox" aria-label={label}>
+   <button type="button" role="option" aria-selected={!value}
+    className={'nb-type-filter-option'+(!value?' selected':'')}
+    onClick={()=>choose('')}>
+    <span className="nb-type-filter-option-all"><Icon size={18} aria-hidden="true"/></span>
+    <span>{placeholder}</span>{!value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
+   </button>
+   {options.map(item=><button type="button" role="option" aria-selected={value===item.value}
+    className={'nb-type-filter-option'+(value===item.value?' selected':'')}
+    key={item.value} onClick={()=>choose(item.value)}>
+    <span className="nb-type-filter-option-icon nb-tone-blue"><Icon size={18} aria-hidden="true"/></span>
+    <span className="nb96-dropdown-option-text">{item.label}</span>
+    {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
+   </button>)}
+  </div>}
+ </div>;
+};
+
+const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, onDeleteSystem, setActiveCheckSheetSys}: any) => {
   const [editingDescription,setEditingDescription]=useState(false);
   const [descriptionDraft,setDescriptionDraft]=useState(String(sys.description||''));
   const [descriptionSaving,setDescriptionSaving]=useState(false);
   const [descriptionError,setDescriptionError]=useState('');
+  const [confirmDelete,setConfirmDelete]=useState(false);
+  const [deletingSystem,setDeletingSystem]=useState(false);
+  const deleteSelectedSystem=async()=>{
+   if(!isAdmin||deletingSystem||descriptionSaving||!confirmDelete)return;
+   setDeletingSystem(true);setDescriptionError('');
+   try{await onDeleteSystem(sys.id);}
+   catch(error:any){setDescriptionError(error?.message||'Could not delete the system.');}
+   finally{setDeletingSystem(false);}
+  };
   const [ownerSaving,setOwnerSaving]=useState(false);
   const [ownerError,setOwnerError]=useState('');
   const owner=resolveAssignmentOwner(assignmentRoster,sys.name);
@@ -1240,7 +1297,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
-      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setEditingDescription(true);}}><Edit2 size={16}/></button>}
+      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setConfirmDelete(false);setEditingDescription(true);}}><Edit2 size={16}/></button>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <div className="nb52-owner-in-registry nb86-owner-in-registry">
@@ -1257,7 +1314,19 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
       <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
       <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
       {descriptionError&&<span role="alert">{descriptionError}</span>}
-      <div className="nb41-inline-actions"><button type="button" disabled={descriptionSaving} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button><button type="button" className="nb-button" disabled={descriptionSaving} onClick={()=>setEditingDescription(false)}>Cancel</button></div>
+      <div className="nb41-inline-actions nb96-card-edit-actions">
+       <button type="button" disabled={descriptionSaving||deletingSystem} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button>
+       <button type="button" className="nb-button" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(false);setEditingDescription(false);}}>Cancel</button>
+       <button type="button" className="nb-button nb96-delete-trigger" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(true);setDescriptionError('');}}><Trash2 size={15}/> Delete system</button>
+      </div>
+      {confirmDelete&&<div className="nb96-delete-confirm" role="group" aria-label={'Confirm deletion of '+sys.name}>
+       <strong>Delete “{sys.name}” permanently?</strong>
+       <p>This removes the system, its configuration guide, devices, checklists, history and linked issues. This cannot be undone.</p>
+       <div className="nb96-delete-confirm-actions">
+        <button type="button" className="nb-button" disabled={deletingSystem} onClick={()=>setConfirmDelete(false)}>Keep system</button>
+        <button type="button" className="nb-button nb96-delete-confirm-button" disabled={deletingSystem} onClick={()=>{void deleteSelectedSystem();}}><Trash2 size={15}/>{deletingSystem?'Deleting…':'Yes, delete system'}</button>
+       </div>
+      </div>}
     </div>:<ExpandableRegistryDescription text={description} tone={tone} />}
     <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
   </article>;
@@ -2953,20 +3022,30 @@ const App = () => {
             <div className="nb-registry-filters" role="search" aria-label="Filter system registry">
               <label className="nb-search-field"><Search size={19}/><span className="sr-only">Search systems</span><input value={systemSearch} onChange={e=>setSystemSearch(e.target.value)} placeholder="Search systems…"/></label>
               <DeviceTypeFilter value={deviceTypeFilter} onChange={setDeviceTypeFilter}/>
-              <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
-              <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
-              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={systemOwnerFilter} onChange={e=>setSystemOwnerFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+              <RegistryDropdownFilter label="Platform" placeholder="All platforms" icon={Monitor}
+                value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''}
+                options={['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=>({value:f,label:f}))}
+                onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(value?[value]:[])])}/>
+              <RegistryDropdownFilter label="Connection" placeholder="All connections" icon={Network}
+                value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''}
+                options={[{value:'WiFi',label:'Wi-Fi'},{value:'Wired',label:'Wired'}]}
+                onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(value?[value]:[])])}/>
+              <RegistryDropdownFilter label="Deployment owner" placeholder="All owners" icon={User}
+                value={systemOwnerFilter} onChange={setSystemOwnerFilter}
+                options={assignmentRoster.people.map((person:any)=>({value:person.id,label:person.name}))}/>
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
             {filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))}
+                onDeleteSystem={async(id:string)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>deleteRegistrySystem(prev,id));}}
+                setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             </div>
           </section>
         )}
 
-        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={displayProject.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={displayProject} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={displayProject.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={displayProject} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>deleteRegistrySystem(prev,systemId));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -3244,7 +3323,7 @@ const App = () => {
 
               </div>
             </header>
-            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
+            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>deleteRegistrySystem(p,id));}}/>
           </div>
         )}
 
