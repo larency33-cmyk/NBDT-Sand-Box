@@ -46,6 +46,10 @@ export function syncTrackerTeam(project,roster){
     JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
  return {...project,trackerMembers:members,trackerLegacyOwnerNames:legacyOwners,trackerTeamSynced:true};
 }
+/** A pointer above the hovered row midpoint means before; below means after. */
+export function trackerDropPlacement(pointerY,top,height){
+ return pointerY<top+height/2?'before':'after';
+}
 /** Drop position is relative to the hovered row, not its pre-removal index.
  * Preserve every employee ID, every task and the manually chosen row order.
  */
