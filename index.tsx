@@ -3021,20 +3021,30 @@ const App = () => {
             <div className="nb-registry-filters" role="search" aria-label="Filter system registry">
               <label className="nb-search-field"><Search size={19}/><span className="sr-only">Search systems</span><input value={systemSearch} onChange={e=>setSystemSearch(e.target.value)} placeholder="Search systems…"/></label>
               <DeviceTypeFilter value={deviceTypeFilter} onChange={setDeviceTypeFilter}/>
-              <label className="nb-filter-field"><Monitor size={19}/><span className="sr-only">Platform</span><select aria-label="Platform" value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All platforms</option>{['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=><option key={f}>{f}</option>)}</select></label>
-              <label className="nb-filter-field"><Network size={19}/><span className="sr-only">Connection</span><select aria-label="Connection" value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''} onChange={e=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(e.target.value?[e.target.value]:[])])}><option value="">All connections</option><option value="WiFi">Wi-Fi</option><option value="Wired">Wired</option></select></label>
-              <label className="nb-filter-field"><User size={19}/><span className="sr-only">Deployment owner</span><select aria-label="Deployment owner" value={systemOwnerFilter} onChange={e=>setSystemOwnerFilter(e.target.value)}><option value="">All owners</option>{assignmentRoster.people.map((person:any)=><option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+              <RegistryDropdownFilter label="Platform" placeholder="All platforms" icon={Monitor}
+                value={activeFilters.find(f=>['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f))||''}
+                options={['Windows','iOS','iPadOS','Android','Linux','macOS'].map(f=>({value:f,label:f}))}
+                onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(value?[value]:[])])}/>
+              <RegistryDropdownFilter label="Connection" placeholder="All connections" icon={Network}
+                value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''}
+                options={[{value:'WiFi',label:'Wi-Fi'},{value:'Wired',label:'Wired'}]}
+                onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(value?[value]:[])])}/>
+              <RegistryDropdownFilter label="Deployment owner" placeholder="All owners" icon={User}
+                value={systemOwnerFilter} onChange={setSystemOwnerFilter}
+                options={assignmentRoster.people.map((person:any)=>({value:person.id,label:person.name}))}/>
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
             {filteredSystems.length>0 ? <div className="nb-registry-grid">
-              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))} setActiveCheckSheetSys={openGuide}/>)}
+              {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))}
+                onDeleteSystem={async(id:string)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>deleteRegistrySystem(prev,id));}}
+                setActiveCheckSheetSys={openGuide}/>)}
             </div> : <div className="nb-registry-empty"><Database size={28}/><h2>No systems found</h2><p>Try different filters or clear the search.</p></div>}
             </div>
           </section>
         )}
 
-        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={displayProject.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={displayProject} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{await handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==systemId)}));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
+        {activeTab==='systems' && activeCheckSheetSys && <SystemGuide key={activeCheckSheetSys.id+'-'+String(guideOpenEdit)} sys={displayProject.systems.find(s=>s.id===activeCheckSheetSys.id)||activeCheckSheetSys} project={displayProject} isAdmin={isAdmin} onClose={closeGuide} initialEdit={guideOpenEdit} initialRoute={readAppRoute(window.location.href)} onNavigationChange={(selection:any)=>updateGuideRoute(activeCheckSheetSys.id,selection)} onDeleteSystem={async(systemId:string)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>deleteRegistrySystem(prev,systemId));closeGuide();}} onUpdateSystem={async(next:SystemInfo)=>{if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?next:s)}));setActiveCheckSheetSys(next);}}/>}
         {/* --- List of Applications Modal --- */}
         {activeAppListSys && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -3312,7 +3322,7 @@ const App = () => {
 
               </div>
             </header>
-            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.filter(s=>s.id!==id),issues:p.issues.filter(i=>i.systemId!==id)}));}}/>
+            <Report project={displayProject} isAdmin={isAdmin} onRequestAdmin={()=>{setShowAdminAuthModal(true);setAdminPassInput('');}} onSystemChange={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:p.systems.map(s=>s.id===next.id?(s.name===next.name&&resolveAssignmentOwner(assignmentRoster,s.name).status!=='none'?{...next,reportOwnerName:s.reportOwnerName}:next):s)}));}} onSystemCreate={(next:SystemInfo)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>({...p,systems:[...p.systems,next]}));}} onSystemDelete={(id:string)=>{if(!isAdmin)return Promise.reject(Error('Administrator sign-in required'));return handleAction(p=>deleteRegistrySystem(p,id));}}/>
           </div>
         )}
 
