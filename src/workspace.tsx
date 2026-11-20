@@ -8,6 +8,7 @@ import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
+import {isTrackerNotOnSite} from './tracker-team.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
@@ -21,7 +22,7 @@ import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,FileText,ExternalLink,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
+import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,FileText,ExternalLink,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X,GripVertical,MapPinOff} from 'lucide-react';
 import {STAGES,LABELS,uid,weekRange,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
 const Badge=({value}:any)=><span className={'nb-badge nb-status-'+String(value).toLowerCase().replaceAll(' ','-')}>{({'In Progress':'Active','Completed':'Done'} as any)[value]||value}</span>;
@@ -314,7 +315,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  </article>;
 }
 
-export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
+export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -371,6 +372,20 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
+ const [dragMember,setDragMember]=useState<string|null>(null);
+ const [dropMember,setDropMember]=useState<string|null>(null);
+ const [reordering,setReordering]=useState(false);
+ const [reorderError,setReorderError]=useState('');
+ const [presenceBusy,setPresenceBusy]=useState(false);
+ const [presenceError,setPresenceError]=useState('');
+ const moveTeamRow=async(sourceId:string,targetId:string)=>{
+  if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
+  setReordering(true);setReorderError('');
+  try{await onMemberReorder(sourceId,targetId);}
+  catch(error:any){setReorderError(error?.message||'Unable to change employee order.');}
+  finally{setDragMember(null);setDropMember(null);setReordering(false);}
+ };
+
  const newAssignmentList=parseClipboardAssignments(newAssignment);
  const invalidTaskIndex=newAssignmentList.findIndex(label=>label.length>160);
  const canAddAssignments=newAssignmentList.length>0&&newAssignmentList.length<=100&&invalidTaskIndex<0;
@@ -435,7 +450,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  };
  const openQuickPanel=(personId:string,w:number,task:any=null)=>{
   if(!selected&&document.activeElement instanceof HTMLElement)panelTriggerRef.current=document.activeElement;
-  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');
+  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');setPresenceError('');
  };
  // The overlay must not resize the matrix; preserve focus and keyboard access.
  useEffect(()=>{
@@ -473,6 +488,14 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const hasOrphans=tasks.some(orphaned);
  const unassignedPerson={id:UNASSIGNED_MEMBER_ID,name:'Unassigned'};
  const people=[...project.members.filter((m:any)=>!person||m.id===person),...(!person&&hasOrphans?[unassignedPerson]:[])];
+ const toggleOnSite=async(memberId:string,w:number)=>{
+  if(!isAdmin||presenceBusy||memberId===UNASSIGNED_MEMBER_ID)return;
+  const next=!isTrackerNotOnSite(project,memberId,w);
+  setPresenceBusy(true);setPresenceError('');
+  try{await onWeekPresenceToggle(memberId,w,next);}
+  catch(error:any){setPresenceError(error?.message||'Could not update on-site status.');}
+  finally{setPresenceBusy(false);}
+ };
  const weeks=Array.from({length:4},(_,i)=>clampWeekViewport(week)+i);
  const selectedPerson=people.find((m:any)=>m.id===selected?.id) || (selected?.id===UNASSIGNED_MEMBER_ID?unassignedPerson:undefined);
  const chosen=selected?at(selected.id,selected.week):[];
@@ -585,7 +608,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
 
   <div className="nb-summary">
    <div className="nb-summary-metrics">
-    <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.length} people</span>
+    <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.filter((m:any)=>m.id!==UNASSIGNED_MEMBER_ID).length} people</span>
     <span className="nb-summary-pill nb-selected-summary" title="Selection does not move the visible four-week window"><ClipboardCheck size={17} aria-hidden="true"/>{selectedIsoWeek} selected · {currentWeekTaskCount} unique tasks</span>
     <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked in selected week</span>
     <span className="nb-summary-pill nb-visible-summary">Viewing Weeks {week+1}–{Math.min(520,week+4)} · {visibleRangeCount} unique tasks</span>
