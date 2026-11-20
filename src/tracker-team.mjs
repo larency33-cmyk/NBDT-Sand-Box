@@ -38,8 +38,13 @@ export function syncTrackerTeam(project,roster){
   const order=new Map(previous.map((member,index)=>[member.id,index]));
   members.sort((a,b)=>(order.get(a.id)??Number.MAX_SAFE_INTEGER)-(order.get(b.id)??Number.MAX_SAFE_INTEGER));
  }
- if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members))return project;
- return {...project,trackerMembers:members,trackerTeamSynced:true};
+ const legacyOwners={...(project.trackerLegacyOwnerNames||{})};
+ for(const member of previous){
+  if(!used.has(member.id)&&!member.assignmentPersonId&&!isLead(member))legacyOwners[member.id]=member.name;
+ }
+ if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members)&&
+    JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
+ return {...project,trackerMembers:members,trackerLegacyOwnerNames:legacyOwners,trackerTeamSynced:true};
 }
 export function reorderTrackerMember(project,movingId,targetId){
  const members=project.trackerMembers||project.members||[];
