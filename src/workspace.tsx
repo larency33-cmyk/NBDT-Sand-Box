@@ -842,14 +842,14 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
      <span className="nb-metric-done"><strong>{chosen.filter((t:any)=>t.status==='Completed').length}</strong><small>Done</small></span>
      <span className="nb-metric-blocked"><strong>{chosen.filter((t:any)=>t.status==='Blocked').length}</strong><small>Blocked</small></span>
     </div>
-    {<div className={'nb90-presence-control'+(isTrackerNotOnSite(project,selected.id,selected.week)?' nb90-presence-off':'')}>
+    <div className={'nb90-presence-control'+(isTrackerNotOnSite(project,selected.id,selected.week)?' nb90-presence-off':'')}>
      <div className="nb90-presence-label"><MapPinOff size={17} aria-hidden="true"/><span>{isTrackerNotOnSite(project,selected.id,selected.week)?'Not on site':'On site / not marked absent'}</span></div>
      {isAdmin&&<button type="button" disabled={presenceBusy} aria-pressed={isTrackerNotOnSite(project,selected.id,selected.week)}
        onClick={()=>{void toggleOnSite(selected.id,selected.week);}}>
       {presenceBusy?'Saving…':isTrackerNotOnSite(project,selected.id,selected.week)?'Remove Not on site':'Mark Not on site'}
      </button>}
      {presenceError&&<p role="alert" className="nb90-presence-error">{presenceError}</p>}
-    </div>}
+    </div>
     <div className="nb-drawer-section-heading nb-drawer-assignments-heading"><strong>Assignments</strong><span>{chosen.length}</span></div>
     {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
