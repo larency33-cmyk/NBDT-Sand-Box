@@ -2,6 +2,7 @@ import {Migration,download,useUnsaved} from './enhancements';
 import {LessonsLearnedBody} from './lessons-learned-section';
 import {GuideExcelImportModal} from './guide-excel-import-modal';
 import {applyGuideExcelImport,isFalsePlaceholder,normalizeApplications} from './guide-excel-import.mjs';
+import {parseClipboardAssignments} from './tracker-actions.mjs';
 import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
 import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
@@ -370,6 +371,9 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
+ const newAssignmentList=parseClipboardAssignments(newAssignment);
+ const invalidTaskIndex=newAssignmentList.findIndex(label=>label.length>160);
+ const canAddAssignments=newAssignmentList.length>0&&newAssignmentList.length<=100&&invalidTaskIndex<0;
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
@@ -728,11 +732,38 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
      {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number,direction:'next'|'previous')=>{await onQuickTaskMove(id,source,direction);setQuickNotice(`Moved to Week ${source+(direction==='previous'?0:2)}`);}}/>)}
     </div>
     {isAdmin&&selected.id!==UNASSIGNED_MEMBER_ID?<div className="nb-quick-add-area">
-     {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{e.preventDefault();if(quickAdding)return;const label=newAssignment.trim();if(!label){setQuickError('Enter a task name.');return;}setQuickAdding(true);setQuickError('');try{await onQuickTaskCreate({label,memberId:selected.id,startWeek:selected.week});setNewAssignment('');setAddingAssignment(false);}catch(error:any){setQuickError(error?.message||'Could not save task.');}finally{setQuickAdding(false);}}}>
-      <label htmlFor="nb-quick-new-task">New assignment for {selectedPerson?.name}</label>
-      <input id="nb-quick-new-task" required maxLength={160} autoFocus placeholder="Type task name and press Enter…" value={newAssignment} disabled={quickAdding} onChange={e=>setNewAssignment(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setAddingAssignment(false);setNewAssignment('');setQuickError('');}}}/>
-      <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!newAssignment.trim()}>{quickAdding?'Saving…':'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
-     </form>}
+     {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{
+      e.preventDefault();if(quickAdding)return;
+      const labels=parseClipboardAssignments(newAssignment);
+      if(!labels.length){setQuickError('Enter or paste at least one task.');return;}
+      if(labels.length>100){setQuickError('Maximum 100 tasks per paste.');return;}
+      const invalid=labels.findIndex(label=>label.length>160);
+      if(invalid!==-1){setQuickError(`Task ${invalid+1} exceeds 160 characters. Please shorten it.`);return;}
+      setQuickAdding(true);setQuickError('');
+      try{
+       const context={memberId:selected.id,startWeek:selected.week};
+       await onQuickTaskCreate(labels.length===1?{...context,label:labels[0]}:{...context,labels});
+       setQuickNotice(labels.length===1?'1 task added.':`${labels.length} tasks added from your list.`);
+       setNewAssignment('');setAddingAssignment(false);
+      }catch(error:any){setQuickError(error?.message||'Could not save assignments. No tasks were added.');}
+      finally{setQuickAdding(false);}
+     }}>
+       <label htmlFor="nb-quick-new-task">New assignment for {selectedPerson?.name}</label>
+       <textarea id="nb-quick-new-task" required maxLength={20000} autoFocus rows={newAssignmentList.length>1?5:2} placeholder="Type a task or paste a • bulleted list from Excel…" value={newAssignment} disabled={quickAdding} onChange={e=>{setNewAssignment(e.target.value);setQuickError('');}} onKeyDown={e=>{
+        if(e.key==='Escape'){e.stopPropagation();setAddingAssignment(false);setNewAssignment('');setQuickError('');return;}
+        if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();e.currentTarget.form?.requestSubmit();return;}
+        if(e.key==='Enter'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey&&!newAssignment.includes('\n')&&newAssignmentList.length===1){e.preventDefault();e.currentTarget.form?.requestSubmit();}
+       }}/>
+       {newAssignmentList.length>1&&<div className="nb89-bulk-preview" aria-live="polite">
+        <strong>{newAssignmentList.length} separate tasks detected</strong>
+        <ol>{newAssignmentList.slice(0,8).map((label:string,index:number)=><li key={index}>{label}</li>)}</ol>
+        {newAssignmentList.length>8&&<small>+ {newAssignmentList.length-8} more tasks</small>}
+       </div>}
+       {newAssignmentList.length>100&&<p className="nb-quick-error" role="alert">Maximum 100 tasks per paste.</p>}
+       {invalidTaskIndex>=0&&<p className="nb-quick-error" role="alert">Task {invalidTaskIndex+1} exceeds 160 characters. Shorten this task to continue.</p>}
+       <p className="nb89-paste-hint">Paste an Excel cell with • bullets, or one task per line. Enter adds a single task; Ctrl+Enter saves a list.</p>
+       <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!canAddAssignments}>{quickAdding?'Saving…':newAssignmentList.length>1?`Add ${newAssignmentList.length} tasks`:'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
+      </form>}
      {quickError&&<p className="nb-quick-error" role="alert">{quickError}</p>}
     </div>:selected.id===UNASSIGNED_MEMBER_ID?<p className="nb-quick-view-note">Unassigned tasks are preserved. Sign in as Admin to reassign them.</p>:<div className="nb-drawer-view-footer"><span>Sign in as Admin to update tasks.</span><button type="button" className="nb-button nb-drawer-edit-button" onClick={()=>{closeQuickPanel();onAuth();}}><ShieldCheck size={17} aria-hidden="true"/> Sign in</button></div>}
     </aside>
