@@ -285,7 +285,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
   if(!anchor)return;
   const rect=anchor.getBoundingClientRect();
   const width=Math.min(224,window.innerWidth-16);
-  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?185:224);
+  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?237:280);
   const below=window.innerHeight-rect.bottom;
   const showAbove=below<height+10&&rect.top>height+10;
   const preferredTop=showAbove?rect.top-height-6:rect.bottom+6;
