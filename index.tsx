@@ -2889,9 +2889,9 @@ const App = () => {
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
         {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab}/> }
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={trackerProject} isAdmin={isAdmin}
-        onMemberReorder={async(fromId:string,toId:string)=>{
+        onMemberReorder={async(fromId:string,toId:string,placement:'before'|'after')=>{
           if(!isAdmin)throw Error('Admin sign-in required to reorder the team.');
-          await handleAction(prev=>reorderTrackerMember(syncTrackerTeam(prev,assignmentRosterRef.current),fromId,toId));
+          await handleAction(prev=>reorderTrackerMember(syncTrackerTeam(prev,assignmentRosterRef.current),fromId,toId,placement));
         }}
         onWeekPresenceToggle={async(personId:string,weekNumber:number,notOnSite:boolean)=>{
           if(!isAdmin)throw Error('Admin sign-in required to change on-site presence.');
