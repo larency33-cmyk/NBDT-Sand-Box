@@ -1,0 +1,26 @@
+name: Verify NBDT production build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  production-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies (Vercel-equivalent)
+        run: npm install --package-lock=false
+      - name: Production build (preflight + Vite)
+        run: npm run build
+      - name: Reassign and build-guard regression tests
+        run: node --test tests/tracker-reassign-v094.test.mjs tests/tracker-build-guard-v095.test.mjs
