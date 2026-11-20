@@ -272,3 +272,24 @@
 @media(prefers-reduced-motion:reduce){
  .nb91-drag-preview{transition:none}
 }
+
+/* v0.6.92 — Not on site ALWAYS wins over white/blue week card backgrounds.
+   Old uniform-card rules use !important with nth-child and selected selectors.
+   Give off-site cells a stronger selector regardless of whether the employee
+   has tasks in other weeks (nb-has-assignments / nb-no-assignments). */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:is(.nb-has-assignments,.nb-no-assignments) td.nb90-offsite-week:nth-child(n) button.nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:is(.nb-has-assignments,.nb-no-assignments) td.nb90-offsite-week:nth-child(n) button.nb-week-cell.selected,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:is(.nb-has-assignments,.nb-no-assignments) td.nb90-offsite-week:nth-child(n) button.nb-week-cell:hover{
+ background:#edf0f4!important;
+ color:#657587!important;
+ border:1px dashed #c0cbd8!important;
+ box-shadow:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:is(.nb-has-assignments,.nb-no-assignments) td.nb90-offsite-week.nb-current-week-cell{
+ background:#e9edf2!important;
+ box-shadow:inset 0 0 0 1px #d4dce6!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr:is(.nb-has-assignments,.nb-no-assignments) td.nb90-offsite-week:nth-child(n) button.nb-week-cell:hover{
+ background:#e5eaf0!important;
+ border-color:#a4b2c5!important;
+}
