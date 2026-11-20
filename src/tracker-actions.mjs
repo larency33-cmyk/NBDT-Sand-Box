@@ -30,7 +30,9 @@ export function quickCreateAssignment(project,data,id){
  * Unbulleted multiline text uses one nonblank line per task.
  */
 export function parseClipboardAssignments(value){
- const source=String(value??'').replace(/\r\n?/g,'\n').replace(/[\u2028\u2029]/g,'\n').replace(/\u00a0/g,' ').replace(/\u200b/g,'');
+ let source=String(value??'').replace(/\r\n?/g,'\n').replace(/[\u2028\u2029]/g,'\n').replace(/\u00a0/g,' ').replace(/\u200b/g,'').trim();
+ // Excel wraps multiline clipboard cells in double quotes and doubles interior quotes.
+ if(source.startsWith('"')&&source.endsWith('"')&&source.includes('\n'))source=source.slice(1,-1).replace(/""/g,'"');
  const rows=source.split('\n').flatMap(line=>line.replace(/\t/g,' ').split(/(?=\s+[•●◦▪▫‣⁃]\s+)/u));
  const bullet=/^\s*(?:[•●◦▪▫‣⁃]|[*\-–—]|\d{1,3}[.)])\s+/u;
  const hasBullets=rows.some(line=>bullet.test(line));
