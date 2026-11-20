@@ -8,7 +8,7 @@ import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
-import {isTrackerNotOnSite} from './tracker-team.mjs';
+import {isTrackerNotOnSite,trackerDropPlacement} from './tracker-team.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
@@ -277,8 +277,41 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
  const [menuOpen,setMenuOpen]=useState(false),[editing,setEditing]=useState(false);
  const [draft,setDraft]=useState({label:task.label});
+ const [menuPosition,setMenuPosition]=useState<{top:number,left:number}|null>(null);
  const menuRef=useRef<HTMLDivElement|null>(null);
- useEffect(()=>{if(!menuOpen)return;const close=(event:MouseEvent)=>{if(menuRef.current&&!menuRef.current.contains(event.target as Node))setMenuOpen(false);};const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);}};document.addEventListener('pointerdown',close as any);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',close as any);document.removeEventListener('keydown',key);};},[menuOpen]);
+ const menuPortalRef=useRef<HTMLDivElement|null>(null);
+ const positionMenu=()=>{
+  const anchor=menuRef.current?.querySelector('button');
+  if(!anchor)return;
+  const rect=anchor.getBoundingClientRect();
+  const width=Math.min(224,window.innerWidth-16);
+  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?185:224);
+  const below=window.innerHeight-rect.bottom;
+  const showAbove=below<height+10&&rect.top>height+10;
+  const preferredTop=showAbove?rect.top-height-6:rect.bottom+6;
+  const top=Math.round(Math.max(8,Math.min(preferredTop,window.innerHeight-height-8)));
+  const left=Math.round(Math.max(8,Math.min(rect.right-width,window.innerWidth-width-8)));
+  setMenuPosition(previous=>previous?.top===top&&previous?.left===left?previous:{top,left});
+ };
+ useEffect(()=>{
+  if(!menuOpen)return;
+  positionMenu();
+  const outside=(event:PointerEvent)=>{
+   const node=event.target as Node;
+   if(!menuRef.current?.contains(node)&&!menuPortalRef.current?.contains(node))setMenuOpen(false);
+  };
+  const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);menuRef.current?.querySelector('button')?.focus();}};
+  document.addEventListener('pointerdown',outside);
+  document.addEventListener('keydown',key);
+  document.addEventListener('scroll',positionMenu,true);
+  window.addEventListener('resize',positionMenu);
+  return()=>{
+   document.removeEventListener('pointerdown',outside);
+   document.removeEventListener('keydown',key);
+   document.removeEventListener('scroll',positionMenu,true);
+   window.removeEventListener('resize',positionMenu);
+  };
+ },[menuOpen]);
  const commit=async(callback:()=>Promise<any>)=>{if(saving)return;setSaving(true);setError('');try{await callback();setMenuOpen(false);setEditing(false);}catch(e:any){setError(e?.message||'Could not save changes.');}finally{setSaving(false);}};
  const save=async(status:string,reason='')=>{if(!isAdmin||saving)return;await commit(async()=>{await onQuickTaskSave(task.id,{status,...(status==='Blocked'?{blockReason:reason}:{})});setShowBlocker(false);});};
  const actualStatus=task.status||'Planned';
@@ -288,14 +321,14 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
    <div className="nb-quick-task-header">
     <strong title={task.assignmentOwnerLabel?`System Owner: ${task.assignmentOwnerLabel}`:undefined}>{task.label}</strong>
     {<div className="nb-task-action-anchor" ref={menuRef}>
-     <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><MoreVertical size={20} aria-hidden="true"/></button>
-     {menuOpen&&<div className="nb-task-action-menu" role="menu" aria-label={'Actions for '+task.label}>
+     <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>{if(!menuOpen)positionMenu();setMenuOpen(open=>!open);}}><MoreVertical size={20} aria-hidden="true"/></button>
+     {menuOpen&&menuPosition&&createPortal(<div ref={menuPortalRef} className="nb-task-action-menu nb91-task-portal-menu" role="menu" aria-label={'Actions for '+task.label} style={menuPosition}>
       <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek===0} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'previous'));}}><ChevronLeft size={15}/> Move to previous week</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'next'));}}><ChevronRight size={15}/> Move to next week</button>
       <button role="menuitem" type="button" className="nb-task-delete-action" disabled={saving} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}if(window.confirm(`Delete “${task.label}” permanently?\n\nThis removes this task and its history from all scheduled weeks. This cannot be undone.`))void commit(()=>onQuickTaskDelete(task.id));}}><Trash2 size={15}/> Delete</button>
      {!isAdmin&&<p className="nb-task-action-view-note">Sign in as Admin to make changes.</p>}
-     </div>}
+     </div>,document.body)}
     </div>}
    </div>
    {editing&&isAdmin?<form className="nb-inline-task-editor" aria-label={'Edit '+task.label} onSubmit={e=>{e.preventDefault();void commit(()=>onQuickTaskEdit(task.id,{label:draft.label}));}}>
@@ -374,15 +407,15 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
  const [dragMember,setDragMember]=useState<string|null>(null);
- const [dropMember,setDropMember]=useState<string|null>(null);
+ const [dropMember,setDropMember]=useState<{id:string,placement:'before'|'after'}|null>(null);
  const [reordering,setReordering]=useState(false);
  const [reorderError,setReorderError]=useState('');
  const [presenceBusy,setPresenceBusy]=useState(false);
  const [presenceError,setPresenceError]=useState('');
- const moveTeamRow=async(sourceId:string,targetId:string)=>{
+ const moveTeamRow=async(sourceId:string,targetId:string,placement:'before'|'after')=>{
   if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
   setReordering(true);setReorderError('');
-  try{await onMemberReorder(sourceId,targetId);}
+  try{await onMemberReorder(sourceId,targetId,placement);}
   catch(error:any){setReorderError(error?.message||'Unable to change employee order.');}
   finally{setDragMember(null);setDropMember(null);setReordering(false);}
  };
@@ -390,6 +423,17 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const newAssignmentList=parseClipboardAssignments(newAssignment);
  const invalidTaskIndex=newAssignmentList.findIndex(label=>label.length>160);
  const canAddAssignments=newAssignmentList.length>0&&newAssignmentList.length<=100&&invalidTaskIndex<0;
+ const dragPreviewRef=useRef<HTMLDivElement|null>(null);
+ const dragStartPoint=useRef({x:0,y:0});
+ useEffect(()=>{
+  if(!dragMember)return;
+  const follow=(event:DragEvent)=>{
+   if(event.clientX<=0||event.clientY<=0)return;
+   if(dragPreviewRef.current)dragPreviewRef.current.style.transform=`translate3d(${event.clientX+15}px,${event.clientY+12}px,0)`;
+  };
+  document.addEventListener('dragover',follow,true);
+  return()=>document.removeEventListener('dragover',follow,true);
+ },[dragMember]);
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
@@ -682,10 +726,22 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
         const hasAssignments=weeks.some(w=>at(m.id,w).length);
         const movable=isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&!reordering;
         return <tr key={m.id}
-          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember===m.id?' nb90-drop-target':'')}
-          onDragOver={event=>{if(!dragMember||!movable||dragMember===m.id)return;event.preventDefault();event.dataTransfer.dropEffect='move';if(dropMember!==m.id)setDropMember(m.id);}}
-          onDrop={event=>{if(!movable||!dragMember)return;event.preventDefault();void moveTeamRow(dragMember,m.id);}}
-          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current===m.id?null:current);}}>
+          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember?.id===m.id?' nb90-drop-target nb91-drop-'+dropMember.placement:'')}
+          onDragOver={event=>{
+           if(!dragMember||!movable||dragMember===m.id)return;
+           event.preventDefault();event.dataTransfer.dropEffect='move';
+           const rect=event.currentTarget.getBoundingClientRect();
+           const placement=trackerDropPlacement(event.clientY,rect.top,rect.height);
+           if(dropMember?.id!==m.id||dropMember.placement!==placement)setDropMember({id:m.id,placement});
+          }}
+          onDrop={event=>{
+           if(!movable||!dragMember)return;
+           event.preventDefault();
+           const rect=event.currentTarget.getBoundingClientRect();
+           const placement=trackerDropPlacement(event.clientY,rect.top,rect.height);
+           void moveTeamRow(dragMember,m.id,placement);
+          }}
+          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current?.id===m.id?null:current);}}>
          <th scope="row">
           <div className={'nb-person-cell'+(movable?' nb90-person-draggable':'')}
             draggable={movable}
@@ -693,14 +749,25 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
             role={movable?'button':undefined}
             aria-label={movable?`Reorder ${m.name}. Drag this name cell or press Up/Down arrow keys.`:undefined}
             title={movable?'Drag to reorder the whole employee row. Arrow keys also work.':undefined}
-            onDragStart={event=>{if(!movable)return;setDragMember(m.id);setDropMember(null);event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);}}
+            onDragStart={event=>{
+             if(!movable)return;
+             dragStartPoint.current={x:event.clientX,y:event.clientY};
+             // Hide the translucent native ghost; a fully opaque preview follows the cursor.
+             const ghost=document.createElement('canvas');ghost.width=1;ghost.height=1;
+             ghost.style.cssText='position:fixed;left:0;top:0;opacity:0;pointer-events:none';
+             document.body.appendChild(ghost);
+             event.dataTransfer.setDragImage(ghost,0,0);
+             requestAnimationFrame(()=>ghost.remove());
+             event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);
+             setDragMember(m.id);setDropMember(null);
+            }}
             onDragEnd={()=>{setDragMember(null);setDropMember(null);}}
             onKeyDown={event=>{
              if(!movable||!['ArrowUp','ArrowDown'].includes(event.key))return;
              event.preventDefault();
              const index=people.findIndex((p:any)=>p.id===m.id);
              const other=people[index+(event.key==='ArrowUp'?-1:1)];
-             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id);
+             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id,event.key==='ArrowUp'?'before':'after');
             }}>
            {movable&&<GripVertical size={16} className="nb90-drag-grip" aria-hidden="true"/>}
            <span className="nb-avatar">{memberInitial(m.name)}</span>
@@ -867,6 +934,13 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     </div>
    </div>
   </footer>
+  {dragMember&&createPortal(<div ref={dragPreviewRef} className="nb91-drag-preview" role="presentation" aria-hidden="true"
+    style={{transform:`translate3d(${dragStartPoint.current.x+15}px,${dragStartPoint.current.y+12}px,0)`}}>
+    <GripVertical size={17} aria-hidden="true"/>
+    <span className="nb91-preview-avatar">{memberInitial(people.find((m:any)=>m.id===dragMember)?.name)}</span>
+    <span className="nb91-preview-details"><strong>{people.find((m:any)=>m.id===dragMember)?.name}</strong>
+     <small>{people.find((m:any)=>m.id===dragMember)?.position||'Team Lead'}</small></span>
+    </div>,document.body)}
   {milestoneEditor&&createPortal(<div className="nb42-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!milestoneBusy)setMilestoneEditor(null);}}>
    <section role="dialog" aria-modal="true" aria-labelledby="nb42-milestone-title" className="nb42-milestone-dialog">
     <div className="nb42-dialog-header"><div><span className="nb42-dialog-eyebrow">{weekIso(milestoneEditor.startWeek)} · Project milestone</span><h2 id="nb42-milestone-title">{milestoneEditor.creating?'Add milestone':'Edit milestone'}</h2></div>
