@@ -47,6 +47,27 @@ export function syncTrackerTeam(project,roster){
     JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
  return {...project,trackerMembers:members,trackerLegacyOwnerNames:legacyOwners,trackerTeamSynced:true};
 }
+/** Historical tasks with a primary owner no longer listed in Assignment.
+ * Kept in storage, but never rendered as a synthetic Weekly Tracker person row.
+ */
+export function unlinkedTrackerTasks(project){
+ const active=new Set((project.trackerMembers||[]).map(member=>member.id));
+ return (project.tasks||[]).filter(task=>!task.isMilestone&&!active.has(task.memberId));
+}
+/** Safely reassign an orphaned historical task to an active Assignment person.
+ * Other task fields, schedule, status and historical metadata remain intact.
+ */
+export function reassignUnlinkedTrackerTask(project,taskId,personId){
+ const members=project.trackerMembers||[];
+ if(!members.some(member=>member.id===personId))throw Error('Choose a current Assignment person.');
+ const task=(project.tasks||[]).find(task=>task.id===taskId&&!task.isMilestone);
+ if(!task)throw Error('Task not found.');
+ if(members.some(member=>member.id===task.memberId))throw Error('Task already belongs to an active team member.');
+ return {...project,tasks:project.tasks.map(item=>item.id===taskId?{
+  ...item,memberId:personId,helperIds:(item.helperIds||[]).filter(id=>id!==personId),
+  version:(item.version||0)+1
+ }:item)};
+}
 /** A pointer above the hovered row midpoint means before; below means after. */
 export function trackerDropPlacement(pointerY,top,height){
  return pointerY<top+height/2?'before':'after';
