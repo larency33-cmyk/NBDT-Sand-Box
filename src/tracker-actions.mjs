@@ -25,6 +25,46 @@ export function quickCreateAssignment(project,data,id){
 }
 
 
+/** Parse task text pasted from one Excel cell, a bulleted list or a plain multiline list.
+ * An explicit bullet starts a new task; wrapped text after a bullet continues that task.
+ * Unbulleted multiline text uses one nonblank line per task.
+ */
+export function parseClipboardAssignments(value){
+ let source=String(value??'').replace(/\r\n?/g,'\n').replace(/[\u2028\u2029]/g,'\n').replace(/\u00a0/g,' ').replace(/\u200b/g,'').trim();
+ // Excel wraps multiline clipboard cells in double quotes and doubles interior quotes.
+ if(source.startsWith('"')&&source.endsWith('"')&&source.includes('\n'))source=source.slice(1,-1).replace(/""/g,'"');
+ const rows=source.split('\n').flatMap(line=>line.replace(/\t/g,' ').split(/(?=\s+[•●◦▪▫‣⁃]\s+)/u));
+ const bullet=/^\s*(?:[•●◦▪▫‣⁃]|[*\-–—]|\d{1,3}[.)])\s+/u;
+ const hasBullets=rows.some(line=>bullet.test(line));
+ if(!hasBullets)return rows.map(line=>line.trim()).filter(Boolean);
+ const tasks=[];let current='';
+ const flush=()=>{if(current.trim())tasks.push(current.trim().replace(/\s+/g,' '));current='';};
+ for(const row of rows){
+  const trimmed=row.trim();
+  if(!trimmed){flush();continue;}
+  if(bullet.test(trimmed)){flush();current=trimmed.replace(bullet,'').trim();continue;}
+  if(current){current+=' '+trimmed;continue;}
+  // Retain non-bullet lines too; pasted content may mix bullets and plain tasks.
+  current=trimmed;
+ }
+ flush();
+ return tasks;
+}
+/** Bulk import is one atomic project mutation with the same defaults as single-task creation.
+ * Validate all rows before returning anything: an invalid item cannot partially import.
+ */
+export function quickCreateAssignments(project,data,ids){
+ const labels=data?.labels;
+ if(!Array.isArray(labels)||labels.length<1||labels.length>100)throw Error('Paste between 1 and 100 assignments.');
+ if(!Array.isArray(ids)||ids.length!==labels.length||new Set(ids).size!==ids.length)throw Error('New task IDs must be unique.');
+ let draft=project;
+ for(let index=0;index<labels.length;index++){
+  try{draft=quickCreateAssignment(draft,{label:labels[index],memberId:data.memberId,startWeek:data.startWeek},ids[index]);}
+  catch(error){throw Error(`Task ${index+1}: ${error.message||'Could not add task.'}`);}
+ }
+ return draft;
+}
+
 /** Inline task actions — task identity is stable for edits; moving creates a new week-bound record. */
 export function quickEditTask(project,taskId,changes){
  const task=project.tasks.find(t=>t.id===taskId&&!t.isMilestone);
