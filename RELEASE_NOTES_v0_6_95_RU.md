@@ -10,6 +10,8 @@ Vercel выдал `[vite:esbuild] Transform failed` в `src/workspace.tsx`: пе
 - Новое окно Reassign task оставлено со своими `reassignError` и `setReassignError`.
 - В предсборочную проверку `scripts/check-symbols.cjs` добавлены TypeScript-коды **TS2451** (дублирование переменных) и **TS2300** (дублирование идентификаторов), чтобы подобная ошибка обнаруживалась до Vite.
 - Добавлен регрессионный тест `tests/tracker-build-guard-v095.test.mjs` на раздельные состояния обоих окон и наличие правильной проверки.
+- Версия Node.js в `package.json` закреплена как `24.x`, чтобы совпадать с выбранной версией в настройках Vercel (ранее `>=22.12.0` автоматически выбирала Node 26).
+- Добавлен GitHub Actions workflow `.github/workflows/verify-production-build.yml`: при коммите в `main` запускает установку зависимостей, настоящий `npm run build` и два регрессионных теста Reassign.
 - Никакие задачи, статусы, участники Assignment и пользовательские данные не изменены.
 
 ## Как проверить
