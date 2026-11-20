@@ -135,3 +135,11 @@
 @media(prefers-reduced-motion:reduce){
  .nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable{transition:none}
 }
+
+.nb-project-week-drawer .nb90-legacy-owner{
+ font-size:11px;
+ line-height:1.45;
+ margin:5px 0 0;
+ color:#6e7890;
+}
+.nb-project-week-drawer .nb90-legacy-owner strong{color:#3c536e}
