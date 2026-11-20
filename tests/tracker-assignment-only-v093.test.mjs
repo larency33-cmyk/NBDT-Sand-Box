@@ -53,11 +53,12 @@ test('Changing Assignment membership is authoritative: removal and addition upda
 });
 
 test('Assignment can be empty: zero people in Tracker, no artificial fallback',()=>{
- const next=syncTrackerTeam(original(),{...roster,people:[]});
+ const base=original();
+ const next=syncTrackerTeam(base,{...roster,people:[]});
  assert.deepEqual(next.trackerMembers,[]);
  assert.equal(unlinkedTrackerTasks(next).length,3);
  assert.equal(next.trackerTeamSynced,true);
- assert.strictEqual(next.members,original().members===next.members?original().members:next.members);
+ assert.strictEqual(next.members,base.members,'Global membership is preserved for other modules');
 });
 
 test('Legacy Team Lead and old Unassigned task records are retained, but not displayed as people',()=>{
