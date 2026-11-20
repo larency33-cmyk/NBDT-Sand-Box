@@ -1,6 +1,8 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.88 (Guide Documentation CTA).** The Documentation link **inside System Configuration Guide only** now has a FileText icon, a small external-link icon, a clear blue emphasis, and hover/focus states. It keeps the same safe URL and new-tab behavior. The **external** System Registry Documentation button and all other Guide actions remain unchanged. See `RELEASE_NOTES_v0_6_88_RU.md`.
+**Current package: v0.6.89 (Weekly Tracker Excel multi-task paste).** The existing Weekly Tracker **Add assignment** form now accepts either one task (Enter still adds it) or a pasted bulleted/multiline list from an Excel cell. It recognizes individual task names, previews the count and first entries, then creates up to 100 tasks atomically for the chosen person and week using the same defaults as a single assignment. No other task editing, movement, status, or storage behavior is changed. See `RELEASE_NOTES_v0_6_89_RU.md`.
+
+**Previous v0.6.88 (Guide Documentation CTA).** The Documentation link **inside System Configuration Guide only** now has a FileText icon, a small external-link icon, a clear blue emphasis, and hover/focus states. It keeps the same safe URL and new-tab behavior. The **external** System Registry Documentation button and all other Guide actions remain unchanged. See `RELEASE_NOTES_v0_6_88_RU.md`.
 
 **Previous v0.6.87 (Registry header Clear filters).** The System Registry Export action has been removed. An icon-labeled **Clear filters** control now appears in its place in the top-right heading **only** when search or Registry filters are active; it clears search, Device Type, Platform, Connection and Owner together. No extra reset button appears beneath the filter row. Other sections' exports and existing card/Assignment behavior are unchanged. See `RELEASE_NOTES_v0_6_87_RU.md`.
 
