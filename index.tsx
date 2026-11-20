@@ -1765,7 +1765,10 @@ const App = () => {
     const result=assignmentQueue.current.then(operation);assignmentQueue.current=result.catch(()=>{});return result;
   };
   const displayProject=useMemo(()=>projectWithAssignmentOwners(project,assignmentRoster),[project,assignmentRoster]);
-  const trackerProject=useMemo(()=>syncTrackerTeam(displayProject,assignmentRoster),[displayProject,assignmentRoster]);
+  const trackerProject=useMemo(()=>{
+    const synchronized=syncTrackerTeam(displayProject,assignmentRoster);
+    return {...synchronized,members:synchronized.trackerMembers};
+  },[displayProject,assignmentRoster]);
   const [userProjects, setUserProjects] = useState<Record<string, UserProject[]>>(() => {
     const saved = uiStorage.getItem('nbdt_user_projects');
     if (saved) return JSON.parse(saved);
@@ -2895,7 +2898,7 @@ const App = () => {
           await handleAction(prev=>setTrackerNotOnSite(syncTrackerTeam(prev,assignmentRosterRef.current),personId,weekNumber,notOnSite));
         }} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
-          await handleAction(prev=>quickEditTask(prev,taskId,changes));
+          await handleAction(prev=>quickEditTask(syncTrackerTeam(prev,assignmentRosterRef.current),taskId,changes));
         }} onQuickTaskDelete={async(taskId:string)=>{
           if(!isAdmin)throw Error('Sign in as Admin to delete a task.');
           await handleAction(prev=>quickDeleteTask(prev,taskId));
@@ -2919,9 +2922,9 @@ const App = () => {
           if(!isAdmin)throw Error('Sign in as Admin to add a task.');
           if(Array.isArray(data.labels)){
             const ids=data.labels.map(()=>crypto.randomUUID());
-            await handleAction(prev=>quickCreateAssignments(prev,data,ids));
+            await handleAction(prev=>quickCreateAssignments(syncTrackerTeam(prev,assignmentRosterRef.current),data,ids));
           }else{
-            await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
+            await handleAction(prev=>quickCreateAssignment(syncTrackerTeam(prev,assignmentRosterRef.current),data,crypto.randomUUID()));
           }
         }} onMemberRename={async(id:string,name:string)=>{
           if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>renameMember(prev,id,name));
