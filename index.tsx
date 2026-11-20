@@ -4,6 +4,7 @@ import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
 import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
+import {syncTrackerTeam,reorderTrackerMember,setTrackerNotOnSite} from './src/tracker-team.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
@@ -1763,6 +1764,7 @@ const App = () => {
     const result=assignmentQueue.current.then(operation);assignmentQueue.current=result.catch(()=>{});return result;
   };
   const displayProject=useMemo(()=>projectWithAssignmentOwners(project,assignmentRoster),[project,assignmentRoster]);
+  const trackerProject=useMemo(()=>syncTrackerTeam(displayProject,assignmentRoster),[displayProject,assignmentRoster]);
   const [userProjects, setUserProjects] = useState<Record<string, UserProject[]>>(() => {
     const saved = uiStorage.getItem('nbdt_user_projects');
     if (saved) return JSON.parse(saved);
@@ -2272,6 +2274,13 @@ const App = () => {
     };
     const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
+  // Reconcile Tracker roster from Assignment on load and whenever the Assignment team changes.
+  // This preserves existing task records; unknown old owners become visible in Unassigned.
+  useEffect(()=>{
+    if(syncTrackerTeam(project,assignmentRoster)===project)return;
+    void handleAction(prev=>syncTrackerTeam(prev,assignmentRosterRef.current))
+      .catch(error=>console.warn('Could not synchronize Weekly Tracker staff with Assignment.',error));
+  },[project,assignmentRoster]);
   // Live device-readiness export: never export retired aggregate/demo records.
   const exportConfigReport = () => {
     const rows = project.systems.map((system) => {
@@ -2875,7 +2884,15 @@ const App = () => {
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
         {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab}/> }
-        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={displayProject} isAdmin={isAdmin} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
+        {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={trackerProject} isAdmin={isAdmin}
+        onMemberReorder={async(fromId:string,toId:string)=>{
+          if(!isAdmin)throw Error('Admin sign-in required to reorder the team.');
+          await handleAction(prev=>reorderTrackerMember(syncTrackerTeam(prev,assignmentRosterRef.current),fromId,toId));
+        }}
+        onWeekPresenceToggle={async(personId:string,weekNumber:number,notOnSite:boolean)=>{
+          if(!isAdmin)throw Error('Admin sign-in required to change on-site presence.');
+          await handleAction(prev=>setTrackerNotOnSite(syncTrackerTeam(prev,assignmentRosterRef.current),personId,weekNumber,notOnSite));
+        }} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(prev,taskId,changes));
         }} onQuickTaskDelete={async(taskId:string)=>{
