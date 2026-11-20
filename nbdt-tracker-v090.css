@@ -388,3 +388,190 @@
  .nb93-unlinked-task{align-items:stretch;flex-direction:column;gap:9px}
  .nb93-unlinked-task select{max-width:100%;width:100%}
 }
+
+/* v0.6.94 — dedicated Reassign dialog above the assignment drawer and action menus. */
+.nb94-transfer-backdrop{
+ position:fixed;
+ inset:0;
+ z-index:21100;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:24px;
+ background:rgba(17,39,72,.48);
+ backdrop-filter:blur(2px);
+}
+.nb94-transfer-dialog{
+ width:min(540px,100%);
+ max-height:min(90dvh,760px);
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+ background:#fff;
+ color:#193d67;
+ border:1px solid #dce7f4;
+ border-radius:16px;
+ box-shadow:0 28px 70px rgba(15,46,95,.28),0 8px 24px rgba(15,46,95,.15);
+ font-family:Inter,"Segoe UI",system-ui,sans-serif;
+}
+.nb94-transfer-heading{
+ display:flex;
+ align-items:flex-start;
+ gap:12px;
+ padding:22px 23px 17px;
+ border-bottom:1px solid #e4edf7;
+ background:linear-gradient(115deg,#f5faff,#fff);
+}
+.nb94-transfer-heading-icon{
+ flex:0 0 40px;
+ height:40px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ border:1px solid #c5ddf9;
+ border-radius:12px;
+ color:#146bda;
+ background:#eaf3ff;
+}
+.nb94-transfer-heading>div:nth-child(2){flex:1;min-width:0}
+.nb94-transfer-eyebrow{
+ display:block;
+ color:#5277a1;
+ font-size:10px;
+ font-weight:750;
+ letter-spacing:.08em;
+}
+.nb94-transfer-heading h2{
+ margin:5px 0 5px;
+ color:#153a65;
+ font-size:21px;
+ line-height:1.2;
+ font-weight:800;
+}
+.nb94-transfer-heading p{margin:0;color:#65809e;font-size:12px;line-height:1.45}
+.nb94-transfer-close{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex:0 0 32px;
+ width:32px;height:32px;
+ padding:0;
+ border:1px solid #dde8f4;
+ border-radius:9px;
+ color:#57799d;
+ background:#fff;
+ cursor:pointer;
+}
+.nb94-transfer-close:hover{background:#edf5ff;color:#1765c6}
+.nb94-transfer-form{display:flex;flex-direction:column;gap:16px;padding:20px 23px 23px;overflow-y:auto;min-height:0}
+.nb94-transfer-task{
+ display:flex;
+ flex-direction:column;
+ gap:5px;
+ padding:13px 15px;
+ border:1px solid #d6e7fa;
+ border-left:3px solid #2d84ee;
+ border-radius:10px;
+ background:#f4f9ff;
+ overflow-wrap:anywhere;
+}
+.nb94-transfer-task-caption{color:#5d7fa4;font-size:10px;font-weight:750;letter-spacing:.065em}
+.nb94-transfer-task strong{font-size:14px;font-weight:770;line-height:1.35;color:#163e6e}
+.nb94-transfer-task small{font-size:11px;line-height:1.5;color:#637f9f}
+.nb94-transfer-field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.nb94-transfer-field>label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:750;color:#234e7d}
+.nb94-transfer-field>label svg{color:#2b7dd9;flex:none}
+.nb94-transfer-field>select,
+.nb94-transfer-week-controls>select{
+ display:block;
+ width:100%;
+ min-width:0;
+ min-height:43px;
+ padding:10px 12px;
+ border:1px solid #c7d9ed;
+ border-radius:9px;
+ background:#fff;
+ color:#173f6e;
+ font:inherit;
+ font-size:12px;
+ font-weight:650;
+ cursor:pointer;
+}
+.nb94-transfer-field>select:hover,
+.nb94-transfer-week-controls>select:hover{border-color:#7fb3ee;background:#fafdff}
+.nb94-transfer-field>small{font-size:11px;color:#738ba6}
+.nb94-transfer-week-controls{display:flex;align-items:stretch;gap:8px;min-width:0}
+.nb94-transfer-week-controls>select{flex:1;max-width:100%}
+.nb94-transfer-week-controls>button{
+ flex:0 0 43px;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ border:1px solid #cbddee;
+ border-radius:9px;
+ background:#f3f8ff;
+ color:#236ab6;
+ cursor:pointer;
+}
+.nb94-transfer-week-controls>button:hover:not(:disabled){background:#e2f0ff;border-color:#91bcec}
+.nb94-transfer-week-preview{
+ display:flex;
+ align-items:center;
+ gap:11px;
+ padding:11px 13px;
+ border-radius:9px;
+ background:#edf6ff;
+ border:1px solid #cfe3fa;
+ color:#236bae;
+}
+.nb94-transfer-week-preview>svg{flex:none}
+.nb94-transfer-week-preview>span{display:flex;flex-direction:column;gap:3px}
+.nb94-transfer-week-preview strong{font-size:13px;font-weight:800;color:#175ca8}
+.nb94-transfer-week-preview small{font-size:11px;font-weight:620;color:#547ca5}
+.nb94-transfer-duration{margin:0;font-size:11px;line-height:1.5;color:#6b809c}
+.nb94-transfer-error{margin:0;padding:9px 12px;border:1px solid #f1c0c7;border-radius:8px;background:#fff2f4;color:#ac3145;font-size:12px}
+.nb94-transfer-actions{
+ display:flex;
+ justify-content:flex-end;
+ flex-wrap:wrap;
+ gap:10px;
+ padding-top:7px;
+ border-top:1px solid #edf2f8;
+}
+.nb94-transfer-actions>button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ min-height:40px;
+ padding:9px 15px;
+ border-radius:9px;
+ border:1px solid #c9dbee;
+ background:#fff;
+ color:#2e628f;
+ font:inherit;
+ font-size:12px;
+ font-weight:750;
+ cursor:pointer;
+}
+.nb94-transfer-actions>.nb94-transfer-submit{
+ background:#0874ea;
+ color:#fff;
+ border-color:#0567d6;
+ box-shadow:0 3px 9px rgba(0,107,230,.18);
+}
+.nb94-transfer-actions>.nb94-transfer-submit:hover:not(:disabled){background:#0565d2}
+.nb94-transfer-actions>.nb94-transfer-cancel:hover:not(:disabled){background:#f1f7ff}
+.nb94-transfer-dialog button:focus-visible,
+.nb94-transfer-dialog select:focus-visible{outline:2px solid #3789ef;outline-offset:2px}
+.nb94-transfer-dialog button:disabled,
+.nb94-transfer-dialog select:disabled{opacity:.52;cursor:not-allowed}
+@media(max-width:600px){
+ .nb94-transfer-backdrop{padding:10px;align-items:flex-end}
+ .nb94-transfer-dialog{max-height:92dvh;border-radius:14px}
+ .nb94-transfer-heading{padding:16px;gap:10px}
+ .nb94-transfer-heading h2{font-size:18px}
+ .nb94-transfer-form{padding:16px}
+ .nb94-transfer-actions>button{flex:1}
+}
+@media(prefers-reduced-motion:reduce){.nb94-transfer-backdrop{backdrop-filter:none}}
