@@ -423,7 +423,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
   finally{setReassignBusyId(null);}
  };
  const moveTeamRow=async(sourceId:string,targetId:string,placement:'before'|'after')=>{
-  if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
+  if(!isAdmin||reordering||!sourceId||sourceId===targetId)return;
   setReordering(true);setReorderError('');
   try{await onMemberReorder(sourceId,targetId,placement);}
   catch(error:any){setReorderError(error?.message||'Unable to change employee order.');}
@@ -550,7 +550,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
   if(selected&&!project.members.some((member:any)=>member.id===selected.id)){setSelected(null);setDetail(null);}
  },[person,selected?.id,project.members]);
  const toggleOnSite=async(memberId:string,w:number)=>{
-  if(!isAdmin||presenceBusy||memberId===UNASSIGNED_MEMBER_ID)return;
+  if(!isAdmin||presenceBusy)return;
   const next=!isTrackerNotOnSite(project,memberId,w);
   setPresenceBusy(true);setPresenceError('');
   try{await onWeekPresenceToggle(memberId,w,next);}
@@ -669,7 +669,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
 
   <div className="nb-summary">
    <div className="nb-summary-metrics">
-    <span className="nb-summary-pill" title="Team Lead plus current Assignment roster; task history from unmatched old names is preserved separately"><Users size={17} aria-hidden="true"/>{people.filter((m:any)=>m.id!==UNASSIGNED_MEMBER_ID).length} people</span>
+    <span className="nb-summary-pill" title="Team members are synchronized exclusively with Assignment"><Users size={17} aria-hidden="true"/>{people.length} people</span>
     <span className="nb-summary-pill nb-selected-summary" title="Selection does not move the visible four-week window"><ClipboardCheck size={17} aria-hidden="true"/>{selectedIsoWeek} selected · {currentWeekTaskCount} unique tasks</span>
     <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked in selected week</span>
     <span className="nb-summary-pill nb-visible-summary">Viewing Weeks {week+1}–{Math.min(520,week+4)} · {visibleRangeCount} unique tasks</span>
@@ -677,6 +677,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     {currentWeek>=week&&currentWeek<week+4&&<span className="nb-current-indicator">Current: Week {currentWeek+1}</span>}
    </div>
    <div className="nb-summary-actions">
+    {isAdmin&&unlinkedTasks.length>0&&<button type="button" className="nb-button nb93-unlinked-button" onClick={()=>{setReassignError('');setShowUnlinkedTasks(true);}} title="Reassign preserved historical tasks to current Assignment team members"><AlertCircle size={15} aria-hidden="true"/> Tasks to reassign ({unlinkedTasks.length})</button>}
     {(selectedWeek<week||selectedWeek>=week+4)&&<B className="nb-show-selected-week" onClick={()=>setWeek(clampWeekViewport(selectedWeek))}>Show selected Week {selectedWeek+1} →</B>}
     {!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(clampWeekViewport(closestScheduledWeek))}>View scheduled assignments →</B>}
     <button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button>
@@ -694,7 +695,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
        return <section key={m.id} className={'nb-mobile-person-card'+(mobileOffSite?' nb90-off-site':'')}>
         <header>
          <span className="nb-avatar">{memberInitial(m.name)}</span>
-         <span><strong>{m.name}</strong><small>{m.position||m.title||'Team Lead'}{m.startDate?' · Joined '+m.startDate:''}</small></span>
+         <span><strong>{m.name}</strong><small>{m.position||m.title||'Team member'}{m.startDate?' · Joined '+m.startDate:''}</small></span>
          <span className="nb-mobile-person-count">{mobileList.length} assignments</span>
         </header>
         {mobileOffSite&&<span className="nb90-mobile-off-note"><MapPinOff size={13} aria-hidden="true"/>Not on site</span>}
@@ -740,7 +741,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
       <tbody>
        {people.map((m:any)=>{
         const hasAssignments=weeks.some(w=>at(m.id,w).length);
-        const movable=isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&!reordering;
+        const movable=isAdmin&&!reordering;
         return <tr key={m.id}
           className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember?.id===m.id?' nb90-drop-target nb91-drop-'+dropMember.placement:'')}
           onDragOver={event=>{
@@ -783,14 +784,14 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
              event.preventDefault();
              const index=people.findIndex((p:any)=>p.id===m.id);
              const other=people[index+(event.key==='ArrowUp'?-1:1)];
-             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id,event.key==='ArrowUp'?'before':'after');
+             if(other)void moveTeamRow(m.id,other.id,event.key==='ArrowUp'?'before':'after');
             }}>
            {movable&&<GripVertical size={16} className="nb90-drag-grip" aria-hidden="true"/>}
            <span className="nb-avatar">{memberInitial(m.name)}</span>
            <div className="nb-person-meta">
             <div className="nb-person-copy">
              <strong title={m.name}>{m.name}</strong>
-             <small>{m.position||m.title||'Team Lead'}</small>
+             <small>{m.position||m.title||'Team member'}</small>
              {m.startDate&&<small className="nb90-joined-date">Joined {m.startDate}</small>}
             </div>
            </div>
@@ -841,7 +842,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
      <span className="nb-metric-done"><strong>{chosen.filter((t:any)=>t.status==='Completed').length}</strong><small>Done</small></span>
      <span className="nb-metric-blocked"><strong>{chosen.filter((t:any)=>t.status==='Blocked').length}</strong><small>Blocked</small></span>
     </div>
-    {selected.id!==UNASSIGNED_MEMBER_ID&&<div className={'nb90-presence-control'+(isTrackerNotOnSite(project,selected.id,selected.week)?' nb90-presence-off':'')}>
+    {<div className={'nb90-presence-control'+(isTrackerNotOnSite(project,selected.id,selected.week)?' nb90-presence-off':'')}>
      <div className="nb90-presence-label"><MapPinOff size={17} aria-hidden="true"/><span>{isTrackerNotOnSite(project,selected.id,selected.week)?'Not on site':'On site / not marked absent'}</span></div>
      {isAdmin&&<button type="button" disabled={presenceBusy} aria-pressed={isTrackerNotOnSite(project,selected.id,selected.week)}
        onClick={()=>{void toggleOnSite(selected.id,selected.week);}}>
@@ -855,7 +856,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
      {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number,direction:'next'|'previous')=>{await onQuickTaskMove(id,source,direction);setQuickNotice(`Moved to Week ${source+(direction==='previous'?0:2)}`);}}/>)}
     </div>
-    {isAdmin&&selected.id!==UNASSIGNED_MEMBER_ID?<div className="nb-quick-add-area">
+    {isAdmin?<div className="nb-quick-add-area">
      {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{
       e.preventDefault();if(quickAdding)return;
       const labels=parseClipboardAssignments(newAssignment);
@@ -889,10 +890,32 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
        <div className="nb-quick-add-buttons"><button type="submit" className="nb-button nb-primary" disabled={quickAdding||!canAddAssignments}>{quickAdding?'Saving…':newAssignmentList.length>1?`Add ${newAssignmentList.length} tasks`:'Add task'}</button><B disabled={quickAdding} onClick={()=>{setAddingAssignment(false);setNewAssignment('');setQuickError('');}}>Cancel</B></div>
       </form>}
      {quickError&&<p className="nb-quick-error" role="alert">{quickError}</p>}
-    </div>:selected.id===UNASSIGNED_MEMBER_ID?<p className="nb-quick-view-note">Unassigned tasks are preserved. Sign in as Admin to reassign them.</p>:<div className="nb-drawer-view-footer"><span>Sign in as Admin to update tasks.</span><button type="button" className="nb-button nb-drawer-edit-button" onClick={()=>{closeQuickPanel();onAuth();}}><ShieldCheck size={17} aria-hidden="true"/> Sign in</button></div>}
+    </div>:<div className="nb-drawer-view-footer"><span>Sign in as Admin to update tasks.</span><button type="button" className="nb-button nb-drawer-edit-button" onClick={()=>{closeQuickPanel();onAuth();}}><ShieldCheck size={17} aria-hidden="true"/> Sign in</button></div>}
     </aside>
    </>,document.body)}
 
+  {showUnlinkedTasks&&createPortal(
+    <div className="nb93-unlinked-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!reassignBusyId)setShowUnlinkedTasks(false);}}>
+     <section role="dialog" aria-modal="true" aria-labelledby="nb93-unlinked-title" className="nb93-unlinked-dialog">
+      <header className="nb93-unlinked-heading">
+       <div><h2 id="nb93-unlinked-title">Tasks to reassign</h2><p>Previous team members are no longer displayed. Their task history is preserved.</p></div>
+       <button type="button" aria-label="Close tasks to reassign" disabled={Boolean(reassignBusyId)} onClick={()=>setShowUnlinkedTasks(false)}><X size={19} aria-hidden="true"/></button>
+      </header>
+      {reassignError&&<p role="alert" className="nb93-unlinked-error">{reassignError}</p>}
+      {unlinkedTasks.length===0?<p className="nb93-unlinked-empty">All tasks have current Assignment owners.</p>:
+       <div className="nb93-unlinked-list">
+        {unlinkedTasks.map((task:any)=><div key={task.id} className="nb93-unlinked-task">
+         <div><strong>{task.label}</strong><small>Week {task.startWeek+1} · Previous owner: {project.trackerLegacyOwnerNames?.[task.memberId]||'Not in Assignment'}</small></div>
+         <select aria-label={`Reassign ${task.label}`} value="" disabled={!isAdmin||Boolean(reassignBusyId)||project.members.length===0}
+          onChange={event=>{if(event.target.value)void reassignHistoricalTask(task.id,event.target.value);}}>
+          <option value="">Choose Assignment person…</option>
+          {project.members.map((member:any)=><option key={member.id} value={member.id}>{member.name}</option>)}
+         </select>
+        </div>)}
+       </div>}
+      <p className="nb93-unlinked-footnote">Only employees in Assignment appear in Weekly Tracker. Reassigning a task preserves its schedule and status.</p>
+     </section>
+    </div>,document.body)}
   {memberPendingDeletion&&isAdmin&&createPortal(
    <div className="nb-member-delete-scrim" onMouseDown={e=>{if(e.target===e.currentTarget&&!memberBusy)setMemberToDelete(null);}}>
     <section ref={memberDialogRef} className="nb-member-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="nb-member-delete-title" aria-describedby="nb-member-delete-description">
@@ -955,7 +978,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     <GripVertical size={17} aria-hidden="true"/>
     <span className="nb91-preview-avatar">{memberInitial(people.find((m:any)=>m.id===dragMember)?.name)}</span>
     <span className="nb91-preview-details"><strong>{people.find((m:any)=>m.id===dragMember)?.name}</strong>
-     <small>{people.find((m:any)=>m.id===dragMember)?.position||'Team Lead'}</small></span>
+     <small>{people.find((m:any)=>m.id===dragMember)?.position||'Team member'}</small></span>
     </div>,document.body)}
   {milestoneEditor&&createPortal(<div className="nb42-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!milestoneBusy)setMilestoneEditor(null);}}>
    <section role="dialog" aria-modal="true" aria-labelledby="nb42-milestone-title" className="nb42-milestone-dialog">
