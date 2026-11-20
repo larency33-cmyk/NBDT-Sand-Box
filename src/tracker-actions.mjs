@@ -74,7 +74,7 @@ export function quickEditTask(project,taskId,changes){
  const description=String(changes.description??task.description??'');
  if(description.length>10000)throw Error('Description is too long.');
  const memberId=changes.memberId??task.memberId;
- if(!(project.trackerMembers||project.members).some(m=>m.id===memberId))throw Error('Choose a valid owner.');
+ if(memberId!==task.memberId&&!(project.trackerMembers||project.members).some(m=>m.id===memberId))throw Error('Choose a valid owner.');
  const systemId=changes.systemId??task.systemId??'';
  if(systemId&&!project.systems.some(s=>s.id===systemId))throw Error('Selected system does not exist.');
  const startWeek=changes.startWeek===undefined?task.startWeek:Number(changes.startWeek);
