@@ -102,7 +102,7 @@ export function quickReassignTask(project,taskId,destination){
  // An explicitly recorded due date should move with the task's schedule.
  const dueDate=task.dueDate&&/^\d{4}-\d{2}-\d{2}$/.test(task.dueDate)
   ?shiftISODate(task.dueDate,(startWeek-task.startWeek)*7):(task.dueDate||'');
- return quickEditTask(project,taskId,{memberId,startWeek,dueDate});
+ return quickEditTask(project,taskId,{memberId,startWeek,dueDate,duration:task.duration||1});
 }
 export function quickDeleteTask(project,taskId){
  if(!project.tasks.some(t=>t.id===taskId&&!t.isMilestone))throw Error('Task no longer exists.');
