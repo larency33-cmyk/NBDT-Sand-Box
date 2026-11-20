@@ -754,7 +754,10 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
              dragStartPoint.current={x:event.clientX,y:event.clientY};
              // Hide the translucent native ghost; a fully opaque preview follows the cursor.
              const ghost=document.createElement('canvas');ghost.width=1;ghost.height=1;
+             ghost.style.cssText='position:fixed;left:0;top:0;opacity:0;pointer-events:none';
+             document.body.appendChild(ghost);
              event.dataTransfer.setDragImage(ghost,0,0);
+             requestAnimationFrame(()=>ghost.remove());
              event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);
              setDragMember(m.id);setDropMember(null);
             }}
