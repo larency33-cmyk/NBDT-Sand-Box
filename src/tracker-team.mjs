@@ -46,13 +46,20 @@ export function syncTrackerTeam(project,roster){
     JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
  return {...project,trackerMembers:members,trackerLegacyOwnerNames:legacyOwners,trackerTeamSynced:true};
 }
-export function reorderTrackerMember(project,movingId,targetId){
+/** Drop position is relative to the hovered row, not its pre-removal index.
+ * Preserve every employee ID, every task and the manually chosen row order.
+ */
+export function reorderTrackerMember(project,movingId,targetId,placement='before'){
  const members=project.trackerMembers||project.members||[];
- const source=members.findIndex(m=>m.id===movingId),target=members.findIndex(m=>m.id===targetId);
- if(source<0||target<0||source===target) return project;
+ if(placement!=='before'&&placement!=='after')throw Error('Invalid drop placement.');
+ const source=members.findIndex(m=>m.id===movingId);
+ if(source<0||source===members.findIndex(m=>m.id===targetId))return project;
  const ordered=[...members];
  const [item]=ordered.splice(source,1);
- ordered.splice(target,0,item);
+ const destination=ordered.findIndex(m=>m.id===targetId);
+ if(destination<0)return project;
+ ordered.splice(destination+(placement==='after'?1:0),0,item);
+ if(ordered.every((m,i)=>m.id===members[i].id))return project;
  return {...project,trackerMembers:ordered,trackerTeamSynced:true};
 }
 export function trackerWeekKey(personId,week){return personId+':'+week;}
