@@ -20,7 +20,7 @@ const oldTask={
 };
 const project=(task=oldTask)=>({
  trackerMembers:team,members:[{id:'old',name:'OLD TEAM LEAD'}],
- tasks:[structuredClone(task),{id:'other-task',memberId:team[1].id,startWeek:3,duration:1,label:'Other Task',status:'Planned'}],
+ tasks:[JSON.parse(JSON.stringify(task)),{id:'other-task',memberId:team[1].id,startWeek:3,duration:1,label:'Other Task',status:'Planned'}],
  systems:[],issues:[{id:'issue-one'}],trackerNotOnSite:{[team[0].id+':2']:true}
 });
 
