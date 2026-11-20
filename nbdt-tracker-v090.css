@@ -293,3 +293,98 @@
  background:#e5eaf0!important;
  border-color:#a4b2c5!important;
 }
+
+/* v0.6.93 — Assignment is the only source of Weekly Tracker personnel.
+   Historic tasks with removed owners can be recovered without adding fake rows. */
+.nb-tracker .nb93-unlinked-button{
+ display:inline-flex;
+ align-items:center;
+ gap:7px;
+ padding:6px 11px;
+ border:1px solid #d7ad70;
+ border-radius:8px;
+ color:#8f5a13;
+ background:#fff9ec;
+ font-size:11px;
+ font-weight:700;
+ white-space:nowrap;
+}
+.nb-tracker .nb93-unlinked-button:hover{background:#fff1d9;border-color:#c79755}
+.nb-tracker .nb93-unlinked-button:focus-visible{outline:2px solid #d18f27;outline-offset:2px}
+.nb93-unlinked-backdrop{
+ position:fixed;
+ inset:0;
+ z-index:21020;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:24px;
+ background:rgba(21,39,66,.38);
+}
+.nb93-unlinked-dialog{
+ width:min(600px,100%);
+ max-height:min(80vh,700px);
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+ border-radius:14px;
+ background:#fff;
+ box-shadow:0 24px 64px rgba(12,37,75,.27);
+ color:#1c3f65;
+}
+.nb93-unlinked-heading{
+ display:flex;
+ gap:16px;
+ align-items:flex-start;
+ justify-content:space-between;
+ padding:20px 22px 15px;
+ border-bottom:1px solid #e1eaf4;
+}
+.nb93-unlinked-heading h2{margin:0 0 5px;font-size:19px;color:#173a67}
+.nb93-unlinked-heading p{margin:0;font-size:12px;line-height:1.5;color:#66809d}
+.nb93-unlinked-heading button{
+ flex:none;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ width:32px;height:32px;
+ border-radius:8px;
+ background:#f4f8fd;
+ border:1px solid #d4e2f1;
+ cursor:pointer;
+}
+.nb93-unlinked-heading button:hover{background:#e7f1fc}
+.nb93-unlinked-list{display:flex;flex-direction:column;gap:0;overflow:auto;padding:4px 20px}
+.nb93-unlinked-task{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:15px;
+ border-bottom:1px solid #e5edf6;
+ padding:13px 2px;
+}
+.nb93-unlinked-task>div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.nb93-unlinked-task strong{font-size:13px;overflow-wrap:anywhere}
+.nb93-unlinked-task small{font-size:11px;color:#6b82a0}
+.nb93-unlinked-task select{
+ min-width:175px;
+ max-width:45%;
+ flex:none;
+ padding:9px 8px;
+ border:1px solid #bdd4ed;
+ border-radius:8px;
+ background:#f6faff;
+ color:#1b548f;
+ font-size:12px;
+ cursor:pointer;
+}
+.nb93-unlinked-task select:focus-visible{outline:2px solid #3b8df1;outline-offset:2px}
+.nb93-unlinked-footnote{margin:0;padding:14px 22px;color:#597596;font-size:11px;line-height:1.5;background:#f6faff}
+.nb93-unlinked-error{color:#a6263d;margin:8px 22px;padding:9px 11px;border-radius:7px;background:#fff0f2;font-size:12px}
+.nb93-unlinked-empty{padding:24px;color:#68819d;text-align:center;font-size:13px}
+@media(max-width:650px){
+ .nb93-unlinked-backdrop{padding:10px;align-items:flex-end}
+ .nb93-unlinked-dialog{max-height:88vh}
+ .nb93-unlinked-task{align-items:stretch;flex-direction:column;gap:9px}
+ .nb93-unlinked-task select{max-width:100%;width:100%}
+}
