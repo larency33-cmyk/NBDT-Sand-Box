@@ -8,6 +8,7 @@ import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
+import {isTrackerNotOnSite} from './tracker-team.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
@@ -21,7 +22,7 @@ import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
 import React,{useState,useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
-import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,FileText,ExternalLink,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X} from 'lucide-react';
+import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,FileText,ExternalLink,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X,GripVertical,MapPinOff} from 'lucide-react';
 import {STAGES,LABELS,uid,weekRange,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
 const B=({children,onClick,disabled=false,primary=false,className='',...rest}:any)=><button type="button" className={'nb-button '+(primary?'nb-primary ':'')+className} onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
 const Badge=({value}:any)=><span className={'nb-badge nb-status-'+String(value).toLowerCase().replaceAll(' ','-')}>{({'In Progress':'Active','Completed':'Done'} as any)[value]||value}</span>;
@@ -307,6 +308,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
    </label></div>}
    {showBlocker&&<form className="nb-quick-reason-form" onSubmit={e=>{e.preventDefault();if(blockReason.trim())void save('Blocked',blockReason.trim());}}><label>Reason for blocking<input autoFocus maxLength={2000} value={blockReason} disabled={saving} onChange={e=>setBlockReason(e.target.value)} placeholder="What is blocking this task?" required/></label><div><button type="submit" disabled={saving||!blockReason.trim()}>{saving?'Saving…':'Save blocker'}</button><button type="button" disabled={saving} onClick={()=>setShowBlocker(false)}>Cancel</button></div></form>}
    {task.assignmentOwnerLabel&&<p className="nb52-task-owner">System Owner: <strong>{task.assignmentOwnerLabel}</strong></p>}
+   {project.trackerLegacyOwnerNames?.[task.memberId]&&<p className="nb90-legacy-owner">Previous Tracker owner: <strong>{project.trackerLegacyOwnerNames[task.memberId]}</strong></p>}
    {actualStatus==='Blocked'&&task.blockReason&&<p className="nb-quick-block-reason">{task.blockReason}</p>}
    {saving&&<span role="status" className="nb-quick-saving">Saving…</span>}
    {error&&<p role="alert" className="nb-quick-error">{error}</p>}
@@ -314,7 +316,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  </article>;
 }
 
-export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,week,setWeek}:any){
+export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -371,6 +373,20 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [todayDate,setTodayDate]=useState(()=>todayInTimezone(project.timezone||'Europe/Paris'));
  const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
+ const [dragMember,setDragMember]=useState<string|null>(null);
+ const [dropMember,setDropMember]=useState<string|null>(null);
+ const [reordering,setReordering]=useState(false);
+ const [reorderError,setReorderError]=useState('');
+ const [presenceBusy,setPresenceBusy]=useState(false);
+ const [presenceError,setPresenceError]=useState('');
+ const moveTeamRow=async(sourceId:string,targetId:string)=>{
+  if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
+  setReordering(true);setReorderError('');
+  try{await onMemberReorder(sourceId,targetId);}
+  catch(error:any){setReorderError(error?.message||'Unable to change employee order.');}
+  finally{setDragMember(null);setDropMember(null);setReordering(false);}
+ };
+
  const newAssignmentList=parseClipboardAssignments(newAssignment);
  const invalidTaskIndex=newAssignmentList.findIndex(label=>label.length>160);
  const canAddAssignments=newAssignmentList.length>0&&newAssignmentList.length<=100&&invalidTaskIndex<0;
@@ -435,7 +451,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  };
  const openQuickPanel=(personId:string,w:number,task:any=null)=>{
   if(!selected&&document.activeElement instanceof HTMLElement)panelTriggerRef.current=document.activeElement;
-  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');
+  setSelected({id:personId,week:w});setDetail(task);setAddingAssignment(false);setNewAssignment('');setQuickError('');setQuickNotice('');setPresenceError('');
  };
  // The overlay must not resize the matrix; preserve focus and keyboard access.
  useEffect(()=>{
@@ -473,6 +489,14 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const hasOrphans=tasks.some(orphaned);
  const unassignedPerson={id:UNASSIGNED_MEMBER_ID,name:'Unassigned'};
  const people=[...project.members.filter((m:any)=>!person||m.id===person),...(!person&&hasOrphans?[unassignedPerson]:[])];
+ const toggleOnSite=async(memberId:string,w:number)=>{
+  if(!isAdmin||presenceBusy||memberId===UNASSIGNED_MEMBER_ID)return;
+  const next=!isTrackerNotOnSite(project,memberId,w);
+  setPresenceBusy(true);setPresenceError('');
+  try{await onWeekPresenceToggle(memberId,w,next);}
+  catch(error:any){setPresenceError(error?.message||'Could not update on-site status.');}
+  finally{setPresenceBusy(false);}
+ };
  const weeks=Array.from({length:4},(_,i)=>clampWeekViewport(week)+i);
  const selectedPerson=people.find((m:any)=>m.id===selected?.id) || (selected?.id===UNASSIGNED_MEMBER_ID?unassignedPerson:undefined);
  const chosen=selected?at(selected.id,selected.week):[];
@@ -585,7 +609,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
 
   <div className="nb-summary">
    <div className="nb-summary-metrics">
-    <span className="nb-summary-pill"><Users size={17} aria-hidden="true"/>{people.length} people</span>
+    <span className="nb-summary-pill" title="Team Lead plus current Assignment roster; task history from unmatched old names is preserved separately"><Users size={17} aria-hidden="true"/>{people.filter((m:any)=>m.id!==UNASSIGNED_MEMBER_ID).length} people</span>
     <span className="nb-summary-pill nb-selected-summary" title="Selection does not move the visible four-week window"><ClipboardCheck size={17} aria-hidden="true"/>{selectedIsoWeek} selected · {currentWeekTaskCount} unique tasks</span>
     <span className="nb-summary-pill nb-summary-blockers"><AlertCircle size={17} aria-hidden="true"/>{blockedCount} blocked in selected week</span>
     <span className="nb-summary-pill nb-visible-summary">Viewing Weeks {week+1}–{Math.min(520,week+4)} · {visibleRangeCount} unique tasks</span>
@@ -606,24 +630,20 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
       {people.map((m:any)=>{
        const mobileList=at(m.id,week);
        const mobileMilestones=milestonesAt(week);
-       return <section key={m.id} className="nb-mobile-person-card">
+       const mobileOffSite=isTrackerNotOnSite(project,m.id,week);
+       return <section key={m.id} className={'nb-mobile-person-card'+(mobileOffSite?' nb90-off-site':'')}>
         <header>
          <span className="nb-avatar">{memberInitial(m.name)}</span>
-         <span><strong>{m.name}</strong><small>{m.title||'Team member'}</small></span>
+         <span><strong>{m.name}</strong><small>{m.position||m.title||'Team Lead'}{m.startDate?' · Joined '+m.startDate:''}</small></span>
          <span className="nb-mobile-person-count">{mobileList.length} assignments</span>
-         {isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&<div className="nb-member-actions"><button type="button" aria-label={`Rename ${m.name}`} onClick={()=>startMemberRename(m)}><Pencil size={15}/></button><button type="button" aria-label={`Remove ${m.name}`} onClick={()=>deleteMember(m)}><Trash2 size={15}/></button></div>}
         </header>
-        {isAdmin&&editingMemberId===m.id&&<form className="nb-member-rename-form" onSubmit={saveMemberRename}><input autoFocus required maxLength={80} value={memberDraft} aria-label={`New name for ${m.name}`} onChange={e=>setMemberDraft(e.target.value)}/><button type="submit">Save</button><button type="button" onClick={()=>setEditingMemberId(null)}>Cancel</button></form>}
+        {mobileOffSite&&<span className="nb90-mobile-off-note"><MapPinOff size={13} aria-hidden="true"/>Not on site</span>}
         <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
         {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin)editMilestone(ms);}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
         {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
         <button type="button" className="nb-mobile-open-assignments" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}>View assignments →</button>
        </section>;
       })}
-      {isAdmin&&<div className="nb-member-create-row nb-member-create-mobile">
-       {!addingMember?<button type="button" className="nb-member-create-trigger" onClick={()=>{setAddingMember(true);setEditingMemberId(null);setMemberError('');}}><Plus size={17}/> Add team member</button>:<form className="nb-member-create-form" onSubmit={createMember}><input required autoFocus maxLength={80} aria-label="New team member name" placeholder="Name" value={newMemberName} onChange={e=>setNewMemberName(e.target.value)}/><button type="submit" disabled={memberBusy||!newMemberName.trim()}>Create</button><button type="button" onClick={()=>{setAddingMember(false);setNewMemberName('');}}>Cancel</button></form>}
-       {memberError&&<p role="alert" className="nb-member-error">{memberError}</p>}
-      </div>}
      </div>
      <table className={'nb-week-grid '+(!showMobileMatrix?'mobile-cards-preferred':'')} aria-label="Weekly assignments matrix">
       <thead>
@@ -660,52 +680,65 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
       <tbody>
        {people.map((m:any)=>{
         const hasAssignments=weeks.some(w=>at(m.id,w).length);
-        return <tr key={m.id} className={hasAssignments?'nb-has-assignments':'nb-no-assignments'}>
-         <th>
-          <div className="nb-person-cell">
+        const movable=isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&!reordering;
+        return <tr key={m.id}
+          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember===m.id?' nb90-drop-target':'')}
+          onDragOver={event=>{if(!dragMember||!movable||dragMember===m.id)return;event.preventDefault();event.dataTransfer.dropEffect='move';if(dropMember!==m.id)setDropMember(m.id);}}
+          onDrop={event=>{if(!movable||!dragMember)return;event.preventDefault();void moveTeamRow(dragMember,m.id);}}
+          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current===m.id?null:current);}}>
+         <th scope="row">
+          <div className={'nb-person-cell'+(movable?' nb90-person-draggable':'')}
+            draggable={movable}
+            tabIndex={movable?0:undefined}
+            role={movable?'button':undefined}
+            aria-label={movable?`Reorder ${m.name}. Drag this name cell or press Up/Down arrow keys.`:undefined}
+            title={movable?'Drag to reorder the whole employee row. Arrow keys also work.':undefined}
+            onDragStart={event=>{if(!movable)return;setDragMember(m.id);setDropMember(null);event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);}}
+            onDragEnd={()=>{setDragMember(null);setDropMember(null);}}
+            onKeyDown={event=>{
+             if(!movable||!['ArrowUp','ArrowDown'].includes(event.key))return;
+             event.preventDefault();
+             const index=people.findIndex((p:any)=>p.id===m.id);
+             const other=people[index+(event.key==='ArrowUp'?-1:1)];
+             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id);
+            }}>
+           {movable&&<GripVertical size={16} className="nb90-drag-grip" aria-hidden="true"/>}
            <span className="nb-avatar">{memberInitial(m.name)}</span>
            <div className="nb-person-meta">
-           <div className="nb-person-copy">
-            {editingMemberId===m.id&&isAdmin?
-             <form className="nb-member-rename-form" onSubmit={saveMemberRename}>
-              <input aria-label={`New name for ${m.name}`} autoFocus maxLength={80} required value={memberDraft} disabled={memberBusy} onChange={e=>setMemberDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setEditingMemberId(null);setMemberError('');}}}/>
-              <button type="submit" aria-label={`Save ${m.name} name`} title="Save" disabled={memberBusy||!memberDraft.trim()}><Check size={16}/></button>
-              <button type="button" aria-label="Cancel rename" title="Cancel" disabled={memberBusy} onClick={()=>{setEditingMemberId(null);setMemberError('');}}><X size={16}/></button>
-             </form>:
-             <><strong>{m.name}</strong>{m.title&&<small>{m.title}</small>}</>}
-           </div>
-           {isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&editingMemberId!==m.id&&<div className="nb-member-actions">
-            <button type="button" title={`Rename ${m.name}`} aria-label={`Rename ${m.name}`} disabled={memberBusy} onClick={()=>startMemberRename(m)}><Pencil size={15}/></button>
-            <button type="button" title={`Remove ${m.name}`} aria-label={`Remove ${m.name}`} disabled={memberBusy} onClick={()=>deleteMember(m)}><Trash2 size={15}/></button>
-           </div>}
+            <div className="nb-person-copy">
+             <strong title={m.name}>{m.name}</strong>
+             <small>{m.position||m.title||'Team Lead'}</small>
+             {m.startDate&&<small className="nb90-joined-date">Joined {m.startDate}</small>}
+            </div>
            </div>
           </div>
          </th>
          {weeks.map(w=>{
           const list=at(m.id,w);
           const blocked=list.filter((t:any)=>t.status==='Blocked').length;
-          return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')}>
-           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{selectWeek(w);openQuickPanel(m.id,w);}}>
-            <div className="nb-week-cell-head">
-             <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
-             {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
-            </div>
-            {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id} title={t.assignmentOwnerLabel?`System Owner: ${t.assignmentOwnerLabel}`:undefined}><span>{t.label}</span><Badge value={t.status}/></span>)}
-            {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
+          const notOnSite=isTrackerNotOnSite(project,m.id,w);
+          return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')+(notOnSite?' nb90-offsite-week':'')}>
+           <button aria-label={`${m.name}: ${notOnSite?'Not on site, ':''}${list.length} assignments in ${weekIso(w)}`}
+            className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')}
+            onClick={()=>{selectWeek(w);openQuickPanel(m.id,w);}}>
+            {notOnSite?<div className="nb90-not-on-site-content">
+             <MapPinOff size={19} aria-hidden="true"/>
+             <strong>Not on site</strong>
+             <small>{list.length?`${list.length} task${list.length===1?'':'s'} retained`:'No assignments'}</small>
+            </div>:<>
+             <div className="nb-week-cell-head">
+              <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
+              {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
+             </div>
+             {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id} title={t.assignmentOwnerLabel?`System Owner: ${t.assignmentOwnerLabel}`:undefined}><span>{t.label}</span><Badge value={t.status}/></span>)}
+             {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
+            </>}
            </button>
           </td>;
          })}
         </tr>;
        })}
-       {isAdmin&&<tr className="nb-member-create-table-row"><th>
-        {!addingMember?<button type="button" className="nb-member-create-trigger" onClick={()=>{setAddingMember(true);setEditingMemberId(null);setMemberError('');}}><Plus size={17}/> Add team member</button>:
-         <form className="nb-member-create-form nb-member-create-inline" onSubmit={createMember}>
-          <input autoFocus required maxLength={80} aria-label="New team member name" placeholder="Name" value={newMemberName} disabled={memberBusy} onChange={e=>setNewMemberName(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setAddingMember(false);setNewMemberName('');setMemberError('');}}}/>
-          <button type="submit" disabled={!newMemberName.trim()||memberBusy}>Create</button>
-          <button type="button" disabled={memberBusy} onClick={()=>{setAddingMember(false);setNewMemberName('');setMemberError('');}}>✕</button>
-         </form>}
-        {memberError&&<p className="nb-member-error" role="alert">{memberError}</p>}
-       </th><td colSpan={4} aria-hidden="true"/></tr>}
+       {reorderError&&<tr className="nb90-row-error"><td colSpan={5} role="alert">{reorderError}</td></tr>}
       </tbody>
      </table>
     </>
@@ -725,6 +758,14 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
      <span className="nb-metric-done"><strong>{chosen.filter((t:any)=>t.status==='Completed').length}</strong><small>Done</small></span>
      <span className="nb-metric-blocked"><strong>{chosen.filter((t:any)=>t.status==='Blocked').length}</strong><small>Blocked</small></span>
     </div>
+    {selected.id!==UNASSIGNED_MEMBER_ID&&<div className={'nb90-presence-control'+(isTrackerNotOnSite(project,selected.id,selected.week)?' nb90-presence-off':'')}>
+     <div className="nb90-presence-label"><MapPinOff size={17} aria-hidden="true"/><span>{isTrackerNotOnSite(project,selected.id,selected.week)?'Not on site':'On site / not marked absent'}</span></div>
+     {isAdmin&&<button type="button" disabled={presenceBusy} aria-pressed={isTrackerNotOnSite(project,selected.id,selected.week)}
+       onClick={()=>{void toggleOnSite(selected.id,selected.week);}}>
+      {presenceBusy?'Saving…':isTrackerNotOnSite(project,selected.id,selected.week)?'Remove Not on site':'Mark Not on site'}
+     </button>}
+     {presenceError&&<p role="alert" className="nb90-presence-error">{presenceError}</p>}
+    </div>}
     <div className="nb-drawer-section-heading nb-drawer-assignments-heading"><strong>Assignments</strong><span>{chosen.length}</span></div>
     {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
