@@ -7,7 +7,7 @@ const canonicalId=personId=>'tracker-'+personId;
 const isLead=member=>member?.isTeamLead||key(member?.name)==='TEAM LEAD';
 
 export function syncTrackerTeam(project,roster){
- const previous=Array.isArray(project.members)?project.members:[];
+ const previous=Array.isArray(project.trackerMembers)?project.trackerMembers:(Array.isArray(project.members)?project.members:[]);
  const rosterPeople=Array.isArray(roster?.people)?roster.people:[];
  const teamLead=previous.find(isLead)||{id:'m0',name:'TEAM LEAD',isLead:true,isTeamLead:true};
  const used=new Set([teamLead.id]);
@@ -39,23 +39,23 @@ export function syncTrackerTeam(project,roster){
   members.sort((a,b)=>(order.get(a.id)??Number.MAX_SAFE_INTEGER)-(order.get(b.id)??Number.MAX_SAFE_INTEGER));
  }
  if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members))return project;
- return {...project,members,trackerTeamSynced:true};
+ return {...project,trackerMembers:members,trackerTeamSynced:true};
 }
 export function reorderTrackerMember(project,movingId,targetId){
- const members=project.members||[];
+ const members=project.trackerMembers||project.members||[];
  const source=members.findIndex(m=>m.id===movingId),target=members.findIndex(m=>m.id===targetId);
  if(source<0||target<0||source===target) return project;
  const ordered=[...members];
  const [item]=ordered.splice(source,1);
  ordered.splice(target,0,item);
- return {...project,members:ordered,trackerTeamSynced:true};
+ return {...project,trackerMembers:ordered,trackerTeamSynced:true};
 }
 export function trackerWeekKey(personId,week){return personId+':'+week;}
 export function isTrackerNotOnSite(project,personId,week){
  return project.trackerNotOnSite?.[trackerWeekKey(personId,week)]===true;
 }
 export function setTrackerNotOnSite(project,personId,week,value){
- if(!project.members?.some(member=>member.id===personId))throw Error('Choose a valid team member.');
+ if(!(project.trackerMembers||project.members)?.some(member=>member.id===personId))throw Error('Choose a valid team member.');
  if(!Number.isInteger(week)||week<0||week>=520)throw Error('Choose a valid project week.');
  const key=trackerWeekKey(personId,week);
  const prev=project.trackerNotOnSite||{};
