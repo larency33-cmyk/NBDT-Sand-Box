@@ -449,12 +449,12 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  };
  const [showUnlinkedTasks,setShowUnlinkedTasks]=useState(false);
  const [reassignBusyId,setReassignBusyId]=useState<string|null>(null);
- const [reassignError,setReassignError]=useState('');
+ const [historicalReassignError,setHistoricalReassignError]=useState('');
  const reassignHistoricalTask=async(taskId:string,personId:string)=>{
   if(!isAdmin||!personId||reassignBusyId)return;
-  setReassignBusyId(taskId);setReassignError('');
+  setReassignBusyId(taskId);setHistoricalReassignError('');
   try{await onQuickTaskReassign(taskId,personId);}
-  catch(error:any){setReassignError(error?.message||'Could not reassign this task.');}
+  catch(error:any){setHistoricalReassignError(error?.message||'Could not reassign this task.');}
   finally{setReassignBusyId(null);}
  };
  const moveTeamRow=async(sourceId:string,targetId:string,placement:'before'|'after')=>{
@@ -712,7 +712,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     {currentWeek>=week&&currentWeek<week+4&&<span className="nb-current-indicator">Current: Week {currentWeek+1}</span>}
    </div>
    <div className="nb-summary-actions">
-    {isAdmin&&unlinkedTasks.length>0&&<button type="button" className="nb-button nb93-unlinked-button" onClick={()=>{setReassignError('');setShowUnlinkedTasks(true);}} title="Reassign preserved historical tasks to current Assignment team members"><AlertCircle size={15} aria-hidden="true"/> Tasks to reassign ({unlinkedTasks.length})</button>}
+    {isAdmin&&unlinkedTasks.length>0&&<button type="button" className="nb-button nb93-unlinked-button" onClick={()=>{setHistoricalReassignError('');setShowUnlinkedTasks(true);}} title="Reassign preserved historical tasks to current Assignment team members"><AlertCircle size={15} aria-hidden="true"/> Tasks to reassign ({unlinkedTasks.length})</button>}
     {(selectedWeek<week||selectedWeek>=week+4)&&<B className="nb-show-selected-week" onClick={()=>setWeek(clampWeekViewport(selectedWeek))}>Show selected Week {selectedWeek+1} →</B>}
     {!query&&!person&&!status&&closestScheduledWeek!==null&&!visibleWeeksHaveTasks&&<B onClick={()=>setWeek(clampWeekViewport(closestScheduledWeek))}>View scheduled assignments →</B>}
     <button type="button" className="nb-mobile-matrix-toggle nb-button" onClick={()=>setShowMobileMatrix(!showMobileMatrix)}>{showMobileMatrix?'By person':'Show matrix'}</button>
@@ -991,7 +991,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
        <div><h2 id="nb93-unlinked-title">Tasks to reassign</h2><p>Previous team members are no longer displayed. Their task history is preserved.</p></div>
        <button type="button" aria-label="Close tasks to reassign" disabled={Boolean(reassignBusyId)} onClick={()=>setShowUnlinkedTasks(false)}><X size={19} aria-hidden="true"/></button>
       </header>
-      {reassignError&&<p role="alert" className="nb93-unlinked-error">{reassignError}</p>}
+      {historicalReassignError&&<p role="alert" className="nb93-unlinked-error">{historicalReassignError}</p>}
       {unlinkedTasks.length===0?<p className="nb93-unlinked-empty">All tasks have current Assignment owners.</p>:
        <div className="nb93-unlinked-list">
         {unlinkedTasks.map((task:any)=><div key={task.id} className="nb93-unlinked-task">
