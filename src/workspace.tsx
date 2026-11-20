@@ -8,7 +8,7 @@ import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
-import {isTrackerNotOnSite} from './tracker-team.mjs';
+import {isTrackerNotOnSite,trackerDropPlacement} from './tracker-team.mjs';
 import {TECH_FIELDS,effectiveStatus,isoWeek,projectToday,csv} from './extended-model.mjs';
 import {weekIndexFromIso} from './navigation.mjs';
 import {projectWeekDate,projectWeekDays,weekIndexFromDate,currentWeekIndex,todayInTimezone,validDate} from './schedule.mjs';
@@ -374,15 +374,15 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [dateSaving,setDateSaving]=useState(false);
  const [addingAssignment,setAddingAssignment]=useState(false),[newAssignment,setNewAssignment]=useState(''),[quickAdding,setQuickAdding]=useState(false),[quickError,setQuickError]=useState(''),[quickNotice,setQuickNotice]=useState('');
  const [dragMember,setDragMember]=useState<string|null>(null);
- const [dropMember,setDropMember]=useState<string|null>(null);
+ const [dropMember,setDropMember]=useState<{id:string,placement:'before'|'after'}|null>(null);
  const [reordering,setReordering]=useState(false);
  const [reorderError,setReorderError]=useState('');
  const [presenceBusy,setPresenceBusy]=useState(false);
  const [presenceError,setPresenceError]=useState('');
- const moveTeamRow=async(sourceId:string,targetId:string)=>{
+ const moveTeamRow=async(sourceId:string,targetId:string,placement:'before'|'after')=>{
   if(!isAdmin||reordering||!sourceId||sourceId===targetId||sourceId===UNASSIGNED_MEMBER_ID||targetId===UNASSIGNED_MEMBER_ID)return;
   setReordering(true);setReorderError('');
-  try{await onMemberReorder(sourceId,targetId);}
+  try{await onMemberReorder(sourceId,targetId,placement);}
   catch(error:any){setReorderError(error?.message||'Unable to change employee order.');}
   finally{setDragMember(null);setDropMember(null);setReordering(false);}
  };
@@ -390,6 +390,17 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const newAssignmentList=parseClipboardAssignments(newAssignment);
  const invalidTaskIndex=newAssignmentList.findIndex(label=>label.length>160);
  const canAddAssignments=newAssignmentList.length>0&&newAssignmentList.length<=100&&invalidTaskIndex<0;
+ const dragPreviewRef=useRef<HTMLDivElement|null>(null);
+ const dragStartPoint=useRef({x:0,y:0});
+ useEffect(()=>{
+  if(!dragMember)return;
+  const follow=(event:DragEvent)=>{
+   if(event.clientX<=0||event.clientY<=0)return;
+   if(dragPreviewRef.current)dragPreviewRef.current.style.transform=`translate3d(${event.clientX+15}px,${event.clientY+12}px,0)`;
+  };
+  document.addEventListener('dragover',follow,true);
+  return()=>document.removeEventListener('dragover',follow,true);
+ },[dragMember]);
  const panelRef=useRef<HTMLElement|null>(null);
  const panelTriggerRef=useRef<HTMLElement|null>(null);
  const tableScrollRef=useRef<HTMLDivElement|null>(null);
@@ -682,10 +693,22 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
         const hasAssignments=weeks.some(w=>at(m.id,w).length);
         const movable=isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&!reordering;
         return <tr key={m.id}
-          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember===m.id?' nb90-drop-target':'')}
-          onDragOver={event=>{if(!dragMember||!movable||dragMember===m.id)return;event.preventDefault();event.dataTransfer.dropEffect='move';if(dropMember!==m.id)setDropMember(m.id);}}
-          onDrop={event=>{if(!movable||!dragMember)return;event.preventDefault();void moveTeamRow(dragMember,m.id);}}
-          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current===m.id?null:current);}}>
+          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember?.id===m.id?' nb90-drop-target nb91-drop-'+dropMember.placement:'')}
+          onDragOver={event=>{
+           if(!dragMember||!movable||dragMember===m.id)return;
+           event.preventDefault();event.dataTransfer.dropEffect='move';
+           const rect=event.currentTarget.getBoundingClientRect();
+           const placement=trackerDropPlacement(event.clientY,rect.top,rect.height);
+           if(dropMember?.id!==m.id||dropMember.placement!==placement)setDropMember({id:m.id,placement});
+          }}
+          onDrop={event=>{
+           if(!movable||!dragMember)return;
+           event.preventDefault();
+           const rect=event.currentTarget.getBoundingClientRect();
+           const placement=trackerDropPlacement(event.clientY,rect.top,rect.height);
+           void moveTeamRow(dragMember,m.id,placement);
+          }}
+          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current?.id===m.id?null:current);}}>
          <th scope="row">
           <div className={'nb-person-cell'+(movable?' nb90-person-draggable':'')}
             draggable={movable}
@@ -693,14 +716,22 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
             role={movable?'button':undefined}
             aria-label={movable?`Reorder ${m.name}. Drag this name cell or press Up/Down arrow keys.`:undefined}
             title={movable?'Drag to reorder the whole employee row. Arrow keys also work.':undefined}
-            onDragStart={event=>{if(!movable)return;setDragMember(m.id);setDropMember(null);event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);}}
+            onDragStart={event=>{
+             if(!movable)return;
+             dragStartPoint.current={x:event.clientX,y:event.clientY};
+             // Hide the translucent native ghost; a fully opaque preview follows the cursor.
+             const ghost=document.createElement('canvas');ghost.width=1;ghost.height=1;
+             event.dataTransfer.setDragImage(ghost,0,0);
+             event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);
+             setDragMember(m.id);setDropMember(null);
+            }}
             onDragEnd={()=>{setDragMember(null);setDropMember(null);}}
             onKeyDown={event=>{
              if(!movable||!['ArrowUp','ArrowDown'].includes(event.key))return;
              event.preventDefault();
              const index=people.findIndex((p:any)=>p.id===m.id);
              const other=people[index+(event.key==='ArrowUp'?-1:1)];
-             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id);
+             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id,event.key==='ArrowUp'?'before':'after');
             }}>
            {movable&&<GripVertical size={16} className="nb90-drag-grip" aria-hidden="true"/>}
            <span className="nb-avatar">{memberInitial(m.name)}</span>
@@ -867,6 +898,13 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     </div>
    </div>
   </footer>
+  {dragMember&&createPortal(<div ref={dragPreviewRef} className="nb91-drag-preview" role="presentation" aria-hidden="true"
+    style={{transform:`translate3d(${dragStartPoint.current.x+15}px,${dragStartPoint.current.y+12}px,0)`}}>
+    <GripVertical size={17} aria-hidden="true"/>
+    <span className="nb91-preview-avatar">{memberInitial(people.find((m:any)=>m.id===dragMember)?.name)}</span>
+    <span className="nb91-preview-details"><strong>{people.find((m:any)=>m.id===dragMember)?.name}</strong>
+     <small>{people.find((m:any)=>m.id===dragMember)?.position||'Team Lead'}</small></span>
+    </div>,document.body)}
   {milestoneEditor&&createPortal(<div className="nb42-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!milestoneBusy)setMilestoneEditor(null);}}>
    <section role="dialog" aria-modal="true" aria-labelledby="nb42-milestone-title" className="nb42-milestone-dialog">
     <div className="nb42-dialog-header"><div><span className="nb42-dialog-eyebrow">{weekIso(milestoneEditor.startWeek)} · Project milestone</span><h2 id="nb42-milestone-title">{milestoneEditor.creating?'Add milestone':'Edit milestone'}</h2></div>
