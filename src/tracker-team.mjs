@@ -40,7 +40,7 @@ export function syncTrackerTeam(project,roster){
   members.sort((a,b)=>(order.get(a.id)??Number.MAX_SAFE_INTEGER)-(order.get(b.id)??Number.MAX_SAFE_INTEGER));
  }
  const legacyOwners={...(project.trackerLegacyOwnerNames||{})};
- for(const member of previous){
+ for(const member of [...(project.members||[]),...previous]){
   if(!used.has(member.id)&&member.name)legacyOwners[member.id]=member.name;
  }
  if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members)&&
