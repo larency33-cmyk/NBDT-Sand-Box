@@ -11,7 +11,7 @@ import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/works
 import {AssignmentPage} from './src/assignment-page-v052';
 import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner,systemMatchesAssignmentOwner,setSystemAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
-import {quickCreateAssignment,quickCreateAssignments,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
+import {quickCreateAssignment,quickCreateAssignments,quickSetTaskStatus,quickEditTask,quickReassignTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
@@ -2903,6 +2903,9 @@ const App = () => {
         }} canConfigureProject={isSuperAdmin} onAuth={openLogin} onQuickTaskEdit={async(taskId:string,changes:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to edit a task.');
           await handleAction(prev=>quickEditTask(syncTrackerTeam(prev,assignmentRosterRef.current),taskId,changes));
+        }} onQuickTaskTransfer={async(taskId:string,memberId:string,startWeek:number)=>{
+          if(!isAdmin)throw Error('Admin sign-in required to reassign a task.');
+          await handleAction(prev=>quickReassignTask(syncTrackerTeam(prev,assignmentRosterRef.current),taskId,{memberId,startWeek}));
         }} onQuickTaskDelete={async(taskId:string)=>{
           if(!isAdmin)throw Error('Sign in as Admin to delete a task.');
           await handleAction(prev=>quickDeleteTask(prev,taskId));

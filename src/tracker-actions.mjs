@@ -1,3 +1,4 @@
+import {shiftISODate} from './schedule.mjs';
 /** Shared-task mutations for the local project store. The caller commits the returned project atomically. */
 export const STATUS_VALUES=['Planned','In Progress','Completed','Blocked'];
 export function quickSetTaskStatus(project,taskId,changes,now=new Date()){
@@ -84,6 +85,24 @@ export function quickEditTask(project,taskId,changes){
  if(dueDate&&!/^\d{4}-\d{2}-\d{2}$/.test(dueDate))throw Error('Invalid due date.');
  const next={...task,label,description,memberId,systemId,startWeek,duration,dueDate,helperIds:(task.helperIds||[]).filter(id=>id!==memberId),version:(task.version||0)+1};
  return {...project,tasks:project.tasks.map(t=>t.id===taskId?next:t)};
+}
+/** Reassign an existing task to a current Assignment team member and a project week.
+ * Keep task identity, status, description, checklist, system and history intact.
+ * The whole scheduled duration moves together rather than duplicating a week.
+ */
+export function quickReassignTask(project,taskId,destination){
+ const task=project.tasks.find(t=>t.id===taskId&&!t.isMilestone);
+ if(!task)throw Error('Task no longer exists.');
+ const memberId=String(destination?.memberId||'');
+ if(!(project.trackerMembers||[]).some(member=>member.id===memberId))throw Error('Select a person from Assignment.');
+ const startWeek=destination?.startWeek;
+ if(!Number.isInteger(startWeek)||startWeek<0||startWeek>=520||startWeek+(task.duration||1)>520)
+  throw Error('Selected week is outside the task schedule range.');
+ if(task.memberId===memberId&&task.startWeek===startWeek)return project;
+ // An explicitly recorded due date should move with the task's schedule.
+ const dueDate=task.dueDate&&/^\d{4}-\d{2}-\d{2}$/.test(task.dueDate)
+  ?shiftISODate(task.dueDate,(startWeek-task.startWeek)*7):(task.dueDate||'');
+ return quickEditTask(project,taskId,{memberId,startWeek,dueDate,duration:task.duration||1});
 }
 export function quickDeleteTask(project,taskId){
  if(!project.tasks.some(t=>t.id===taskId&&!t.isMilestone))throw Error('Task no longer exists.');

@@ -273,7 +273,7 @@ export function SystemCreate({sys,project,isAdmin,onSave,onClose}:any){
 
 /** Fast status controls save the shared Task ID, not one local assignment copy. */
 /** Actions stay in this drawer. No standalone Edit task screen. */
-function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskSave,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onRequireEdit}:any){
+function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskSave,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onOpenReassign,onRequireEdit}:any){
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
  const [menuOpen,setMenuOpen]=useState(false),[editing,setEditing]=useState(false);
  const [draft,setDraft]=useState({label:task.label});
@@ -285,7 +285,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
   if(!anchor)return;
   const rect=anchor.getBoundingClientRect();
   const width=Math.min(224,window.innerWidth-16);
-  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?185:224);
+  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?237:280);
   const below=window.innerHeight-rect.bottom;
   const showAbove=below<height+10&&rect.top>height+10;
   const preferredTop=showAbove?rect.top-height-6:rect.bottom+6;
@@ -324,6 +324,11 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
      <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>{if(!menuOpen)positionMenu();setMenuOpen(open=>!open);}}><MoreVertical size={20} aria-hidden="true"/></button>
      {menuOpen&&menuPosition&&createPortal(<div ref={menuPortalRef} className="nb-task-action-menu nb91-task-portal-menu" role="menu" aria-label={'Actions for '+task.label} style={menuPosition}>
       <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
+      <button role="menuitem" type="button" disabled={saving} onClick={()=>{
+       setMenuOpen(false);
+       if(!isAdmin){onRequireEdit();return;}
+       onOpenReassign(task,sourceWeek);
+      }}><UserRound size={15}/> Reassign</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek===0} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'previous'));}}><ChevronLeft size={15}/> Move to previous week</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'next'));}}><ChevronRight size={15}/> Move to next week</button>
       <button role="menuitem" type="button" className="nb-task-delete-action" disabled={saving} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}if(window.confirm(`Delete “${task.label}” permanently?\n\nThis removes this task and its history from all scheduled weeks. This cannot be undone.`))void commit(()=>onQuickTaskDelete(task.id));}}><Trash2 size={15}/> Delete</button>
@@ -349,7 +354,7 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  </article>;
 }
 
-export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onQuickTaskReassign,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
+export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskEdit,onQuickTaskDelete,onQuickTaskMove,onQuickTaskTransfer,onQuickTaskReassign,onMilestoneSave,onMilestoneDelete,onProjectStartChange,onQuickTaskSave,onQuickTaskCreate,onMemberRename,onMemberCreate,onMemberDelete,onMemberReorder,onWeekPresenceToggle,week,setWeek}:any){
  const [query,setQuery]=useState(''),[status,setStatus]=useState(''),[person,setPerson]=useState(''),[selected,setSelected]=useState<any>(null),[detail,setDetail]=useState<any>(null);
  // Legacy shared URLs with ?view=list now open the only supported Overview layout.
  useEffect(()=>{
@@ -412,6 +417,36 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
  const [reorderError,setReorderError]=useState('');
  const [presenceBusy,setPresenceBusy]=useState(false);
  const [presenceError,setPresenceError]=useState('');
+ const [reassignTask,setReassignTask]=useState<any>(null);
+ const [reassignMember,setReassignMember]=useState('');
+ const [reassignWeek,setReassignWeek]=useState(0);
+ const [reassignBusy,setReassignBusy]=useState(false);
+ const [reassignError,setReassignError]=useState('');
+ const openReassign=(task:any,sourceWeek:number)=>{
+  if(!isAdmin)return;
+  setReassignTask({...task,sourceWeek});
+  setReassignMember(project.members.some((member:any)=>member.id===task.memberId)?task.memberId:'');
+  setReassignWeek(task.startWeek);
+  setReassignError('');
+ };
+ const saveReassign=async(event:any)=>{
+  event.preventDefault();
+  if(!reassignTask||reassignBusy||!isAdmin)return;
+  if(!reassignMember||!project.members.some((member:any)=>member.id===reassignMember)){
+   setReassignError('Choose a person from Assignment.');return;
+  }
+  if(!Number.isInteger(reassignWeek)||reassignWeek<0||reassignWeek+(reassignTask.duration||1)>520){
+   setReassignError('Select an available project week.');return;
+  }
+  setReassignBusy(true);setReassignError('');
+  try{
+   await onQuickTaskTransfer(reassignTask.id,reassignMember,reassignWeek);
+   const target=project.members.find((member:any)=>member.id===reassignMember);
+   setQuickNotice(`Reassigned to ${target?.name||'selected person'} · Week ${reassignWeek+1}.`);
+   setReassignTask(null);
+  }catch(error:any){setReassignError(error?.message||'Could not reassign the task. No changes were saved.');}
+  finally{setReassignBusy(false);}
+ };
  const [showUnlinkedTasks,setShowUnlinkedTasks]=useState(false);
  const [reassignBusyId,setReassignBusyId]=useState<string|null>(null);
  const [reassignError,setReassignError]=useState('');
@@ -854,7 +889,7 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     {quickNotice&&<p className="nb-quick-success" role="status">{quickNotice}</p>}
     <div className="nb-quick-list" aria-label="Assignments for selected week">
      {chosen.length===0&&<p className="nb-quick-empty">No assignments for this person in {weekIso(selected.week)}.</p>}
-     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number,direction:'next'|'previous')=>{await onQuickTaskMove(id,source,direction);setQuickNotice(`Moved to Week ${source+(direction==='previous'?0:2)}`);}}/>)}
+     {chosen.map((t:any,index:number)=><QuickAssignmentRow key={t.id} number={index+1} task={t} project={project} sourceWeek={selected.week} isAdmin={isAdmin} onQuickTaskSave={onQuickTaskSave} onQuickTaskEdit={onQuickTaskEdit} onQuickTaskDelete={onQuickTaskDelete} onOpenReassign={openReassign} onRequireEdit={onAuth} onQuickTaskMove={async(id:string,source:number,direction:'next'|'previous')=>{await onQuickTaskMove(id,source,direction);setQuickNotice(`Moved to Week ${source+(direction==='previous'?0:2)}`);}}/>)}
     </div>
     {isAdmin?<div className="nb-quick-add-area">
      {!addingAssignment?<button type="button" className="nb-quick-add-button" onClick={()=>{setAddingAssignment(true);setQuickError('');}}><Plus size={19} aria-hidden="true"/> Add assignment</button>:<form className="nb-quick-add-form" onSubmit={async(e:any)=>{
@@ -894,6 +929,61 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
     </aside>
    </>,document.body)}
 
+  {reassignTask&&createPortal(
+   <div className="nb94-transfer-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!reassignBusy)setReassignTask(null);}}>
+    <section role="dialog" aria-modal="true" aria-labelledby="nb94-transfer-title" aria-describedby="nb94-transfer-desc"
+     className="nb94-transfer-dialog" onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();if(!reassignBusy)setReassignTask(null);}}}>
+     <header className="nb94-transfer-heading">
+      <div className="nb94-transfer-heading-icon"><Users size={21} aria-hidden="true"/></div>
+      <div><span className="nb94-transfer-eyebrow">WEEKLY TRACKER · TASK ASSIGNMENT</span>
+       <h2 id="nb94-transfer-title">Reassign task</h2>
+       <p id="nb94-transfer-desc">Select the responsible person and destination project week.</p>
+      </div>
+      <button type="button" className="nb94-transfer-close" aria-label="Close Reassign" disabled={reassignBusy} onClick={()=>setReassignTask(null)}><X size={19}/></button>
+     </header>
+     <form className="nb94-transfer-form" onSubmit={saveReassign}>
+      <div className="nb94-transfer-task">
+       <span className="nb94-transfer-task-caption">TASK</span>
+       <strong>{reassignTask.label}</strong>
+       <small>Currently: {project.members.find((person:any)=>person.id===reassignTask.memberId)?.name||project.trackerLegacyOwnerNames?.[reassignTask.memberId]||'Previous owner'} · Week {reassignTask.startWeek+1}{(reassignTask.duration||1)>1?`–${reassignTask.startWeek+(reassignTask.duration||1)}`:''}</small>
+      </div>
+      <div className="nb94-transfer-field">
+       <label htmlFor="nb94-transfer-person"><UserRound size={16} aria-hidden="true"/> Responsible person</label>
+       <select id="nb94-transfer-person" autoFocus required value={reassignMember} disabled={reassignBusy}
+        onChange={event=>{setReassignMember(event.target.value);setReassignError('');}}>
+        <option value="">Select from Assignment…</option>
+        {project.members.map((member:any)=><option key={member.id} value={member.id}>{member.name}{member.position?` · ${member.position}`:''}</option>)}
+       </select>
+       <small>Names are synchronized exclusively with Assignment.</small>
+      </div>
+      <div className="nb94-transfer-field">
+       <label htmlFor="nb94-transfer-week"><CalendarDays size={16} aria-hidden="true"/> Project week</label>
+       <div className="nb94-transfer-week-controls">
+        <button type="button" aria-label="Previous project week" disabled={reassignBusy||reassignWeek<=0} onClick={()=>setReassignWeek(week=>Math.max(0,week-1))}><ChevronLeft size={18}/></button>
+        <select id="nb94-transfer-week" value={reassignWeek} disabled={reassignBusy}
+         onChange={event=>{setReassignWeek(Number(event.target.value));setReassignError('');}}>
+         {Array.from({length:Math.max(0,521-(reassignTask.duration||1))},(_,index:number)=>
+          <option key={index} value={index}>Week {index+1} · {weekRange(project.startDate,index)}</option>)}
+        </select>
+        <button type="button" aria-label="Next project week" disabled={reassignBusy||reassignWeek>=520-(reassignTask.duration||1)}
+         onClick={()=>setReassignWeek(week=>Math.min(520-(reassignTask.duration||1),week+1))}><ChevronRight size={18}/></button>
+       </div>
+       <div className="nb94-transfer-week-preview">
+        <CalendarDays size={18} aria-hidden="true"/>
+        <span><strong>Week {reassignWeek+1}</strong><small>{weekRange(project.startDate,reassignWeek)}</small></span>
+       </div>
+       {(reassignTask.duration||1)>1&&<p className="nb94-transfer-duration">This task spans {reassignTask.duration} weeks. Its entire schedule will move together, without deleting other weeks.</p>}
+      </div>
+      {reassignError&&<p role="alert" className="nb94-transfer-error">{reassignError}</p>}
+      <footer className="nb94-transfer-actions">
+       <button type="button" className="nb94-transfer-cancel" disabled={reassignBusy} onClick={()=>setReassignTask(null)}>Cancel</button>
+       <button type="submit" className="nb94-transfer-submit" disabled={reassignBusy||!reassignMember||reassignWeek<0||reassignWeek+(reassignTask.duration||1)>520||(reassignMember===reassignTask.memberId&&reassignWeek===reassignTask.startWeek)}>
+        <Check size={16} aria-hidden="true"/>{reassignBusy?'Saving…':'Reassign task'}
+       </button>
+      </footer>
+     </form>
+    </section>
+   </div>,document.body)}
   {showUnlinkedTasks&&createPortal(
     <div className="nb93-unlinked-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!reassignBusyId)setShowUnlinkedTasks(false);}}>
      <section role="dialog" aria-modal="true" aria-labelledby="nb93-unlinked-title" className="nb93-unlinked-dialog">
