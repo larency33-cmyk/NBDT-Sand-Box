@@ -679,52 +679,65 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
       <tbody>
        {people.map((m:any)=>{
         const hasAssignments=weeks.some(w=>at(m.id,w).length);
-        return <tr key={m.id} className={hasAssignments?'nb-has-assignments':'nb-no-assignments'}>
-         <th>
-          <div className="nb-person-cell">
+        const movable=isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&!reordering;
+        return <tr key={m.id}
+          className={(hasAssignments?'nb-has-assignments':'nb-no-assignments')+(dragMember===m.id?' nb90-dragging':'')+(dropMember===m.id?' nb90-drop-target':'')}
+          onDragOver={event=>{if(!dragMember||!movable||dragMember===m.id)return;event.preventDefault();event.dataTransfer.dropEffect='move';if(dropMember!==m.id)setDropMember(m.id);}}
+          onDrop={event=>{if(!movable||!dragMember)return;event.preventDefault();void moveTeamRow(dragMember,m.id);}}
+          onDragLeave={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node))setDropMember(current=>current===m.id?null:current);}}>
+         <th scope="row">
+          <div className={'nb-person-cell'+(movable?' nb90-person-draggable':'')}
+            draggable={movable}
+            tabIndex={movable?0:undefined}
+            role={movable?'button':undefined}
+            aria-label={movable?`Reorder ${m.name}. Drag this name cell or press Up/Down arrow keys.`:undefined}
+            title={movable?'Drag to reorder the whole employee row. Arrow keys also work.':undefined}
+            onDragStart={event=>{if(!movable)return;setDragMember(m.id);setDropMember(null);event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',m.id);}}
+            onDragEnd={()=>{setDragMember(null);setDropMember(null);}}
+            onKeyDown={event=>{
+             if(!movable||!['ArrowUp','ArrowDown'].includes(event.key))return;
+             event.preventDefault();
+             const index=people.findIndex((p:any)=>p.id===m.id);
+             const other=people[index+(event.key==='ArrowUp'?-1:1)];
+             if(other&&other.id!==UNASSIGNED_MEMBER_ID)void moveTeamRow(m.id,other.id);
+            }}>
+           {movable&&<GripVertical size={16} className="nb90-drag-grip" aria-hidden="true"/>}
            <span className="nb-avatar">{memberInitial(m.name)}</span>
            <div className="nb-person-meta">
-           <div className="nb-person-copy">
-            {editingMemberId===m.id&&isAdmin?
-             <form className="nb-member-rename-form" onSubmit={saveMemberRename}>
-              <input aria-label={`New name for ${m.name}`} autoFocus maxLength={80} required value={memberDraft} disabled={memberBusy} onChange={e=>setMemberDraft(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setEditingMemberId(null);setMemberError('');}}}/>
-              <button type="submit" aria-label={`Save ${m.name} name`} title="Save" disabled={memberBusy||!memberDraft.trim()}><Check size={16}/></button>
-              <button type="button" aria-label="Cancel rename" title="Cancel" disabled={memberBusy} onClick={()=>{setEditingMemberId(null);setMemberError('');}}><X size={16}/></button>
-             </form>:
-             <><strong>{m.name}</strong>{m.title&&<small>{m.title}</small>}</>}
-           </div>
-           {isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&editingMemberId!==m.id&&<div className="nb-member-actions">
-            <button type="button" title={`Rename ${m.name}`} aria-label={`Rename ${m.name}`} disabled={memberBusy} onClick={()=>startMemberRename(m)}><Pencil size={15}/></button>
-            <button type="button" title={`Remove ${m.name}`} aria-label={`Remove ${m.name}`} disabled={memberBusy} onClick={()=>deleteMember(m)}><Trash2 size={15}/></button>
-           </div>}
+            <div className="nb-person-copy">
+             <strong title={m.name}>{m.name}</strong>
+             <small>{m.position||m.title||'Team Lead'}</small>
+             {m.startDate&&<small className="nb90-joined-date">Joined {m.startDate}</small>}
+            </div>
            </div>
           </div>
          </th>
          {weeks.map(w=>{
           const list=at(m.id,w);
           const blocked=list.filter((t:any)=>t.status==='Blocked').length;
-          return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')}>
-           <button aria-label={`${m.name}: ${list.length} assignments in ${weekIso(w)}`} className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')} onClick={()=>{selectWeek(w);openQuickPanel(m.id,w);}}>
-            <div className="nb-week-cell-head">
-             <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
-             {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
-            </div>
-            {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id} title={t.assignmentOwnerLabel?`System Owner: ${t.assignmentOwnerLabel}`:undefined}><span>{t.label}</span><Badge value={t.status}/></span>)}
-            {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
+          const notOnSite=isTrackerNotOnSite(project,m.id,w);
+          return <td key={w} className={(list.length?'nb-populated-week':'nb-empty-week')+(currentWeek===w?' nb-current-week-cell':'')+(notOnSite?' nb90-offsite-week':'')}>
+           <button aria-label={`${m.name}: ${notOnSite?'Not on site, ':''}${list.length} assignments in ${weekIso(w)}`}
+            className={'nb-week-cell '+(selected?.id===m.id&&selected?.week===w?'selected':'')}
+            onClick={()=>{selectWeek(w);openQuickPanel(m.id,w);}}>
+            {notOnSite?<div className="nb90-not-on-site-content">
+             <MapPinOff size={19} aria-hidden="true"/>
+             <strong>Not on site</strong>
+             <small>{list.length?`${list.length} task${list.length===1?'':'s'} retained`:'No assignments'}</small>
+            </div>:<>
+             <div className="nb-week-cell-head">
+              <strong>{list.length?`${list.length} assignments`:'No tasks planned'}</strong>
+              {blocked>0&&<span className="nb-week-blocked">{blocked} blocked</span>}
+             </div>
+             {list.slice(0,4).map((t:any)=><span className="nb-mini-task" key={t.id} title={t.assignmentOwnerLabel?`System Owner: ${t.assignmentOwnerLabel}`:undefined}><span>{t.label}</span><Badge value={t.status}/></span>)}
+             {list.length>4&&<span className="nb-more">+{list.length-4} more · View all {list.length}</span>}
+            </>}
            </button>
           </td>;
          })}
         </tr>;
        })}
-       {isAdmin&&<tr className="nb-member-create-table-row"><th>
-        {!addingMember?<button type="button" className="nb-member-create-trigger" onClick={()=>{setAddingMember(true);setEditingMemberId(null);setMemberError('');}}><Plus size={17}/> Add team member</button>:
-         <form className="nb-member-create-form nb-member-create-inline" onSubmit={createMember}>
-          <input autoFocus required maxLength={80} aria-label="New team member name" placeholder="Name" value={newMemberName} disabled={memberBusy} onChange={e=>setNewMemberName(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setAddingMember(false);setNewMemberName('');setMemberError('');}}}/>
-          <button type="submit" disabled={!newMemberName.trim()||memberBusy}>Create</button>
-          <button type="button" disabled={memberBusy} onClick={()=>{setAddingMember(false);setNewMemberName('');setMemberError('');}}>✕</button>
-         </form>}
-        {memberError&&<p className="nb-member-error" role="alert">{memberError}</p>}
-       </th><td colSpan={4} aria-hidden="true"/></tr>}
+       {reorderError&&<tr className="nb90-row-error"><td colSpan={5} role="alert">{reorderError}</td></tr>}
       </tbody>
      </table>
     </>
