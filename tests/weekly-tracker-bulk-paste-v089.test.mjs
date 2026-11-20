@@ -19,6 +19,7 @@ test('Accept Windows clipboard newlines, blank rows, unicode markers and inline 
  assert.deepEqual(parseClipboardAssignments('• Install image\r\n\r\n● Configure BIOS\r\n▪ Validate Intune'),['Install image','Configure BIOS','Validate Intune']);
  assert.deepEqual(parseClipboardAssignments('• Install image • Configure BIOS • Verify security'),['Install image','Configure BIOS','Verify security']);
  assert.deepEqual(parseClipboardAssignments('1. Setup device\n2) Validate networking'),['Setup device','Validate networking']);
+ assert.deepEqual(parseClipboardAssignments('"• Install \"\"approved\"\" image\r\n• Configure BIOS"'),['Install "approved" image','Configure BIOS']);
  assert.deepEqual(parseClipboardAssignments('Prepare device\nInstall drivers\nVerify network'),['Prepare device','Install drivers','Verify network']);
  assert.deepEqual(parseClipboardAssignments('• Setup Windows\n  including required updates\n• Test Apps'),['Setup Windows including required updates','Test Apps']);
  assert.deepEqual(parseClipboardAssignments('Single task'),['Single task']);
