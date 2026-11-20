@@ -34,7 +34,7 @@ test('Dropping a row below another row inserts after it even when moving downwar
  const p=project();
  const updated=reorderTrackerMember(p,'Sergiu','Rob','after');
  assert.deepEqual(order(updated),['Ronny','Nilson','Rob','Sergiu','Claudio']);
- assert.deepEqual(order(reorderTrackerMember(p,'Sergiu','Ronny','after')),order(p),'No-op when already immediately after');
+ assert.deepEqual(order(reorderTrackerMember(p,'Ronny','Sergiu','after')),order(p),'No-op when already immediately after');
 });
 
 test('Drop position is correct when moving upward into the bottom half of a row',()=>{
