@@ -1,0 +1,132 @@
+/* NBDT v0.6.96 — all Registry dropdowns share the approved Device Type menu. */
+.nb-registry-page .nb96-dropdown-filter{
+ position:relative;
+ min-width:0;
+ z-index:15;
+}
+.nb-registry-page .nb96-dropdown-filter.nb-type-filter-open{z-index:80}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-trigger{
+ width:100%;
+ font-family:inherit;
+ cursor:pointer;
+}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-menu{
+ min-width:max(100%,225px);
+ max-width:min(340px,calc(100vw - 32px));
+ max-height:min(360px,65vh);
+ overscroll-behavior:contain;
+ scrollbar-width:thin;
+}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-option{
+ font-family:inherit;
+ cursor:pointer;
+}
+.nb-registry-page .nb96-dropdown-option-text{
+ display:block;
+ flex:1;
+ min-width:0;
+ overflow-wrap:anywhere;
+ line-height:1.4;
+}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-option-icon>svg{
+ color:#2874d9;
+ flex:none;
+}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-option.selected .nb96-dropdown-option-text{
+ font-weight:700;
+}
+.nb-registry-page .nb96-dropdown-filter .nb-type-filter-option:focus-visible{
+ outline:2px solid #3284eb;
+ outline-offset:-2px;
+}
+@media(max-width:720px){
+ .nb-registry-page .nb96-dropdown-filter .nb-type-filter-menu{
+  min-width:100%;
+  width:100%;
+  max-width:100%;
+ }
+}
+
+/* Admin-only system removal, reached through a Registry card's pencil editor. */
+.nb-registry-page .nb96-card-edit-actions{
+ display:flex;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:7px;
+}
+.nb-registry-page .nb96-card-edit-actions .nb96-delete-trigger{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px;
+ margin-left:auto;
+ padding:7px 10px;
+ background:#fff5f4;
+ border:1px solid #f1cbca;
+ color:#a83236;
+ border-radius:8px;
+ font-size:11px;
+ font-weight:700;
+}
+.nb-registry-page .nb96-card-edit-actions .nb96-delete-trigger:hover:not(:disabled){
+ background:#ffe9e7;
+ border-color:#e3a5a1;
+ color:#912526;
+}
+.nb-registry-page .nb96-delete-confirm{
+ display:flex;
+ flex-direction:column;
+ gap:9px;
+ padding:12px;
+ margin:10px 0 0;
+ background:#fff5f4;
+ border:1px solid #edb8b4;
+ border-left:3px solid #d14646;
+ border-radius:9px;
+ color:#7b2831;
+ box-shadow:0 3px 12px rgba(163,37,44,.07);
+}
+.nb-registry-page .nb96-delete-confirm strong{
+ font-size:12px;
+ line-height:1.4;
+ overflow-wrap:anywhere;
+}
+.nb-registry-page .nb96-delete-confirm p{
+ margin:0;
+ color:#88434a;
+ font-size:11px;
+ line-height:1.5;
+}
+.nb-registry-page .nb96-delete-confirm-actions{
+ display:flex;
+ justify-content:flex-end;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:8px;
+}
+.nb-registry-page .nb96-delete-confirm-actions .nb96-delete-confirm-button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:7px;
+ border:1px solid #ba333e;
+ border-radius:8px;
+ padding:8px 11px;
+ background:#ba3440;
+ color:white;
+ font-size:11px;
+ font-weight:750;
+ cursor:pointer;
+}
+.nb-registry-page .nb96-delete-confirm-actions .nb96-delete-confirm-button:hover:not(:disabled){
+ background:#9d2632;
+}
+.nb-registry-page .nb96-delete-confirm-actions button:disabled{
+ opacity:.55;
+ cursor:wait;
+}
+.nb-registry-page .nb96-card-edit-actions button:focus-visible,
+.nb-registry-page .nb96-delete-confirm-actions button:focus-visible{
+ outline:2px solid #2f7fd7;
+ outline-offset:2px;
+}
