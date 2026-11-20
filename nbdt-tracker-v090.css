@@ -143,3 +143,132 @@
  color:#6e7890;
 }
 .nb-project-week-drawer .nb90-legacy-owner strong{color:#3c536e}
+
+/* v0.6.91 — drag feedback: keep the source opaque and draw an unmistakable insertion boundary. */
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb90-dragging{opacity:1!important}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb90-dragging>th{
+ background:#f2f8ff!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-before>th,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-before>td{
+ box-shadow:inset 0 4px 0 #1678f4!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-after>th,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-after>td{
+ box-shadow:inset 0 -4px 0 #1678f4!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-before>th,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-after>th{position:sticky}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-before>th::after,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-after>th::after{
+ content:"DROP HERE";
+ position:absolute;
+ left:10px;
+ z-index:5;
+ padding:3px 7px;
+ border-radius:5px;
+ background:#1678f4;
+ color:#fff;
+ font-size:10px;
+ line-height:1.2;
+ font-weight:800;
+ letter-spacing:.015em;
+ pointer-events:none;
+ box-shadow:0 2px 6px rgba(10,77,172,.22);
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-before>th::after{top:0;transform:translateY(-50%)}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb91-drop-after>th::after{bottom:0;transform:translateY(50%)}
+
+/* This is a real opaque floating preview rather than the browser's translucent drag ghost. */
+.nb91-drag-preview{
+ position:fixed!important;
+ top:0;
+ left:0;
+ display:flex;
+ align-items:center;
+ gap:10px;
+ width:206px;
+ min-height:70px;
+ padding:12px 13px;
+ z-index:21000;
+ pointer-events:none;
+ opacity:1!important;
+ border:2px solid #348af0;
+ border-radius:12px;
+ background:#fff!important;
+ color:#163b64;
+ box-shadow:0 16px 40px rgba(14,56,111,.28),0 4px 12px rgba(14,56,111,.12);
+ font-family:Inter,"Segoe UI",system-ui,sans-serif;
+}
+.nb91-drag-preview>svg{flex:0 0 auto;color:#548abf}
+.nb91-preview-avatar{
+ width:33px;height:33px;flex:0 0 33px;
+ display:flex;align-items:center;justify-content:center;
+ border-radius:50%;
+ background:#d9eafd;color:#1e5eaa;
+ font-size:13px;font-weight:800;
+}
+.nb91-preview-details{min-width:0;display:flex;flex-direction:column;gap:3px}
+.nb91-preview-details strong{font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+.nb91-preview-details small{font-size:11px;color:#6283a5;font-weight:600}
+
+/* Actions are portaled to document.body to escape the scroll container's clipping.
+   The drawer remains z-index 9999, while these menus float above it. */
+.nb91-task-portal-menu{
+ position:fixed!important;
+ z-index:20010!important;
+ width:224px;
+ max-width:calc(100vw - 16px);
+ max-height:calc(100dvh - 16px);
+ display:flex;
+ flex-direction:column;
+ gap:2px;
+ overflow-y:auto;
+ padding:6px;
+ border:1px solid #cbdff5;
+ border-radius:11px;
+ background:#fff;
+ box-shadow:0 18px 45px rgba(18,48,93,.26),0 4px 12px rgba(18,48,93,.10);
+ font-family:Inter,"Segoe UI",system-ui,sans-serif;
+}
+.nb91-task-portal-menu button[role="menuitem"]{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ flex:none;
+ width:100%;
+ min-height:40px;
+ padding:9px 10px;
+ border:0;
+ border-radius:7px;
+ text-align:left;
+ background:transparent;
+ color:#154372;
+ font-size:12px;
+ font-weight:650;
+ line-height:1.35;
+ cursor:pointer;
+}
+.nb91-task-portal-menu button[role="menuitem"]:hover:not(:disabled),
+.nb91-task-portal-menu button[role="menuitem"]:focus-visible{
+ background:#edf5ff;
+ outline:2px solid #bfdafd;
+ outline-offset:-2px;
+}
+.nb91-task-portal-menu button[role="menuitem"]:disabled{opacity:.48;cursor:not-allowed}
+.nb91-task-portal-menu button.nb-task-delete-action{
+ color:#b93d35;
+ border-top:1px solid #e5edf6;
+ border-radius:0 0 7px 7px;
+}
+.nb91-task-portal-menu button.nb-task-delete-action:hover:not(:disabled){background:#fff0ee}
+.nb91-task-portal-menu .nb-task-action-view-note{
+ padding:5px 9px;
+ margin:0;
+ font-size:11px;
+ line-height:1.4;
+ color:#728ba8;
+}
+@media(prefers-reduced-motion:reduce){
+ .nb91-drag-preview{transition:none}
+}
