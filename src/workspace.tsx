@@ -277,8 +277,41 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
  const [saving,setSaving]=useState(false),[error,setError]=useState(''),[showBlocker,setShowBlocker]=useState(false),[blockReason,setBlockReason]=useState(task.blockReason||'');
  const [menuOpen,setMenuOpen]=useState(false),[editing,setEditing]=useState(false);
  const [draft,setDraft]=useState({label:task.label});
+ const [menuPosition,setMenuPosition]=useState<{top:number,left:number}|null>(null);
  const menuRef=useRef<HTMLDivElement|null>(null);
- useEffect(()=>{if(!menuOpen)return;const close=(event:MouseEvent)=>{if(menuRef.current&&!menuRef.current.contains(event.target as Node))setMenuOpen(false);};const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);}};document.addEventListener('pointerdown',close as any);document.addEventListener('keydown',key);return()=>{document.removeEventListener('pointerdown',close as any);document.removeEventListener('keydown',key);};},[menuOpen]);
+ const menuPortalRef=useRef<HTMLDivElement|null>(null);
+ const positionMenu=()=>{
+  const anchor=menuRef.current?.querySelector('button');
+  if(!anchor)return;
+  const rect=anchor.getBoundingClientRect();
+  const width=Math.min(224,window.innerWidth-16);
+  const height=menuPortalRef.current?.getBoundingClientRect().height||(isAdmin?185:224);
+  const below=window.innerHeight-rect.bottom;
+  const showAbove=below<height+10&&rect.top>height+10;
+  const preferredTop=showAbove?rect.top-height-6:rect.bottom+6;
+  const top=Math.round(Math.max(8,Math.min(preferredTop,window.innerHeight-height-8)));
+  const left=Math.round(Math.max(8,Math.min(rect.right-width,window.innerWidth-width-8)));
+  setMenuPosition(previous=>previous?.top===top&&previous?.left===left?previous:{top,left});
+ };
+ useEffect(()=>{
+  if(!menuOpen)return;
+  positionMenu();
+  const outside=(event:PointerEvent)=>{
+   const node=event.target as Node;
+   if(!menuRef.current?.contains(node)&&!menuPortalRef.current?.contains(node))setMenuOpen(false);
+  };
+  const key=(event:KeyboardEvent)=>{if(event.key==='Escape'){event.stopPropagation();setMenuOpen(false);menuRef.current?.querySelector('button')?.focus();}};
+  document.addEventListener('pointerdown',outside);
+  document.addEventListener('keydown',key);
+  document.addEventListener('scroll',positionMenu,true);
+  window.addEventListener('resize',positionMenu);
+  return()=>{
+   document.removeEventListener('pointerdown',outside);
+   document.removeEventListener('keydown',key);
+   document.removeEventListener('scroll',positionMenu,true);
+   window.removeEventListener('resize',positionMenu);
+  };
+ },[menuOpen]);
  const commit=async(callback:()=>Promise<any>)=>{if(saving)return;setSaving(true);setError('');try{await callback();setMenuOpen(false);setEditing(false);}catch(e:any){setError(e?.message||'Could not save changes.');}finally{setSaving(false);}};
  const save=async(status:string,reason='')=>{if(!isAdmin||saving)return;await commit(async()=>{await onQuickTaskSave(task.id,{status,...(status==='Blocked'?{blockReason:reason}:{})});setShowBlocker(false);});};
  const actualStatus=task.status||'Planned';
@@ -288,14 +321,14 @@ function QuickAssignmentRow({task,number,isAdmin,project,sourceWeek,onQuickTaskS
    <div className="nb-quick-task-header">
     <strong title={task.assignmentOwnerLabel?`System Owner: ${task.assignmentOwnerLabel}`:undefined}>{task.label}</strong>
     {<div className="nb-task-action-anchor" ref={menuRef}>
-     <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>setMenuOpen(!menuOpen)}><MoreVertical size={20} aria-hidden="true"/></button>
-     {menuOpen&&<div className="nb-task-action-menu" role="menu" aria-label={'Actions for '+task.label}>
+     <button type="button" className="nb-quick-advanced nb-drawer-more" aria-label={'More options for '+task.label} title="Task actions" aria-haspopup="menu" aria-expanded={menuOpen} onClick={()=>{if(!menuOpen)positionMenu();setMenuOpen(open=>!open);}}><MoreVertical size={20} aria-hidden="true"/></button>
+     {menuOpen&&menuPosition&&createPortal(<div ref={menuPortalRef} className="nb-task-action-menu nb91-task-portal-menu" role="menu" aria-label={'Actions for '+task.label} style={menuPosition}>
       <button role="menuitem" type="button" onClick={()=>{if(!isAdmin){setMenuOpen(false);onRequireEdit();return;}setDraft({label:task.label});setEditing(true);setMenuOpen(false);}}><Pencil size={15}/> Edit</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek===0} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'previous'));}}><ChevronLeft size={15}/> Move to previous week</button>
       <button role="menuitem" type="button" disabled={saving||sourceWeek>=519} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}void commit(()=>onQuickTaskMove(task.id,sourceWeek,'next'));}}><ChevronRight size={15}/> Move to next week</button>
       <button role="menuitem" type="button" className="nb-task-delete-action" disabled={saving} onClick={()=>{setMenuOpen(false);if(!isAdmin){onRequireEdit();return;}if(window.confirm(`Delete “${task.label}” permanently?\n\nThis removes this task and its history from all scheduled weeks. This cannot be undone.`))void commit(()=>onQuickTaskDelete(task.id));}}><Trash2 size={15}/> Delete</button>
      {!isAdmin&&<p className="nb-task-action-view-note">Sign in as Admin to make changes.</p>}
-     </div>}
+     </div>,document.body)}
     </div>}
    </div>
    {editing&&isAdmin?<form className="nb-inline-task-editor" aria-label={'Edit '+task.label} onSubmit={e=>{e.preventDefault();void commit(()=>onQuickTaskEdit(task.id,{label:draft.label}));}}>
