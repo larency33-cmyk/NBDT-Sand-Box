@@ -1,0 +1,137 @@
+/* NBDT v0.6.90 — Assignment-synced team, whole-row drag and weekly presence. */
+.nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable{
+ cursor:grab;
+ border:1px solid transparent;
+ border-radius:8px;
+ padding:7px 5px;
+ margin:-7px -5px;
+ user-select:none;
+ transition:background .15s,border-color .15s,box-shadow .15s;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable:hover{
+ background:#e9f3ff;
+ border-color:#bbd9fa;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable:active{cursor:grabbing}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable:focus-visible{
+ outline:2px solid #2680e8;
+ outline-offset:3px;
+}
+.nb-tracker[data-view="overview"] .nb90-drag-grip{flex:0 0 auto;color:#779abf}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb90-dragging{opacity:.44}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb90-drop-target>th,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb90-drop-target>td{
+ background:#eaf4ff!important;
+ box-shadow:inset 0 3px 0 #2d86f7;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-copy small.nb90-joined-date{
+ color:#6281a0;
+ font-size:10px;
+ line-height:1.3;
+ white-space:normal;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-person-copy{
+ display:flex;
+ flex-direction:column;
+ align-items:flex-start;
+ gap:2px;
+ min-width:0;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid .nb-person-meta .nb-person-copy strong{
+ overflow-wrap:anywhere;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb90-offsite-week,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb90-offsite-week.nb-current-week-cell{
+ background:#e9edf2!important;
+ box-shadow:inset 0 0 0 1px #d4dce6!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb90-offsite-week .nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody tr.nb-no-assignments td.nb90-offsite-week .nb-week-cell,
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb90-offsite-week.nb-current-week-cell .nb-week-cell{
+ background:#edf0f4!important;
+ color:#657587!important;
+ border:1px dashed #c0cbd8!important;
+ box-shadow:none!important;
+}
+.nb-tracker[data-view="overview"] .nb-week-grid tbody td.nb90-offsite-week .nb-week-cell:hover{
+ background:#e5eaf0!important;
+ border-color:#a4b2c5!important;
+}
+.nb-tracker[data-view="overview"] .nb90-not-on-site-content{
+ flex:1;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ gap:7px;
+ min-height:64px;
+ padding:12px 4px;
+ text-align:center;
+ color:#687b91;
+}
+.nb-tracker[data-view="overview"] .nb90-not-on-site-content strong{
+ font-size:14px;
+ font-weight:750;
+ color:#566b83;
+ letter-spacing:.01em;
+}
+.nb-tracker[data-view="overview"] .nb90-not-on-site-content small{
+ font-size:11px;
+ color:#8393a5;
+ font-weight:550;
+}
+.nb-tracker .nb90-row-error td{padding:9px 15px!important;background:#fff1ef!important;color:#b13d37;font-size:12px}
+.nb-tracker .nb-mobile-person-card.nb90-off-site{background:#f1f3f6;border-color:#cbd5e0}
+.nb-tracker .nb90-mobile-off-note{
+ display:inline-flex;
+ align-items:center;
+ gap:7px;
+ margin:10px 12px 4px;
+ padding:6px 10px;
+ background:#e4e9f0;
+ color:#566b81;
+ border:1px dashed #bac8d7;
+ border-radius:7px;
+ font-size:11px;
+ font-weight:700;
+}
+.nb-project-week-drawer .nb90-presence-control{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ flex-wrap:wrap;
+ gap:8px;
+ padding:9px 14px;
+ background:#f2f8ff;
+ border-bottom:1px solid #d7e6f7;
+}
+.nb-project-week-drawer .nb90-presence-control.nb90-presence-off{
+ background:#ebeff4;
+ border-bottom-color:#c7d2df;
+}
+.nb-project-week-drawer .nb90-presence-label{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ font-size:12px;
+ font-weight:700;
+ color:#57728f;
+}
+.nb-project-week-drawer .nb90-presence-off .nb90-presence-label{color:#526b82}
+.nb-project-week-drawer .nb90-presence-control>button{
+ padding:8px 11px;
+ background:#fff;
+ border:1px solid #c1d8f2;
+ border-radius:8px;
+ font-size:11px;
+ font-weight:700;
+ color:#175da8;
+ cursor:pointer;
+}
+.nb-project-week-drawer .nb90-presence-control>button:hover:not(:disabled){background:#e8f3ff;border-color:#89b7e9}
+.nb-project-week-drawer .nb90-presence-control>button:focus-visible{outline:2px solid #2680e8;outline-offset:2px}
+.nb-project-week-drawer .nb90-presence-control>button:disabled{opacity:.5;cursor:wait}
+.nb-project-week-drawer .nb90-presence-error{width:100%;font-size:11px;color:#ae3345;margin:3px 0 0}
+@media(prefers-reduced-motion:reduce){
+ .nb-tracker[data-view="overview"] .nb-week-grid .nb90-person-draggable{transition:none}
+}
