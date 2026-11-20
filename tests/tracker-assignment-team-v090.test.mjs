@@ -103,7 +103,7 @@ test('Tracker UI has drag entry on name cell, week-specific styling, role and da
  assert.match(ui,/draggable=\{movable\}/);
  assert.match(ui,/onDragStart=\{event=>/);
  assert.match(ui,/onDrop=\{event=>/);
- assert.match(ui,/onMemberReorder\(sourceId,targetId\)/);
+ assert.match(ui,/onMemberReorder\(sourceId,targetId,placement\)/);
  assert.match(ui,/GripVertical/);
  assert.match(ui,/ArrowUp','ArrowDown/);
  assert.match(ui,/m\.position\|\|m\.title/);
