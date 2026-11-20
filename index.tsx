@@ -4,7 +4,7 @@ import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
 import {seedReferenceReport} from './src/reference-report.mjs';
 import {renameMember,addMember,removeMember} from './src/members.mjs';
-import {syncTrackerTeam,reorderTrackerMember,setTrackerNotOnSite} from './src/tracker-team.mjs';
+import {syncTrackerTeam,reorderTrackerMember,setTrackerNotOnSite,reassignUnlinkedTrackerTask} from './src/tracker-team.mjs';
 import {ProfileGuide as SystemGuide,DataTools,StoreStatus} from './src/enhancements';
 import {initDemoStore,demoStorage,commitRecord} from './src/demo-store.mjs';
 import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/workspace';
@@ -2278,8 +2278,8 @@ const App = () => {
     };
     const result=actionQueue.current.then(operation);actionQueue.current=result.catch(()=>{});return result;
   };
-  // Reconcile Tracker roster from Assignment on load and whenever the Assignment team changes.
-  // This preserves existing task records; unknown old owners become visible in Unassigned.
+  // Reconcile Tracker roster from Assignment on load and whenever staff changes.
+  // Preserve all historical task records without creating synthetic employee rows.
   useEffect(()=>{
     if(syncTrackerTeam(project,assignmentRoster)===project)return;
     void handleAction(prev=>syncTrackerTeam(prev,assignmentRosterRef.current))
@@ -2889,6 +2889,10 @@ const App = () => {
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
         {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab}/> }
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={trackerProject} isAdmin={isAdmin}
+        onQuickTaskReassign={async(taskId:string,personId:string)=>{
+          if(!isAdmin)throw Error('Admin sign-in required to reassign historical tasks.');
+          await handleAction(prev=>reassignUnlinkedTrackerTask(syncTrackerTeam(prev,assignmentRosterRef.current),taskId,personId));
+        }}
         onMemberReorder={async(fromId:string,toId:string,placement:'before'|'after')=>{
           if(!isAdmin)throw Error('Admin sign-in required to reorder the team.');
           await handleAction(prev=>reorderTrackerMember(syncTrackerTeam(prev,assignmentRosterRef.current),fromId,toId,placement));

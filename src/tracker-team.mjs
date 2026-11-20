@@ -1,17 +1,14 @@
-/** Weekly Tracker team is synchronized with the canonical Assignment roster.
- * Never delete or rewrite historic tasks during roster reconciliation.
- * Old tasks whose owners cannot be matched remain visible in the Unassigned lane.
+/** Only the Assignment roster determines who appears in Weekly Tracker.
+ * Preserve historic task records, including tasks owned by now-absent employees.
  */
 const key=value=>String(value??'').trim().replace(/\s+/g,' ').toLocaleUpperCase('en-US');
 const canonicalId=personId=>'tracker-'+personId;
-const isLead=member=>member?.isTeamLead||key(member?.name)==='TEAM LEAD';
 
 export function syncTrackerTeam(project,roster){
  const previous=Array.isArray(project.trackerMembers)?project.trackerMembers:(Array.isArray(project.members)?project.members:[]);
  const rosterPeople=Array.isArray(roster?.people)?roster.people:[];
- const teamLead=previous.find(isLead)||{id:'m0',name:'TEAM LEAD',isLead:true,isTeamLead:true};
- const used=new Set([teamLead.id]);
- const members=[{...teamLead,isTeamLead:true}];
+ const used=new Set();
+ const members=[];
  for(const person of rosterPeople){
   // Persistent Assignment IDs win over legacy names; ambiguous aliases are NOT guessed.
   let match=previous.find(member=>!used.has(member.id)&&member.assignmentPersonId===person.id);
@@ -25,12 +22,16 @@ export function syncTrackerTeam(project,roster){
    });
    if(candidates.length===1)match=candidates[0];
   }
-  const id=match?.id||canonicalId(person.id);
-  // Never let roster collisions create duplicate React keys.
-  if(used.has(id))continue;
+  let id=match?.id||canonicalId(person.id);
+  // Every Assignment person must have a distinct Tracker ID; collisions never omit people.
+  if(used.has(id)){
+   id=canonicalId(person.id);
+   let index=2;
+   while(used.has(id))id=canonicalId(person.id)+'-'+index++;
+  }
   used.add(id);
   members.push({...match,id,name:person.name,position:person.position||'',startDate:person.startDate||'',
-   title:person.position||'',assignmentPersonId:person.id,isTeamLead:false});
+   title:person.position||'',assignmentPersonId:person.id,isTeamLead:false,isLead:false});
  }
  // First import follows Assignment order. Thereafter respect manual drag order.
  const previouslySynced=project.trackerTeamSynced===true;
@@ -39,12 +40,33 @@ export function syncTrackerTeam(project,roster){
   members.sort((a,b)=>(order.get(a.id)??Number.MAX_SAFE_INTEGER)-(order.get(b.id)??Number.MAX_SAFE_INTEGER));
  }
  const legacyOwners={...(project.trackerLegacyOwnerNames||{})};
- for(const member of previous){
-  if(!used.has(member.id)&&!member.assignmentPersonId&&!isLead(member))legacyOwners[member.id]=member.name;
+ for(const member of [...(project.members||[]),...previous]){
+  if(!used.has(member.id)&&member.name)legacyOwners[member.id]=member.name;
  }
  if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members)&&
     JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
  return {...project,trackerMembers:members,trackerLegacyOwnerNames:legacyOwners,trackerTeamSynced:true};
+}
+/** Historical tasks with a primary owner no longer listed in Assignment.
+ * Kept in storage, but never rendered as a synthetic Weekly Tracker person row.
+ */
+export function unlinkedTrackerTasks(project){
+ const active=new Set((project.trackerMembers||[]).map(member=>member.id));
+ return (project.tasks||[]).filter(task=>!task.isMilestone&&!active.has(task.memberId));
+}
+/** Safely reassign an orphaned historical task to an active Assignment person.
+ * Other task fields, schedule, status and historical metadata remain intact.
+ */
+export function reassignUnlinkedTrackerTask(project,taskId,personId){
+ const members=project.trackerMembers||[];
+ if(!members.some(member=>member.id===personId))throw Error('Choose a current Assignment person.');
+ const task=(project.tasks||[]).find(task=>task.id===taskId&&!task.isMilestone);
+ if(!task)throw Error('Task not found.');
+ if(members.some(member=>member.id===task.memberId))throw Error('Task already belongs to an active team member.');
+ return {...project,tasks:project.tasks.map(item=>item.id===taskId?{
+  ...item,memberId:personId,helperIds:(item.helperIds||[]).filter(id=>id!==personId),
+  version:(item.version||0)+1
+ }:item)};
 }
 /** A pointer above the hovered row midpoint means before; below means after. */
 export function trackerDropPlacement(pointerY,top,height){

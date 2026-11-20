@@ -19,16 +19,16 @@ const legacy=()=>({
   {id:'old-homesh',label:'Install Windows',memberId:'m1',startWeek:0,duration:1,status:'Planned',helperIds:[]}],
  issues:[{id:'issue-1',assigneeId:'m2'}],systems:[]});
 
-test('Weekly Tracker shows Assignment 13 members plus Team Lead, no old duplicate roster names',()=>{
+test('Weekly Tracker shows exactly the 13 Assignment members without any synthetic Team Lead',()=>{
  const base=legacy(),next=syncTrackerTeam(base,roster);
  assert.equal(roster.people.length,13);
- assert.equal(next.trackerMembers.length,14);
- assert.deepEqual(next.trackerMembers.slice(1).map(x=>x.name),roster.people.map(x=>x.name));
- assert.equal(next.trackerMembers[0].name,'TEAM LEAD');
- assert.equal(new Set(next.trackerMembers.map(x=>x.name)).size,14);
- assert.equal(next.trackerMembers[1].position,'ITO');
- assert.equal(next.trackerMembers[1].startDate,'2027-01-30');
- assert.equal(next.trackerMembers[1].assignmentPersonId,roster.people[0].id);
+ assert.equal(next.trackerMembers.length,13);
+ assert.deepEqual(next.trackerMembers.map(x=>x.name),roster.people.map(x=>x.name));
+ assert.equal(next.trackerMembers.some(x=>x.name==='TEAM LEAD'),false);
+ assert.equal(new Set(next.trackerMembers.map(x=>x.name)).size,13);
+ assert.equal(next.trackerMembers[0].position,'ITO');
+ assert.equal(next.trackerMembers[0].startDate,'2027-01-30');
+ assert.equal(next.trackerMembers[0].assignmentPersonId,roster.people[0].id);
 });
 
 test('Legacy tasks, issues and names in other views are not destroyed by synchronization',()=>{
@@ -39,6 +39,7 @@ test('Legacy tasks, issues and names in other views are not destroyed by synchro
  assert.equal(next.tasks[0].memberId,'m2');
  assert.equal(next.trackerLegacyOwnerNames.m2,'JORGE');
  assert.equal(next.trackerLegacyOwnerNames.m3,'APPLE / NILSON');
+ assert.equal(next.trackerLegacyOwnerNames.m0,'TEAM LEAD');
  assert.equal(next.trackerMembers.find(x=>x.name==='HOMESHWAR HALKORI').id,'m1');
  assert.equal(next.trackerMembers.some(x=>x.name==='JORGE'),false);
  assert.equal(syncTrackerTeam(next,roster),next);
@@ -63,7 +64,7 @@ test('Assignment changes update role, joining date, new employees without breaki
  const modified={...roster,people:[...roster.people.map(p=>p.id===roster.people[0].id?{...p,position:'ITSS',startDate:'2027-02-04'}:p),
   {id:'assignment-person-new',name:'NEW TECH',position:'ITO',startDate:'2027-04-01'}]};
  const synced=syncTrackerTeam(reordered,modified);
- assert.equal(synced.trackerMembers.length,15);
+ assert.equal(synced.trackerMembers.length,14);
  assert.equal(synced.trackerMembers[1].id,moving);
  assert.equal(synced.trackerMembers.find(m=>m.assignmentPersonId===roster.people[0].id).position,'ITSS');
  assert.equal(synced.trackerMembers.find(m=>m.assignmentPersonId===roster.people[0].id).startDate,'2027-02-04');
