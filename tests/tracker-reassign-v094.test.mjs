@@ -89,7 +89,7 @@ test('For one-week tasks every project week is available, including Week 520',()
 test('Only current Assignment people can become task owners',()=>{
  const p=project();
  for(const wrong of ['old','fake-member','',null]){
-  assert.throws(()=>quickReassignTask(p,'digital-signage',{memberId:wrong,startWeek:5}),/Assignment person/);
+  assert.throws(()=>quickReassignTask(p,'digital-signage',{memberId:wrong,startWeek:5}),/person from Assignment/);
  }
  assert.throws(()=>quickReassignTask(p,'missing',{memberId:team[1].id,startWeek:5}),/Task no longer exists/);
  assert.throws(()=>quickReassignTask(p,'digital-signage',{memberId:team[1].id,startWeek:2.5}),/week.*outside/);
