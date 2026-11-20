@@ -629,24 +629,20 @@ export function Tracker({project,isAdmin,canConfigureProject,onAuth,onQuickTaskE
       {people.map((m:any)=>{
        const mobileList=at(m.id,week);
        const mobileMilestones=milestonesAt(week);
-       return <section key={m.id} className="nb-mobile-person-card">
+       const mobileOffSite=isTrackerNotOnSite(project,m.id,week);
+       return <section key={m.id} className={'nb-mobile-person-card'+(mobileOffSite?' nb90-off-site':'')}>
         <header>
          <span className="nb-avatar">{memberInitial(m.name)}</span>
-         <span><strong>{m.name}</strong><small>{m.title||'Team member'}</small></span>
+         <span><strong>{m.name}</strong><small>{m.position||m.title||'Team Lead'}{m.startDate?' · Joined '+m.startDate:''}</small></span>
          <span className="nb-mobile-person-count">{mobileList.length} assignments</span>
-         {isAdmin&&m.id!==UNASSIGNED_MEMBER_ID&&<div className="nb-member-actions"><button type="button" aria-label={`Rename ${m.name}`} onClick={()=>startMemberRename(m)}><Pencil size={15}/></button><button type="button" aria-label={`Remove ${m.name}`} onClick={()=>deleteMember(m)}><Trash2 size={15}/></button></div>}
         </header>
-        {isAdmin&&editingMemberId===m.id&&<form className="nb-member-rename-form" onSubmit={saveMemberRename}><input autoFocus required maxLength={80} value={memberDraft} aria-label={`New name for ${m.name}`} onChange={e=>setMemberDraft(e.target.value)}/><button type="submit">Save</button><button type="button" onClick={()=>setEditingMemberId(null)}>Cancel</button></form>}
+        {mobileOffSite&&<span className="nb90-mobile-off-note"><MapPinOff size={13} aria-hidden="true"/>Not on site</span>}
         <div className="nb-mobile-week-title">{weekIso(week)} · {weekRange(project.startDate,week)}</div>
         {!!mobileMilestones.length&&<div className="nb-mobile-milestones">{mobileMilestones.map((ms:any)=><button type="button" key={ms.id} className="nb-milestone-chip" onClick={()=>{if(isAdmin)editMilestone(ms);}}><span>{ms.label}</span>{ms.date&&<small>{ms.date}</small>}</button>)}</div>}
         {mobileList.length?mobileList.map((t:any)=><button key={t.id} className="nb-mobile-mini-task" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week,t);}}><span>{t.label}{t.memberId!==m.id&&<small>Helper</small>}</span><Badge value={t.status}/></button>):<p className="nb-empty">No tasks planned</p>}
         <button type="button" className="nb-mobile-open-assignments" onClick={()=>{selectWeek(week);openQuickPanel(m.id,week);}}>View assignments →</button>
        </section>;
       })}
-      {isAdmin&&<div className="nb-member-create-row nb-member-create-mobile">
-       {!addingMember?<button type="button" className="nb-member-create-trigger" onClick={()=>{setAddingMember(true);setEditingMemberId(null);setMemberError('');}}><Plus size={17}/> Add team member</button>:<form className="nb-member-create-form" onSubmit={createMember}><input required autoFocus maxLength={80} aria-label="New team member name" placeholder="Name" value={newMemberName} onChange={e=>setNewMemberName(e.target.value)}/><button type="submit" disabled={memberBusy||!newMemberName.trim()}>Create</button><button type="button" onClick={()=>{setAddingMember(false);setNewMemberName('');}}>Cancel</button></form>}
-       {memberError&&<p role="alert" className="nb-member-error">{memberError}</p>}
-      </div>}
      </div>
      <table className={'nb-week-grid '+(!showMobileMatrix?'mobile-cards-preferred':'')} aria-label="Weekly assignments matrix">
       <thead>
