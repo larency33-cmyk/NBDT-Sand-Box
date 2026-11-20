@@ -21,6 +21,11 @@
  font-family:inherit;
  cursor:pointer;
 }
+/* The Owner filter is the rightmost control: keep its menu inside the viewport. */
+.nb-registry-page .nb-registry-filters>.nb96-dropdown-filter:last-child .nb-type-filter-menu{
+ left:auto;
+ right:0;
+}
 .nb-registry-page .nb96-dropdown-option-text{
  display:block;
  flex:1;
