@@ -58,7 +58,7 @@ test('Existing single-task and editing workflows are preserved',()=>{
  assert.match(tracker,/onQuickTaskCreate\(/);
  assert.match(tracker,/Add assignment<\/button>/);
  assert.match(tracker,/Add task/);
- assert.match(app,/quickCreateAssignment\(prev,data,crypto\.randomUUID\(\)\)/);
+ assert.match(app,/quickCreateAssignment\(syncTrackerTeam\(prev,assignmentRosterRef\.current\),data,crypto\.randomUUID\(\)\)/);
  assert.match(app,/quickCreateAssignments\(prev,data,ids\)/);
  assert.match(tracker,/QuickAssignmentRow/);
 });
