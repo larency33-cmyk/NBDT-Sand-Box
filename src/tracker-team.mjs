@@ -1,17 +1,14 @@
-/** Weekly Tracker team is synchronized with the canonical Assignment roster.
- * Never delete or rewrite historic tasks during roster reconciliation.
- * Old tasks whose owners cannot be matched remain visible in the Unassigned lane.
+/** Only the Assignment roster determines who appears in Weekly Tracker.
+ * Preserve historic task records, including tasks owned by now-absent employees.
  */
 const key=value=>String(value??'').trim().replace(/\s+/g,' ').toLocaleUpperCase('en-US');
 const canonicalId=personId=>'tracker-'+personId;
-const isLead=member=>member?.isTeamLead||key(member?.name)==='TEAM LEAD';
 
 export function syncTrackerTeam(project,roster){
  const previous=Array.isArray(project.trackerMembers)?project.trackerMembers:(Array.isArray(project.members)?project.members:[]);
  const rosterPeople=Array.isArray(roster?.people)?roster.people:[];
- const teamLead=previous.find(isLead)||{id:'m0',name:'TEAM LEAD',isLead:true,isTeamLead:true};
- const used=new Set([teamLead.id]);
- const members=[{...teamLead,isTeamLead:true}];
+ const used=new Set();
+ const members=[];
  for(const person of rosterPeople){
   // Persistent Assignment IDs win over legacy names; ambiguous aliases are NOT guessed.
   let match=previous.find(member=>!used.has(member.id)&&member.assignmentPersonId===person.id);
@@ -25,12 +22,16 @@ export function syncTrackerTeam(project,roster){
    });
    if(candidates.length===1)match=candidates[0];
   }
-  const id=match?.id||canonicalId(person.id);
-  // Never let roster collisions create duplicate React keys.
-  if(used.has(id))continue;
+  let id=match?.id||canonicalId(person.id);
+  // Every Assignment person must have a distinct Tracker ID; collisions never omit people.
+  if(used.has(id)){
+   id=canonicalId(person.id);
+   let index=2;
+   while(used.has(id))id=canonicalId(person.id)+'-'+index++;
+  }
   used.add(id);
   members.push({...match,id,name:person.name,position:person.position||'',startDate:person.startDate||'',
-   title:person.position||'',assignmentPersonId:person.id,isTeamLead:false});
+   title:person.position||'',assignmentPersonId:person.id,isTeamLead:false,isLead:false});
  }
  // First import follows Assignment order. Thereafter respect manual drag order.
  const previouslySynced=project.trackerTeamSynced===true;
@@ -40,7 +41,7 @@ export function syncTrackerTeam(project,roster){
  }
  const legacyOwners={...(project.trackerLegacyOwnerNames||{})};
  for(const member of previous){
-  if(!used.has(member.id)&&!member.assignmentPersonId&&!isLead(member))legacyOwners[member.id]=member.name;
+  if(!used.has(member.id)&&member.name)legacyOwners[member.id]=member.name;
  }
  if(previouslySynced&&JSON.stringify(previous)===JSON.stringify(members)&&
     JSON.stringify(project.trackerLegacyOwnerNames||{})===JSON.stringify(legacyOwners))return project;
