@@ -10,7 +10,7 @@ import {Tracker as WeeklyTracker,Report,Overview,SystemCreate} from './src/works
 import {AssignmentPage} from './src/assignment-page-v052';
 import {ASSIGNMENT_STORAGE_KEY,initialAssignmentRoster,projectWithAssignmentOwners,resolveAssignmentOwner,systemMatchesAssignmentOwner,setSystemAssignmentOwner} from './src/assignment-roster.mjs';
 import {projectWeekDate,weekIndexFromDate,currentWeekIndex,todayInTimezone,mondayOf,shiftISODate,DAY_MS,validDate} from './src/schedule.mjs';
-import {quickCreateAssignment,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
+import {quickCreateAssignment,quickCreateAssignments,quickSetTaskStatus,quickEditTask,quickDeleteTask,quickMoveTaskToNextWeek,quickMoveTaskToPreviousWeek,quickSaveMilestone,quickDeleteMilestone} from './src/tracker-actions.mjs';
 import {clampWeekViewport} from './src/week-navigation.mjs';
 import './redesign.css';
 import './weekly-tracker-approved-v016.css';
@@ -2899,7 +2899,12 @@ const App = () => {
           await handleAction(prev=>quickSetTaskStatus(prev,taskId,changes));
         }} onQuickTaskCreate={async(data:any)=>{
           if(!isAdmin)throw Error('Sign in as Admin to add a task.');
-          await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
+          if(Array.isArray(data.labels)){
+            const ids=data.labels.map(()=>crypto.randomUUID());
+            await handleAction(prev=>quickCreateAssignments(prev,data,ids));
+          }else{
+            await handleAction(prev=>quickCreateAssignment(prev,data,crypto.randomUUID()));
+          }
         }} onMemberRename={async(id:string,name:string)=>{
           if(!isAdmin)throw Error('Administrator sign-in required');await handleAction(prev=>renameMember(prev,id,name));
         }} onMemberCreate={async(name:string)=>{
