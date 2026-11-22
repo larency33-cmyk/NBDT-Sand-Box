@@ -1230,11 +1230,12 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
   return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',keyboard);};
  },[open]);
  const selected=options.find(item=>item.value===value);
+ const TriggerIcon=selected?.icon||Icon;
  const choose=(next:string)=>{onChange(next);setOpen(false);};
  return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(open?' nb-type-filter-open':'')}>
   <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
    aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
-   <Icon size={20} aria-hidden="true"/>
+   <TriggerIcon size={20} aria-hidden="true"/>
    <span className="nb-type-filter-label">{selected?.label||placeholder}</span>
    <ChevronDown size={17} className="nb-type-filter-chevron" aria-hidden="true"/>
   </button>
