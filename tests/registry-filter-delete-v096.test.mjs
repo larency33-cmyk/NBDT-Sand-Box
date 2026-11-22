@@ -63,8 +63,8 @@ test('All four filter types use identical styled menu primitives and native valu
  assert.match(app,/placeholder="All platforms"/);
  assert.match(app,/placeholder="All connections"/);
  assert.match(app,/placeholder="All owners"/);
- assert.match(app,/\{value:'WiFi',label:'Wi-Fi'\}/);
- assert.match(app,/\{value:'Wired',label:'Wired'\}/);
+ assert.match(app,/\{value:'WiFi',label:'Wi-Fi'(?:,icon:Wifi)?\}/);
+ assert.match(app,/\{value:'Wired',label:'Wired'(?:,icon:Cable)?\}/);
  assert.match(app,/assignmentRoster\.people\.map\(\(person:any\)=>\(\{value:person\.id,label:person\.name\}\)\)/);
 });
 
