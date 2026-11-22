@@ -22,5 +22,5 @@ jobs:
         run: npm install --package-lock=false
       - name: Production build (preflight + Vite)
         run: npm run build
-      - name: Reassign and build-guard regression tests
-        run: node --test tests/tracker-reassign-v094.test.mjs tests/tracker-build-guard-v095.test.mjs tests/registry-filter-delete-v096.test.mjs
+      - name: Registry and Reassign regression tests
+        run: node --test tests/tracker-reassign-v094.test.mjs tests/tracker-build-guard-v095.test.mjs tests/registry-filter-delete-v096.test.mjs tests/registry-connection-icons-v097.test.mjs
