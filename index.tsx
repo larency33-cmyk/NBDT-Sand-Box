@@ -1215,7 +1215,7 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
  */
 const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:Icon}:{
  label:string,placeholder:string,value:string,onChange:(next:string)=>void,
- options:{value:string,label:string}[],icon:any
+ options:{value:string,label:string,icon?:any}[],icon:any
 })=>{
  const [open,setOpen]=useState(false);
  const root=useRef<HTMLDivElement>(null);
@@ -1245,13 +1245,16 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
     <span className="nb-type-filter-option-all"><Icon size={18} aria-hidden="true"/></span>
     <span>{placeholder}</span>{!value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
    </button>
-   {options.map(item=><button type="button" role="option" aria-selected={value===item.value}
-    className={'nb-type-filter-option'+(value===item.value?' selected':'')}
-    key={item.value} onClick={()=>choose(item.value)}>
-    <span className="nb-type-filter-option-icon nb-tone-blue"><Icon size={18} aria-hidden="true"/></span>
-    <span className="nb96-dropdown-option-text">{item.label}</span>
-    {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
-   </button>)}
+   {options.map(item=>{
+    const OptionIcon=item.icon||Icon;
+    return <button type="button" role="option" aria-selected={value===item.value}
+     className={'nb-type-filter-option'+(value===item.value?' selected':'')}
+     key={item.value} onClick={()=>choose(item.value)}>
+     <span className="nb-type-filter-option-icon nb-tone-blue"><OptionIcon size={18} aria-hidden="true"/></span>
+     <span className="nb96-dropdown-option-text">{item.label}</span>
+     {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
+    </button>;
+   })}
   </div>}
  </div>;
 };
@@ -3028,7 +3031,7 @@ const App = () => {
                 onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['Windows','iOS','iPadOS','Android','Linux','macOS'].includes(f)),...(value?[value]:[])])}/>
               <RegistryDropdownFilter label="Connection" placeholder="All connections" icon={Network}
                 value={activeFilters.find(f=>['WiFi','Wired'].includes(f))||''}
-                options={[{value:'WiFi',label:'Wi-Fi'},{value:'Wired',label:'Wired'}]}
+                options={[{value:'WiFi',label:'Wi-Fi',icon:Wifi},{value:'Wired',label:'Wired',icon:Cable}]}
                 onChange={value=>setActiveFilters(prev=>[...prev.filter(f=>!['WiFi','Wired'].includes(f)),...(value?[value]:[])])}/>
               <RegistryDropdownFilter label="Deployment owner" placeholder="All owners" icon={User}
                 value={systemOwnerFilter} onChange={setSystemOwnerFilter}
