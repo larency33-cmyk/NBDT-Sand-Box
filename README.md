@@ -1,6 +1,8 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.96 (unified System Registry dropdowns + confirmed system deletion).** Platform, Connection and Owner filters now use the same icon/checkmark custom menu as Device Type without changing filter behavior. Admins can click a system card pencil, then **Delete system** and confirm before the selected record, its embedded device/configuration guide history and its linked Issues are removed. Independent Assignment and Weekly Tracker data remain untouched. See `RELEASE_NOTES_v0_6_96_RU.md`.
+**Current package: v0.6.97 (Wi-Fi and Wired filter icons).** In System Registry → All connections, Wi-Fi shows a wireless signal glyph and Wired shows a cable glyph. When selected, the same glyph appears in the filter trigger. The neutral All connections icon, styling and filtering behavior stay unchanged. See `RELEASE_NOTES_v0_6_97_RU.md`.
+
+**Previous v0.6.96 (unified System Registry dropdowns + confirmed system deletion).** Platform, Connection and Owner filters now use the same icon/checkmark custom menu as Device Type without changing filter behavior. Admins can click a system card pencil, then **Delete system** and confirm before the selected record, its embedded device/configuration guide history and its linked Issues are removed. Independent Assignment and Weekly Tracker data remain untouched. See `RELEASE_NOTES_v0_6_96_RU.md`.
 
 **Previous v0.6.95 (Vercel build fix for Reassign).** Resolved the duplicate `reassignError` / `setReassignError` state declarations that blocked the v0.6.94 production build. The standard task **Reassign** action and historical task reassignment now use separate error states. Production preflight catches TS2451/TS2300 duplicate declarations, Node.js is pinned to 24.x (matching Vercel project settings), and GitHub Actions verifies `npm run build` on pushes to main. See `RELEASE_NOTES_v0_6_95_RU.md`.
 
