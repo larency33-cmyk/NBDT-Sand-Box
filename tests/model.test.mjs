@@ -7,7 +7,41 @@ test('mobile profile rejects BIOS',()=>{const g=fixture().snapshot;g.stages.conf
 test('explicit applicability is enforced',()=>{const g=fixture().snapshot;g.stages.configuration[0].platforms=['Windows'];assert.ok(validateGuide({os:'Android'},g).length);});
 test('empty stage cannot be accepted',()=>assert.equal(canAccept(fixture(),'configuration'),false));
 test('ready cannot bypass base',()=>assert.throws(()=>acceptStage(fixture(),'readyForDeployment')));
-test('future stage checks are blocked',()=>assert.throws(()=>setCheck(fixture(),'deployment','2',true)));
+test('future stage checks can be marked before earlier stages finish',()=>{
+ let r=fixture();
+ r=setCheck(r,'deployment','2',true);
+ r=setCheck(r,'readyForDeployment','1',true);
+ assert.equal(r.checks['2'],true);
+ assert.equal(r.checks['1'],true);
+ assert.equal(r.accepted.configuration,undefined);
+ assert.equal(canAccept(r,'readyForDeployment'),false);
+ assert.equal(canAccept(r,'deployment'),false);
+});
+test('early checks survive ordered stage acceptance',()=>{
+ let r=fixture();
+ r=setCheck(setCheck(r,'deployment','2',true),'readyForDeployment','1',true);
+ r=acceptStage(setCheck(r,'configuration','0',true),'configuration');
+ assert.equal(r.checks['1'],true);
+ assert.equal(r.checks['2'],true);
+ assert.ok(canAccept(r,'readyForDeployment'));
+ r=acceptStage(r,'readyForDeployment');
+ assert.ok(canAccept(r,'deployment'));
+ r=acceptStage(r,'deployment');
+ assert.ok(r.accepted.deployment);
+});
+test('editing an earlier stage resets later acceptance but not later checks',()=>{
+ let r=fixture();
+ for(const [i,stage] of STAGES.entries())r=acceptStage(setCheck(r,stage,String(i),true),stage);
+ r=setCheck(r,'configuration','0',false);
+ assert.deepEqual(r.accepted,{});
+ assert.equal(r.checks['1'],true);
+ assert.equal(r.checks['2'],true);
+ assert.equal(canAccept(r,'readyForDeployment'),false);
+});
+test('unknown stages and steps still cannot be checked',()=>{
+ assert.throws(()=>setCheck(fixture(),'unknown','0',true),/Unknown stage/);
+ assert.throws(()=>setCheck(fixture(),'deployment','missing',true),/Unknown step/);
+});
 test('base check alone is not acceptance',()=>{const r=setCheck(fixture(),'configuration','0',true);assert.equal(r.accepted.configuration,undefined);assert.ok(canAccept(r,'configuration'));});
 test('ordered stages can be accepted',()=>{let r=fixture();for(const [i,s] of STAGES.entries())r=acceptStage(setCheck(r,s,String(i),true),s);assert.ok(r.accepted.deployment);});
 test('reopening base invalidates later acceptance',()=>{let r=fixture();for(const [i,s] of STAGES.entries())r=acceptStage(setCheck(r,s,String(i),true),s);r=setCheck(r,'configuration','0',false);assert.deepEqual(r.accepted,{});});
