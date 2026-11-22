@@ -1,0 +1,63 @@
+html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-width:280px}
+.nb99-signin{--nb99-navy:#081c4a;--nb99-blue:#0066f5;position:relative;isolation:isolate;box-sizing:border-box;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;color:var(--nb99-navy);background:radial-gradient(ellipse at 50% 24%,#f9fcff 0%,#edf6ff 63%,#e8f3ff 100%);font-family:Inter,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.nb99-signin *{box-sizing:border-box}
+.nb99-signin button{font-family:inherit;cursor:pointer}
+.nb99-signin button:focus-visible{outline:3px solid #0054cf;outline-offset:5px}
+.nb99-header{padding:24px 36px;position:absolute;inset:0 auto auto 0;z-index:2;font-size:28px;font-weight:750;letter-spacing:-1px}
+.nb99-header b{color:var(--nb99-blue);font-weight:750}
+.nb99-chart{position:absolute;z-index:-1;pointer-events:none;opacity:.5;width:34vw;max-width:520px;height:470px}
+.nb99-chart svg{width:100%;height:100%;overflow:visible;fill:none;stroke:#b0d2ff;stroke-width:1}
+.nb99-chart text{font-size:14px;fill:#81a6d4;stroke:none}
+.nb99-chart-left{left:-55px;top:-30px}.nb99-chart-right{right:-20px;top:-30px;width:22vw;max-width:350px}
+.nb99-hero{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:clamp(55px,6vh,90px) 24px 0}
+.nb99-team-logo{display:block;width:clamp(340px,34vw,580px);max-width:80vw;height:auto;overflow:hidden;flex-shrink:0}
+.nb99-hero h1{margin:24px 0 0;font-size:clamp(28px,3.05vw,51px);line-height:1.14;letter-spacing:-1.5px;font-weight:740;color:#152552}
+.nb99-subtitle{margin:12px 0 0;color:#7e97c0;font-size:clamp(17px,1.8vw,29px);line-height:1.35;font-weight:450;letter-spacing:-.35px}
+.nb99-sso{display:flex;align-items:center;justify-content:center;gap:17px;min-height:60px;width:470px;max-width:100%;margin-top:29px;padding:15px 23px;border:1px solid #0064ef;border-radius:10px;background:#0061f5;color:white;font-size:21px;line-height:1.25;font-weight:650;box-shadow:0 5px 15px #0066f514;transition:background .16s,box-shadow .16s}
+.nb99-sso:hover{background:#0056df;box-shadow:0 6px 20px #0066f527}.nb99-sso:disabled{cursor:wait;opacity:.8}
+.nb99-sso svg:last-child{margin-left:auto}.nb99-sso svg{flex-shrink:0}
+.nb99-helper{font-size:15px;color:#5c82b6;margin:11px 0 0;line-height:1.4}
+.nb99-entry-error{font-size:14px;color:#a12b3a;background:#fff8f8;border-radius:6px;padding:9px 14px;max-width:520px;margin:12px 0 0}
+.nb99-panorama{width:100%;max-width:1920px;margin:auto auto 0}
+.nb99-scene{position:relative;width:100%;isolation:isolate;contain:layout style}
+.nb99-scene-canvas{width:100%;height:auto;display:block;overflow:visible}
+.nb99-scene-canvas image{image-rendering:pixelated}
+.nb99-phase-label{font-family:Inter,"Segoe UI",Arial,sans-serif;font-size:28px;font-weight:650;letter-spacing:-.6px;fill:#081c4a}
+.nb99-name-bubble text{font-family:Inter,"Segoe UI",Arial,sans-serif}
+.nb99-motion-toggle{position:absolute;right:28px;bottom:5px;width:30px;height:30px;border:1px solid #c4d9ee;background:#f8fcffd9;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#557fae;opacity:.8}
+.nb99-motion-toggle:hover{opacity:1;background:#fff}.nb99-motion-toggle:disabled{cursor:default}
+.nb99-footer{margin:12px 3% 0;padding:16px 12px 22px;text-align:center;border-top:1px solid #cbdced;color:#0a204e}
+.nb99-group{margin:0;font-size:20px;line-height:1.3;font-weight:650;letter-spacing:4px}
+.nb99-brands{display:flex;align-items:center;justify-content:center;gap:25px;flex-wrap:wrap;margin-top:9px;color:#536b94;font-size:15px;line-height:1.4}
+.nb99-brands i{height:16px;width:1px;background:#8199bc}
+/* All motion is created paused; one shared browser clock starts/resumes it. */
+.nb99-arm{animation:nb99-type 1s steps(2,end) infinite paused;transform-box:fill-box;transform-origin:left center}
+.nb99-arm-install{animation-name:nb99-connect;animation-duration:20s;animation-timing-function:linear}
+.nb99-head{animation:nb99-nod 4s steps(2,end) infinite paused}
+.nb99-screen-lines{animation:nb99-code 2s steps(3,end) infinite paused}
+.nb99-config-check{animation:nb99-ready 20s linear infinite paused;opacity:0}
+.nb99-system-ready{animation:nb99-system 20s linear infinite paused;opacity:0;transform-box:fill-box;transform-origin:center}
+.nb99-pack-box{animation:nb99-pack 20s linear infinite paused;opacity:0;transform-box:fill-box;transform-origin:center}
+.nb99-cart{animation:nb99-deliver 20s linear infinite paused;opacity:0}
+.nb99-route-pulse{animation:nb99-pulse 20s linear infinite paused;opacity:0}
+.nb99-installed-check{animation:nb99-installed 20s linear infinite paused;opacity:0}
+.nb99-rack-lights{animation:nb99-lights 2s steps(2,end) infinite paused}
+.nb99-water{animation:nb99-water 4s ease-in-out infinite paused}
+.nb99-name-bubble{animation:nb99-name 20s linear infinite paused;opacity:0}
+@keyframes nb99-type{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+@keyframes nb99-nod{0%,75%,100%{transform:translateY(0)}85%{transform:translateY(1px)}}
+@keyframes nb99-code{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes nb99-ready{0%,18%{opacity:0}22%,32%{opacity:1}36%,100%{opacity:0}}
+@keyframes nb99-system{0%,20%{opacity:0;transform:scale(1)}23%,28%{opacity:1;transform:scale(1)}33%{opacity:0;transform:scale(.6)}34%,100%{opacity:0;transform:scale(1)}}
+@keyframes nb99-pack{0%,28%{opacity:0;transform:scale(.7)}33%,36%{opacity:1;transform:scale(1)}40%,100%{opacity:0;transform:scale(1)}}
+@keyframes nb99-deliver{0%,32%{opacity:0;transform:translateX(0)}37%,40%{opacity:1;transform:translateX(0)}60%{opacity:1;transform:translateX(420px)}65%{opacity:0;transform:translateX(480px)}66%,100%{opacity:0;transform:translateX(0)}}
+@keyframes nb99-pulse{0%,20%{opacity:0;transform:translateX(0)}24%{opacity:1;transform:translateX(0)}64%{opacity:1;transform:translateX(650px)}69%{opacity:0;transform:translateX(690px)}70%,100%{opacity:0;transform:translateX(0)}}
+@keyframes nb99-connect{0%,65%,95%,100%{transform:translate(0,0)}70%,80%,90%{transform:translate(1px,-2px)}75%,85%{transform:translate(0,-1px)}}
+@keyframes nb99-installed{0%,73%{opacity:0}77%,88%{opacity:1}94%,100%{opacity:0}}
+@keyframes nb99-lights{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes nb99-water{0%,100%{transform:translateX(0);opacity:.75}50%{transform:translateX(10px);opacity:1}}
+@keyframes nb99-name{0%{opacity:0}4%,78%{opacity:1}86%,100%{opacity:0}}
+@media(min-width:2200px){.nb99-hero{padding-top:clamp(75px,9vh,140px)}.nb99-panorama{padding-top:30px}.nb99-footer{margin-top:15px}}
+@media(max-height:800px) and (min-width:721px){.nb99-header{padding-top:18px;font-size:24px}.nb99-hero{padding-top:45px}.nb99-team-logo{width:400px}.nb99-hero h1{margin-top:17px;font-size:36px}.nb99-subtitle{font-size:22px;margin-top:8px}.nb99-sso{margin-top:21px;min-height:52px;font-size:18px;width:415px}.nb99-helper{margin-top:8px;font-size:13px}.nb99-panorama{max-width:1480px}.nb99-footer{padding:13px 12px 17px;margin-top:6px}.nb99-group{font-size:17px}.nb99-brands{font-size:13px}}
+@media(max-width:1100px) and (min-width:721px){.nb99-header{font-size:23px;padding:22px}.nb99-hero{padding-top:75px}.nb99-team-logo{width:390px}.nb99-hero h1{font-size:34px}.nb99-subtitle{font-size:22px}.nb99-sso{font-size:18px;width:420px}}
+@media(max-width:720px){.nb99-header{font-size:20px;padding:18px 20px;letter-spacing:-.6px}.nb99-hero{padding:73px 22px 0}.nb99-team-logo{width:350px;max-width:92%}.nb99-hero h1{max-width:440px;font-size:29px;line-height:1.16;margin-top:23px;letter-spacing:-.8px}.nb99-subtitle{font-size:17px;max-width:320px;margin-top:11px}.nb99-sso{width:100%;font-size:16px;gap:12px;margin-top:26px;min-height:55px;border-radius:8px;padding:14px 16px;max-width:370px}.nb99-sso svg{width:20px;height:20px}.nb99-helper{font-size:12px;margin-top:9px}.nb99-panorama{max-width:540px;margin-top:22px;padding-inline:8px}.nb99-phase-label{font-size:30px}.nb99-motion-toggle{right:10px;bottom:5px}.nb99-footer{margin:12px 20px 0;padding:18px 0 24px}.nb99-group{font-size:14px;letter-spacing:2.4px}.nb99-brands{gap:7px 13px;font-size:11px;margin-top:10px}.nb99-brands i{height:11px}.nb99-chart-left{width:70vw}.nb99-chart-right{width:38vw}}

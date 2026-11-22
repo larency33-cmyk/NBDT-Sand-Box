@@ -73,7 +73,6 @@ import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigat
 import {isoWeek} from './src/extended-model.mjs';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -3653,6 +3652,5 @@ class NBDTRenderBoundary extends React.Component<{children:React.ReactNode},{err
     return this.props.children;
   }
 }
-const root = createRoot(document.getElementById('root')!);
-root.render(<div className="nb-notice" role="status">Opening local demo storage…</div>);
-initDemoStore().then(()=>root.render(<NBDTRenderBoundary><App/></NBDTRenderBoundary>)).catch((error:Error)=>root.render(<section className="nb-notice" role="alert"><h1>Demo storage unavailable</h1><p>{error.message}</p><button type="button" onClick={()=>location.reload()}>Retry</button><p>No server or localStorage fallback was activated.</p></section>));
+export async function initializeWorkspace(){await initDemoStore();}
+export function Workspace(){return <NBDTRenderBoundary><App/></NBDTRenderBoundary>;}

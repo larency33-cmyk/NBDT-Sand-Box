@@ -1,6 +1,10 @@
 # NBDT — Newbuild Deployment Tool
 
-**Current package: v0.6.97 (Wi-Fi and Wired filter icons).** In System Registry → All connections, Wi-Fi shows a wireless signal glyph and Wired shows a cable glyph. When selected, the same glyph appears in the filter trigger. The neutral All connections icon, styling and filtering behavior stay unchanged. See `RELEASE_NOTES_v0_6_97_RU.md`.
+**Current package: v0.6.99 (NBDT welcome screen + pixel deployment animation).** A responsive welcome page introduces the team with the approved NBDT logo and a synchronized 20-second Configure → Deliver → Deploy scene. The SSO-labelled button currently continues into the existing workspace without credentials and without granting an administrator role. Existing administrator login, credentials and authorization are unchanged. The workspace loads only after entry; same-tab entry is remembered. Open `/signin` to review the welcome page again. Team bubbles use this browser's saved Assignment roster, falling back to the initial roster on a fresh browser. See `RELEASE_NOTES_v0_6_99_RU.md` and `VALIDATION_v0_6_99.md`.
+
+**Previous v0.6.98 (independent checklist marks).** Later-stage checklist tasks can be marked before earlier-stage checklists are complete; stage acceptance rules are preserved.
+
+**Previous v0.6.97 (Wi-Fi and Wired filter icons).** In System Registry → All connections, Wi-Fi shows a wireless signal glyph and Wired shows a cable glyph. When selected, the same glyph appears in the filter trigger. The neutral All connections icon, styling and filtering behavior stay unchanged. See `RELEASE_NOTES_v0_6_97_RU.md`.
 
 **Previous v0.6.96 (unified System Registry dropdowns + confirmed system deletion).** Platform, Connection and Owner filters now use the same icon/checkmark custom menu as Device Type without changing filter behavior. Admins can click a system card pencil, then **Delete system** and confirm before the selected record, its embedded device/configuration guide history and its linked Issues are removed. Independent Assignment and Weekly Tracker data remain untouched. See `RELEASE_NOTES_v0_6_96_RU.md`.
 

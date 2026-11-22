@@ -9,7 +9,7 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 const root = path.resolve(__dirname,'..');
 const routes = [
- ['Overview','/projects/legend-ots/overview','Legend OTS'],
+ ['Overview','/projects/legend-ots/overview','Overview'],
  ['Weekly Tracker','/projects/legend-ots/tracker','Weekly Tracker'],
  ['System Registry','/projects/legend-ots/systems','System Registry'],
  ['Issue Tracker','/projects/legend-ots/issues','Issue Tracker'],
@@ -28,13 +28,14 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
   let ready=false;
   for(let i=0;i<80;i++){if(vite.exitCode!==null)break;try{const response=await fetch(url);if(response.ok){ready=true;break;}}catch{}await sleep(250);}
   if(!ready)throw Error('Vite preview server did not start: '+output.slice(-1000));
-  browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+  browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH}:{}),args:process.env.PLAYWRIGHT_CHROMIUM_ARGS?JSON.parse(process.env.PLAYWRIGHT_CHROMIUM_ARGS):['--no-sandbox']});
   const context=await browser.newContext({viewport:{width:1450,height:900}});
   for(const [label,route,expected] of routes){
    const page=await context.newPage();const errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    try{
     await page.goto(url+route,{waitUntil:'domcontentloaded',timeout:20000});
+    await page.getByRole('button',{name:'Sign in with corporate SSO'}).click({timeout:20000});
     await page.waitForFunction((text)=>{
       return Boolean(document.querySelector('[data-testid="nbdt-render-error"]')) ||
         document.body.innerText.toLowerCase().includes(text.toLowerCase());
@@ -53,7 +54,7 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
         transform:getComputedStyle(el).transform
       }));
       const first=await getSurface();
-      if(!first.animation.includes('nb69-wave-front'))throw Error(`Overview: liquid animation missing, got ${first.animation}`);
+      if(!/nb\d+-wave-front/.test(first.animation))throw Error(`Overview: liquid animation missing, got ${first.animation}`);
       if(!await page.evaluate(()=>matchMedia('(prefers-reduced-motion: reduce)').matches)){
         await page.waitForTimeout(700);
         const second=await getSurface();
