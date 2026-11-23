@@ -17,16 +17,16 @@ test('Registry Export disappears and Clear filters takes its place in the top-ri
  assert.match(ui,/\bFilterX\b,[\s\S]*?from 'lucide-react'/);
 });
 
-test('Clear filters is conditional on search, device type, owner or platform / connection state',()=>{
- assert.match(header,/\{\(activeFilters\.length>0\|\|systemOwnerFilter\|\|systemSearch\.trim\(\)\|\|deviceTypeFilter\)&&<button/);
+test('Clear filters is conditional on search, device type, owner, platform, connection or completion status',()=>{
+ assert.match(header,/\{\(activeFilters\.length>0\|\|systemOwnerFilter\|\|systemSearch\.trim\(\)\|\|deviceTypeFilter\|\|systemStatusFilter\)&&<button/);
  assert.equal((page.match(/nb87-clear-filters/g)||[]).length,1);
  assert.doesNotMatch(filters,/Clear filters|nb-clear-filters/);
 });
 
-test('Header Clear filters resets all Registry filter fields, including owner',()=>{
+test('Header Clear filters resets all Registry filter fields, including owner and completion status',()=>{
  const match=header.match(/className="nb-button nb87-clear-filters"[^]*?<\/button>/)?.[0];
  assert.ok(match);
- for(const command of ["setSystemSearch('')","setActiveFilters([])","setSystemOwnerFilter('')","setDeviceTypeFilter('')"]) {
+ for(const command of ["setSystemSearch('')","setActiveFilters([])","setSystemOwnerFilter('')","setDeviceTypeFilter('')","setSystemStatusFilter('')"]) {
   assert.ok(match.includes(command),command);
  }
  assert.match(header,/<button type="button" className="nb-button nb87-clear-filters"/);

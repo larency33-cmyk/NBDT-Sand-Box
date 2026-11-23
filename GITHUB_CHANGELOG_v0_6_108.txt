@@ -1,0 +1,7 @@
+NBDT Hub v0.6.108 — System Registry progress cards and status filtering.
+
+- Match approved System Registry design: overall status badges, 0/4–4/4 progress bars and four slim Base / Ready / Deploy / Lessons status chips.
+- Add All statuses / Completed / In progress / Not started dropdown; combine with all existing filters and reset using Clear filters.
+- Derive stage status from saved Guide review checks and accepted stages, and Lessons status from current-project reviews; never invent completions.
+- Preserve original Description editor, admin deletion guard, Owner assignment, docs and Open guide behavior.
+- Add and update automated tests, changelog and release validation.

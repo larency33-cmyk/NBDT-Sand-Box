@@ -1,0 +1,121 @@
+/* v0.6.108 — approved System Registry four-section progress design.
+   All status values are read-only projections of saved Guide/lesson-review data. */
+.nb-registry-page .nb-registry-filters{
+  grid-template-columns:minmax(255px,2.05fr) repeat(5,minmax(124px,1fr));
+  gap:9px;
+}
+.nb-registry-page .nb-registry-filters .nb-search-field,
+.nb-registry-page .nb-registry-filters .nb-type-filter-trigger{
+  min-height:46px;height:46px;border-radius:8px;
+  font-size:12px;
+}
+.nb-registry-page .nb-registry-filters .nb-type-filter-trigger{gap:8px;padding:0 10px}
+.nb-registry-page .nb-registry-filters .nb-type-filter-trigger svg{width:17px;height:17px}
+.nb-registry-page .nb108-status-filter .nb-type-filter-trigger{border-color:#8ebff7;color:#1454bd}
+.nb-registry-page .nb108-status-filter .nb-type-filter-option .nb-type-filter-option-icon{background:#edf4ff}
+.nb-registry-page .nb108-status-filter .nb108-filter-option-completed .nb-type-filter-option-icon{background:#e5f7ee;color:#11904c}
+.nb-registry-page .nb108-status-filter .nb108-filter-option-in-progress .nb-type-filter-option-icon{background:#eaf3ff;color:#096af1}
+.nb-registry-page .nb108-status-filter .nb108-filter-option-not-started .nb-type-filter-option-icon{background:#f0f4f8;color:#8294ac}
+.nb-registry-page .nb-registry-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.nb-registry-page .nb-registry-grid .nb-system-card.nb-system-card-template{
+  display:flex;flex-direction:column;min-width:0;min-height:0;
+  padding:15px 15px 14px;border-radius:12px;box-shadow:0 5px 16px rgba(28,65,112,.045);
+}
+.nb-registry-page .nb-system-card-top{
+  display:grid;grid-template-columns:44px minmax(0,1fr) auto;
+  gap:9px;align-items:center;margin:0 0 10px;
+}
+.nb-registry-page .nb-system-card-top .nb-device{
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+}
+.nb-registry-page .nb-system-card-top .nb-device .nb-device-glyph{width:25px;height:25px}
+.nb-registry-page .nb-system-title-wrap{min-width:0;padding-top:0}
+.nb-registry-page .nb-system-title-wrap h3{
+  font-size:15px;line-height:1.24;font-weight:800;color:#102953;
+  letter-spacing:-.015em;overflow-wrap:anywhere;
+}
+.nb-registry-page .nb108-card-actions-heading{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0}
+.nb-registry-page .nb108-overall-status{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  white-space:nowrap;border-radius:8px;padding:7px 9px;
+  font-size:11px;font-weight:760;line-height:1.1;border:1px solid transparent;
+}
+.nb-registry-page .nb108-overall-status svg{flex:none;stroke-width:2.5}
+.nb-registry-page .nb108-status-completed{background:#e4f7ed;color:#087940}
+.nb-registry-page .nb108-status-in-progress{background:#e6f0ff;color:#075bcb}
+.nb-registry-page .nb108-status-in-progress.nb108-near-complete{background:#fff2dc;color:#96520b}
+.nb-registry-page .nb108-status-not-started{background:#eef2f7;color:#526783}
+.nb-registry-page .nb107-card-header-actions{gap:2px;min-width:0}
+.nb-registry-page .nb107-card-header-actions .nb-card-edit-icon,
+.nb-registry-page .nb107-card-header-actions .nb107-card-trash-icon{
+  margin:0;width:26px;height:30px;
+}
+.nb-registry-page .nb107-card-header-actions .nb-card-edit-icon svg,
+.nb-registry-page .nb107-card-header-actions .nb107-card-trash-icon svg{width:15px;height:15px}
+.nb-registry-page .nb-spec-list.nb-spec-list-template{
+  grid-template-columns:minmax(76px,94px) minmax(0,1fr);
+  column-gap:9px;row-gap:3px;
+  margin:0 0 10px;font-size:11.5px;line-height:1.35;
+}
+.nb-registry-page .nb-spec-list.nb-spec-list-template dt{color:#6a85aa}
+.nb-registry-page .nb-spec-list.nb-spec-list-template dd{font-weight:610}
+.nb-registry-page .nb52-owner-in-registry{margin-bottom:0}
+.nb-registry-page .nb108-progress{margin:13px 0 11px;min-width:0}
+.nb-registry-page .nb108-progress-overview{display:flex;align-items:center;gap:10px;min-width:0}
+.nb-registry-page .nb108-track{
+  flex:1;position:relative;overflow:hidden;min-width:25px;height:8px;
+  border-radius:999px;background:#dce5f1;
+}
+.nb-registry-page .nb108-track>span{display:block;height:100%;border-radius:inherit;background:#096bf2;transition:width .22s ease}
+.nb-registry-page .nb108-track-completed>span{background:#14a35b}
+.nb-registry-page .nb108-track-near:not(.nb108-track-completed)>span{background:#eda11d}
+.nb-registry-page .nb108-progress-count{font-size:11px;font-weight:730;color:#355780;white-space:nowrap}
+.nb-registry-page .nb108-stage-list{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:11px;
+}
+.nb-registry-page .nb108-stage{
+  min-width:0;min-height:29px;display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:5px 3px;border-radius:8px;font-size:10.5px;line-height:1.15;
+  font-weight:750;white-space:nowrap;
+}
+.nb-registry-page .nb108-stage svg{width:14px;height:14px;flex:none;stroke-width:2.4}
+.nb-registry-page .nb108-stage-completed{background:#e4f7ed;color:#087a43}
+.nb-registry-page .nb108-stage-in-progress{background:#eaf2ff;color:#0965da}
+.nb-registry-page .nb108-stage-not-started{background:#f0f3f8;color:#627a9c}
+.nb-registry-page .nb-registry-grid .nb-description-panel{
+  min-height:78px;padding:12px 13px 10px;margin-top:auto;border-radius:10px;
+}
+.nb-registry-page .nb-registry-grid .nb-description-panel strong{font-size:11px;margin-bottom:6px;line-height:1.2}
+.nb-registry-page .nb-registry-grid .nb-description-copy{font-size:11.5px;line-height:1.42}
+.nb-registry-page .nb-registry-grid .nb-card-actions.nb-card-actions-template{gap:9px;margin-top:11px}
+.nb-registry-page .nb-registry-grid .nb-card-actions.nb-card-actions-template .nb-button{
+  min-height:35px;border-radius:7px;font-size:12px;padding:7px 9px;
+}
+@media(max-width:1540px){
+  .nb-registry-page .nb-registry-filters{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1/-1}
+}
+@media(max-width:1200px){
+  .nb-registry-page .nb-registry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:850px){
+  .nb-registry-page .nb-registry-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1/-1}
+}
+@media(max-width:660px){
+  .nb-registry-page .nb-registry-grid{grid-template-columns:minmax(0,1fr)}
+  .nb-registry-page .nb-registry-filters{grid-template-columns:minmax(0,1fr)}
+  .nb-registry-page .nb-registry-filters .nb-search-field{grid-column:1}
+  .nb-registry-page .nb-system-card-top{grid-template-columns:42px minmax(0,1fr) auto;gap:7px}
+  .nb-registry-page .nb107-card-header-actions{margin:0;grid-column:auto}
+  .nb-registry-page .nb107-card-header-actions .nb-card-edit-icon{grid-column:auto;margin:0}
+}
+@media(max-width:410px){
+  .nb-registry-page .nb-system-title-wrap h3{font-size:13px}
+  .nb-registry-page .nb108-overall-status{font-size:10px;padding:6px}
+  .nb-registry-page .nb108-stage{font-size:9.7px;gap:3px}
+  .nb-registry-page .nb108-stage svg{width:12px;height:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .nb-registry-page .nb108-track>span{transition:none}
+}

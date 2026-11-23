@@ -1,0 +1,23 @@
+{
+  "version": "0.6.108",
+  "base_version": "0.6.107",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "GITHUB_CHANGELOG_v0_6_108.txt",
+    "NBDT_v0_6_108_GitHub_Manifest.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_108_RU.md",
+    "VALIDATION_v0_6_108.md",
+    "index.tsx",
+    "nbdt-registry-v108.css",
+    "package.json",
+    "src/registry-progress.mjs",
+    "tests/registry-clear-filters-v087.test.mjs",
+    "tests/registry-progress-v108.test.mjs",
+    "tests/visual-contract.test.mjs"
+  ],
+  "removed_files": [],
+  "production_build_verified": false,
+  "historical_test_failures": 23
+}

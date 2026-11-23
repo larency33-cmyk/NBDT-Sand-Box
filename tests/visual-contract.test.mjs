@@ -9,7 +9,8 @@ test('NBDT shared design system uses the exact approved brand and sidebar colors
  for(const token of ['--nav-top:#06264B','--nav-bottom:#041B34','--brand:#0066F5','--page-bg:#F3F8FE','--text-heading:#081C4A'])assert.ok(css.includes(token),token);
 });
 test('registry uses searchable filters and displays all matching systems without pagination',()=>{
- for(const token of ['nb-registry-filters','nb-registry-grid','filteredSystems.map(sys=>','Showing all {filteredSystems.length} systems'])assert.ok(app.includes(token),token);
+ for(const token of ['nb-registry-filters','nb-registry-grid','filteredSystems.map(sys=>','Showing all ${filteredSystems.length} systems'])assert.ok(app.includes(token),token);
+ assert.ok(app.includes('systemStatusFilter'));
  assert.ok(!app.includes('nb-registry-pagination'));
  assert.ok(!app.includes('systemPage'));
 });

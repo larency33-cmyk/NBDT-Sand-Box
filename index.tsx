@@ -1,5 +1,6 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
 import {deleteRegistrySystem} from './src/registry-delete.mjs';
+import {registrySystemProgress,registryMatchesStatus,REGISTRY_PROGRESS_SECTIONS} from './src/registry-progress.mjs';
 import {deriveProjectActivity,deriveAssignmentActivity,mergeActivity} from './src/activity-log.mjs';
 import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
@@ -65,6 +66,7 @@ import './nbdt-lessons-v081.css';
 import './nbdt-registry-v082.css';
 import './nbdt-registry-v096.css';
 import './nbdt-registry-v107.css';
+import './nbdt-registry-v108.css';
 import './nbdt-tracker-v090.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
@@ -105,6 +107,8 @@ Navigation,
   RefreshCw,
   History,
   CheckCircle2,
+  Circle,
+  CircleDot,
   Check,
   Square,
   CheckSquare,
@@ -1232,7 +1236,7 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
  const selected=options.find(item=>item.value===value);
  const TriggerIcon=selected?.icon||Icon;
  const choose=(next:string)=>{onChange(next);setOpen(false);};
- return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(open?' nb-type-filter-open':'')}>
+ return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(label==='Completion status'?' nb108-status-filter':'')+(open?' nb-type-filter-open':'')}>
   <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
    aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
    <TriggerIcon size={20} aria-hidden="true"/>
@@ -1249,7 +1253,7 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
    {options.map(item=>{
     const OptionIcon=item.icon||Icon;
     return <button type="button" role="option" aria-selected={value===item.value}
-     className={'nb-type-filter-option'+(value===item.value?' selected':'')}
+     className={'nb-type-filter-option'+(value===item.value?' selected':'')+(label==='Completion status'?' nb108-filter-option-'+item.value:'')}
      key={item.value} onClick={()=>choose(item.value)}>
      <span className="nb-type-filter-option-icon nb-tone-blue"><OptionIcon size={18} aria-hidden="true"/></span>
      <span className="nb96-dropdown-option-text">{item.label}</span>
@@ -1307,10 +1311,17 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
   const visualType = registryVisualType(sys);
   const tone = getVisualTone(visualType as SystemVisualType);
   const description = registryVisibleDescription(sys);
+  const progress = registrySystemProgress(sys,project.id);
+  const statusLabel = progress.status==='completed'?'Completed':progress.status==='in-progress'?'In progress':'Not started';
   return <article className="nb-system-card nb-system-card-template">
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
+      <div className="nb108-card-actions-heading">
+        <span className={`nb108-overall-status nb108-status-${progress.status}${progress.status==='in-progress'&&progress.completedCount===3?' nb108-near-complete':''}`} aria-label={`Overall system status: ${statusLabel}`} title={`${progress.completedCount} of 4 sections completed`}>
+          {progress.status==='completed'?<CheckCircle2 size={14} aria-hidden="true"/>:progress.status==='in-progress'?<CircleDot size={14} aria-hidden="true"/>:<Circle size={14} aria-hidden="true"/>}
+          {statusLabel}
+        </span>
       {isAdmin&&<div className="nb107-card-header-actions">
         {editingDescription&&<button type="button" className="nb107-card-trash-icon" aria-label={`Delete system ${sys.name}`} title="Delete system and all associated data" disabled={descriptionSaving||deletingSystem} onClick={()=>{setDescriptionError('');setConfirmDelete(true);}}><Trash2 size={16}/></button>}
         <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} aria-pressed={editingDescription} title={editingDescription?'Close description editor':'Edit description'} disabled={descriptionSaving||deletingSystem} onClick={()=>{
@@ -1318,6 +1329,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
           setDescriptionDraft(description);setDescriptionError('');setConfirmDelete(false);setEditingDescription(true);
         }}><Edit2 size={16}/></button>
       </div>}
+      </div>
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <div className="nb52-owner-in-registry nb86-owner-in-registry">
@@ -1330,6 +1342,25 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
       </select>:<strong className={owner.label?'':'nb86-owner-unassigned'} title={owner.label||'Not assigned'}>{owner.label||'Not assigned'}</strong>}
     </div>
     {ownerError&&<p role="alert" className="nb86-owner-error">{ownerError}</p>}
+    <div className="nb108-progress" aria-label={`System progress: ${progress.completedCount} of 4 sections complete`}>
+      <div className="nb108-progress-overview">
+        <div className={`nb108-track nb108-track-${progress.status}${progress.completedCount===3?' nb108-track-near':''}`} role="progressbar" aria-label={`Completed sections for ${sys.name}`} aria-valuemin={0} aria-valuemax={4} aria-valuenow={progress.completedCount}>
+          <span style={{width:`${progress.completedCount*25}%`}}/>
+        </div>
+        <span className="nb108-progress-count">{progress.completedCount}/4 complete</span>
+      </div>
+      <div className="nb108-stage-list" role="list" aria-label="Guide stage and lesson review statuses">
+        {REGISTRY_PROGRESS_SECTIONS.map((section:any)=>{
+          const detail=progress.sections.find((item:any)=>item.key===section.key);
+          const label=detail.status==='completed'?'Completed':detail.status==='in-progress'?'In progress':'Not started';
+          const tooltip=`${section.name}: ${label} · ${detail.done}/${detail.total} ${section.key==='lessons'?'confirmed':'checked'}${section.key!=='lessons'&&detail.accepted?' · accepted':''}`;
+          return <span key={section.key} role="listitem" className={`nb108-stage nb108-stage-${detail.status}`} aria-label={`${section.name}: ${label}`} title={tooltip}>
+            {detail.status==='completed'?<CheckCircle2 size={15} aria-hidden="true"/>:detail.status==='in-progress'?<CircleDot size={15} aria-hidden="true"/>:<Circle size={15} aria-hidden="true"/>}
+            <span>{section.shortLabel}</span>
+          </span>;
+        })}
+      </div>
+    </div>
     {editingDescription?<div className="nb41-card-description-edit">
       <label htmlFor={'nb41-reg-desc-'+sys.id}>Description</label>
       <textarea id={'nb41-reg-desc-'+sys.id} autoFocus aria-label={'Description for '+sys.name} rows={4} maxLength={6000} value={descriptionDraft} disabled={descriptionSaving} onChange={e=>setDescriptionDraft(e.target.value)}/>
@@ -1916,6 +1947,7 @@ const App = () => {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [assigneeFilter, setAssigneeFilter] = useState<string>(''); // Issue Tracker team filter
   const [systemOwnerFilter, setSystemOwnerFilter] = useState<string>(''); // Registry Assignment owner filter
+  const [systemStatusFilter,setSystemStatusFilter] = useState<string>('');
   const [issueStatusFilter, setIssueStatusFilter] = useState<string>('');
   const [issueSeverityFilter, setIssueSeverityFilter] = useState<string>('');
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
@@ -2701,10 +2733,11 @@ const App = () => {
       }));
 
       const assigneeMatch = systemMatchesAssignmentOwner(assignmentRoster,s.name,systemOwnerFilter);
+      const progressMatch=registryMatchesStatus(registrySystemProgress(s,project.id),systemStatusFilter);
 
-      return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch;
+      return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch && progressMatch;
     });
-  }, [project.systems, assignmentRoster, systemSearch, activeFilters, systemOwnerFilter, deviceTypeFilter]);
+  }, [project.systems, project.id, assignmentRoster, systemSearch, activeFilters, systemOwnerFilter, deviceTypeFilter, systemStatusFilter]);
 
 
   const filteredIssues = useMemo(() => {
@@ -3036,7 +3069,7 @@ const App = () => {
             <header className="nb-registry-heading nb45-primary-header">
               <div><h1>System Registry</h1><p>{project.name} · {project.systems.length} systems · Configuration guides</p></div>
               <div className="nb-registry-actions">
-                {(activeFilters.length>0||systemOwnerFilter||systemSearch.trim()||deviceTypeFilter)&&<button type="button" className="nb-button nb87-clear-filters" aria-label="Clear system registry filters" onClick={()=>{setSystemSearch('');setActiveFilters([]);setSystemOwnerFilter('');setDeviceTypeFilter('');}}><FilterX size={17} aria-hidden="true"/> Clear filters</button>}
+                {(activeFilters.length>0||systemOwnerFilter||systemSearch.trim()||deviceTypeFilter||systemStatusFilter)&&<button type="button" className="nb-button nb87-clear-filters" aria-label="Clear system registry filters" onClick={()=>{setSystemSearch('');setActiveFilters([]);setSystemOwnerFilter('');setDeviceTypeFilter('');setSystemStatusFilter('');}}><FilterX size={17} aria-hidden="true"/> Clear filters</button>}
                 {isAdmin&&<button type="button" className="nb-button nb-primary" onClick={()=>setDraftSystem({id:`sys-${Date.now()}`,name:'',deviceModel:'',deviceType:'',deviceCategory:'PC',os:'Windows',osVersion:'',network:'Wired',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',assigneeId:''})}><Plus size={18}/> Add system</button>}
 
               </div>
@@ -3055,8 +3088,11 @@ const App = () => {
               <RegistryDropdownFilter label="Deployment owner" placeholder="All owners" icon={User}
                 value={systemOwnerFilter} onChange={setSystemOwnerFilter}
                 options={assignmentRoster.people.map((person:any)=>({value:person.id,label:person.name}))}/>
+              <RegistryDropdownFilter label="Completion status" placeholder="All statuses" icon={CheckCircle2}
+                value={systemStatusFilter} onChange={setSystemStatusFilter}
+                options={[{value:'completed',label:'Completed',icon:CheckCircle2},{value:'in-progress',label:'In progress',icon:CircleDot},{value:'not-started',label:'Not started',icon:Circle}]}/>
             </div>
-            <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">Showing all {filteredSystems.length} systems</p></div>
+            <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">{systemStatusFilter||activeFilters.length||systemOwnerFilter||systemSearch.trim()||deviceTypeFilter?`Showing ${filteredSystems.length} of ${project.systems.length} systems`:`Showing all ${filteredSystems.length} systems`}</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>
             {filteredSystems.length>0 ? <div className="nb-registry-grid">
               {filteredSystems.map(sys=><SystemRegistryCard key={sys.id} sys={displayProject.systems.find(s=>s.id===sys.id)||sys} project={displayProject} assignmentRoster={assignmentRoster} isAdmin={isAdmin} onAssignOwner={(systemName:string,personId:string)=>changeAssignment((current:any)=>setSystemAssignmentOwner(current,systemName,personId))} onUpdateDescription={(id:string,description:string)=>handleAction(prev=>({...prev,systems:prev.systems.map(system=>system.id===id?{...system,description}:system)}))}
