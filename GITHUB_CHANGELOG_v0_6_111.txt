@@ -1,0 +1,6 @@
+NBDT v0.6.111 — Fix Excel Description import
+- Treat "Hardware deployment and configuration required" as a non-data template heading, even with adjacent icon/DOCS/formatting.
+- Extract real system-specific paragraph directly below banner (or appended in a merged cell) for HTML and plain-text Excel clipboard.
+- Never import banner as Description; allow re-import to replace legacy incorrect value.
+- Preserve other system fields, stages and Lessons Learned.
+- Add Mobile Telehealth end-to-end parser regression scenarios; no changes to UI.

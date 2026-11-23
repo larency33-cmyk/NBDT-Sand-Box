@@ -1,4 +1,4 @@
-/** NBDT 0.6.84: Excel clipboard import for one system's Guide.
+/** NBDT 0.6.111: Excel clipboard import for one system's Guide.
  * No external services; no clipboard HTML is inserted into the document.
  * Input may be pasted from worksheet cells (TSV / HTML) or a text template.
  */
@@ -49,6 +49,20 @@ const STAGE_LOOKUP=new Map([
  ['deployment','deployment'],['deploy','deployment'],
 ].map(([a,b])=>[fold(a),b]));
 const META_HEADINGS=new Set(['docs','documentation','technical essentials','device','network','access and management','hardware deployment and configuration required','configuration checklist','checklist']);
+/** The third Excel template line is a section banner, NOT the system description.
+ * Excel Online may place a formatting glyph, extra text or the actual overview
+ * in the same merged cell, so matching the complete cell exactly is unsafe. */
+const INTRO_BANNER=/^hardware\s+deployment\s+(?:(?:and|&)\s+)?configuration\s+required/iu;
+function introBannerRemainder(value){
+ const line=lineText(value);
+ const match=line.match(INTRO_BANNER);
+ if(!match)return null;
+ // Remove only the banner and its decorative symbols, not the paragraph below.
+ const rest=line.slice(match[0].length).replace(/^[\s\p{P}\p{S}\uFE0F\u200D]+/gu,'').trim();
+ // A 'DOCS' button often occupies the same banner row; it is not a description.
+ return ['docs','documentation'].includes(fold(rest))?'':rest;
+}
+const isMetaHeading=value=>META_HEADINGS.has(fold(value))||introBannerRemainder(value)!==null;
 
 export function findGuideStage(label){
  const normalized=fold(label).replace(/^(check\s*list|checklist|checks|stage|steps)\s+/,'').replace(/\s+(check\s*list|checklist|checks|steps)$/,'');
@@ -70,6 +84,8 @@ function repairIntroFields(fields){
  const repaired=[];
  for(const raw of value.split('\n')){
   const line=raw.trim();
+  const afterBanner=introBannerRemainder(line);
+  if(afterBanner!==null){if(afterBanner)repaired.push(afterBanner);continue;}
   // If the Excel HTML collapses an Endpoint cell into the description,
   // recover the hardware model instead of copying it to the registry summary.
   const collapsed=line.match(/^(.*?)(?:\s{2,}|\s+)(?=((?:LENOVO|DELL|HP|SAMSUNG|ZEBRA|ACER|ASUS)\s*[-–]\s*(?:DESKTOP|LAPTOP|TABLET|THINKPAD|TC\d+|GALAXY))\b)/i);
@@ -103,8 +119,13 @@ function readRows(rows){
  const fields={};const stages={};let section=null,activeField=null,consumed=0;let introOpen=true;let inIntroDescription=false;
  const leftovers=[];
  const addField=(key,value)=>{
-  const clean=key==='appList'?cleanFieldText(value).replace(/^[•●▪◦‣*-]\s*/u,''):cleanFieldText(value);
+  let clean=key==='appList'?cleanFieldText(value).replace(/^[•●▪◦‣*-]\s*/u,''):cleanFieldText(value);
   if(!clean||isFalsePlaceholder(clean))return;
+  if(key==='description'){
+   const afterBanner=introBannerRemainder(clean);
+   // A merged Excel header is never valid system-specific description text.
+   if(afterBanner!==null){if(!afterBanner)return;clean=afterBanner;}
+  }
   if(key!=='name' && key!=='description')introOpen=false;
   if(key==='appList'){
    const list=normalizeApplications(clean);
@@ -146,7 +167,14 @@ function readRows(rows){
     if(colon)addField(field,colon[2]);
     continue;
    }
-   if(META_HEADINGS.has(fold(line))){section=null;activeField=null;inIntroDescription=fold(line)==='hardware deployment and configuration required'&&Boolean(fields.name);continue;}
+   const introRemainder=introBannerRemainder(line);
+   if(introRemainder!==null){
+    section=null;activeField=null;inIntroDescription=Boolean(fields.name);consumed++;
+    // Excel sometimes joins the banner and paragraph into one merged cell.
+    if(introRemainder && fields.name){addField('description',introRemainder);}
+    continue;
+   }
+   if(META_HEADINGS.has(fold(line))){section=null;activeField=null;inIntroDescription=false;continue;}
    if(section && STAGES.includes(section)){addStep(line);continue;}
    if(section==='appList'){addField('appList',line);continue;}
    if(activeField){addField(activeField,line);activeField=null;continue;}
@@ -165,7 +193,7 @@ function readRows(rows){
  // Pre-scanning them would prematurely terminate the unlabeled introduction.
  const skip=new Set();
  let sawHeading=false;
- const hasTemplateLabels=rows.some(row=>row.some(cell=>findGuideField(cell)||findGuideStage(cell)||META_HEADINGS.has(fold(cell))));
+ const hasTemplateLabels=rows.some(row=>row.some(cell=>findGuideField(cell)||findGuideStage(cell)||isMetaHeading(cell)));
  rows.forEach((row,index)=>{
   if(skip.has(index))return;
   const cells=row.map(lineText);
@@ -181,14 +209,14 @@ function readRows(rows){
   // its value. Previously this branch discarded the heading entirely.
   if(cells.length>=2 && findGuideField(cells[0]) &&
      cells.slice(1).some(Boolean) &&
-     !cells.slice(1).some(cell=>findGuideField(cell)||findGuideStage(cell)||META_HEADINGS.has(fold(cell)))){
+     !cells.slice(1).some(cell=>findGuideField(cell)||findGuideStage(cell)||isMetaHeading(cell))){
    const key=findGuideField(cells[0]);addField(key,cells.slice(1).filter(Boolean).join('\n'));section=null;activeField=null;inIntroDescription=false;
    return;
   }
   for(const cell of cells){
    if(!cell)continue;
    const mayInferTitle=hasTemplateLabels&&!sawHeading;
-   if(findGuideStage(cell)||findGuideField(cell)||META_HEADINGS.has(fold(cell)))sawHeading=true;
+   if(findGuideStage(cell)||findGuideField(cell)||isMetaHeading(cell))sawHeading=true;
    handleText(cell,mayInferTitle);
   }
  });
