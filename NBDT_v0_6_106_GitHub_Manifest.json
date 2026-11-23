@@ -1,0 +1,23 @@
+{
+  "version": "0.6.106",
+  "base": "0.6.105",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "src/signin-v099.tsx",
+    "src/signin-v099.css",
+    "src/signin-scene-v099.tsx",
+    "package.json",
+    "README.md",
+    "tests/signin-v103.test.mjs",
+    "tests/signin-v105.test.mjs",
+    "tests/signin-v106.test.mjs",
+    "RELEASE_NOTES_v0_6_106_RU.md",
+    "VALIDATION_v0_6_106.md",
+    "GITHUB_CHANGELOG_v0_6_106.txt",
+    "NBDT_v0_6_106_GitHub_Manifest.json"
+  ],
+  "new_assets": [],
+  "frequency": "10 original + 3 bonus trips per 200s (+30% average)",
+  "sso": "lift = 80% of measured subtitle-to-button gap"
+}

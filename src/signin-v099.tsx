@@ -6,11 +6,13 @@ import './signin-v099.css';
 
 /**
  * Keep the illustrated panorama's geometry untouched while visually positioning
- * the CTA 30 CSS pixels above its highest visible cloud (viewBox y=0). The SVG
+ * the BASE CTA target 30 CSS pixels above its highest visible cloud (viewBox y=0). The SVG
  * coordinate-to-screen transform accounts for object-fit and responsive scale.
  * All offsets are transforms: they never resize or push the animation scene.
  * v0.6.105 adjusts the logo by 80% of the visual gap to the headline,
  * measured AFTER the existing copy/button positions have been calculated.
+ * v0.6.106 moves ONLY the SSO button up by 80% of its measured visual gap
+ * to the subtitle, leaving the copy/logo and animated scene in place.
  */
 export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?:boolean;error?:string}){
   const welcomeRef=useRef<HTMLElement>(null);
@@ -25,6 +27,7 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       root.style.setProperty('--nb103-button-shift','0px');
       root.style.setProperty('--nb103-copy-shift','0px');
       root.style.setProperty('--nb105-logo-shift','0px');
+      root.style.setProperty('--nb106-button-lift','0px');
       const logo=root.querySelector<SVGSVGElement>('.nb99-team-logo');
       const title=root.querySelector<HTMLElement>('.nb99-hero h1');
       const subtitle=root.querySelector<HTMLElement>('.nb99-subtitle');
@@ -41,12 +44,23 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
         const extraShift=window.innerHeight<=520?0:currentGap*0.8;
         root.style.setProperty('--nb105-logo-shift',`${extraShift.toFixed(2)}px`);
       };
-      // Portrait deployment uses three vertically stacked scenes. Keep its
-      // original CTA spacing; shift ONLY the logo toward the unchanged text.
-      if(window.innerWidth<=720){lowerLogoByGap();return;}
-      if(!subtitle||!button||!scene){lowerLogoByGap();return;}
+      // 100% is the original VISIBLE subtitle-bottom to SSO-top gap, after
+      // the prior v103 centering transforms. Subtract 80%: exactly 20% remains.
+      // Transforms do not reflow the scene or alter the baseline positions.
+      const liftSsoByGap=(copyShift=0,buttonShift=0)=>{
+        if(!subtitle||!button)return;
+        const existingGap=Math.max(0,
+          button.getBoundingClientRect().top+buttonShift-
+          (subtitle.getBoundingClientRect().bottom+copyShift));
+        const lift=existingGap*0.8;
+        root.style.setProperty('--nb106-button-lift',`${lift.toFixed(2)}px`);
+      };
+      // Portrait deployment has its own responsive scene geometry: keep its
+      // original layout and only apply the measured visual lift of the CTA.
+      if(window.innerWidth<=720){lowerLogoByGap();liftSsoByGap();return;}
+      if(!subtitle||!button||!scene){lowerLogoByGap();liftSsoByGap();return;}
       const ctm=scene.getScreenCTM();
-      if(!ctm){lowerLogoByGap();return;}
+      if(!ctm){lowerLogoByGap();liftSsoByGap();return;}
       const sceneOrigin=scene.createSVGPoint();
       sceneOrigin.x=0;sceneOrigin.y=0;
       const cloudTop=sceneOrigin.matrixTransform(ctm).y;
@@ -64,13 +78,16 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       const minimalMargin=window.innerWidth<=720?12:16;
       // At unusually short/zoomed windows, preserve accessibility: do not
       // overlap the logo, headline or SSO button to chase a pixel-perfect gap.
-      if(room<textHeight+2*minimalMargin){lowerLogoByGap();return;}
+      if(room<textHeight+2*minimalMargin){lowerLogoByGap();liftSsoByGap();return;}
       const textCenter=(titleBox.top+subtitleBox.bottom)/2;
       const targetCenter=(logoBottom+buttonBox.top+targetShift)/2;
       const copyShift=targetCenter-textCenter;
       // Measure before applying copyShift: getBoundingClientRect() would
       // otherwise include its CSS transform and count the gap twice.
       lowerLogoByGap(copyShift);
+      // Measure the original gap BEFORE applying the v103 transforms;
+      // otherwise getBoundingClientRect already includes them (double count).
+      liftSsoByGap(copyShift,targetShift);
       root.style.setProperty('--nb103-button-shift',`${targetShift.toFixed(2)}px`);
       root.style.setProperty('--nb103-copy-shift',`${copyShift.toFixed(2)}px`);
     };

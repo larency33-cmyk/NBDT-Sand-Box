@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.106.** The corporate SSO button is raised by 80% of its measured gap from the subtitle, leaving 20%. The Deliver stage includes 3 additional cart passes per 10 original trips (+30% average appearances) without changing the standard 20s scene clock. Existing artwork, corporate footer and SSO handler remain intact. See `RELEASE_NOTES_v0_6_106_RU.md` and `VALIDATION_v0_6_106.md`.
+
 **Current package: v0.6.105 (logo 80%-gap refinement).** Starting from the current v0.6.104 welcome layout, the NBDT logo moves downward by **80% of the measured distance** between its bottom edge and the headline. The original v0.6.104 gap is the 100% reference; approximately 20% remains. For safety, unusually short (≤520px height) windows keep their existing spacing. All other elements — headline, subtitle, working SSO button, panorama and Royal Caribbean Group branding — are unchanged. See `RELEASE_NOTES_v0_6_105_RU.md` and `VALIDATION_v0_6_105.md`.
 
 **Current package: v0.6.104 (NBDT logo vertical spacing refinement).** Only the NBDT logo is visually moved downward toward the headline on regular desktop displays, with a smaller/zero offset on mobile and short screens. Its dimensions, all text positions, the SSO button and its behavior, Royal Caribbean Group branding, scene and animations are preserved. See `RELEASE_NOTES_v0_6_104_RU.md` and `VALIDATION_v0_6_104.md`.

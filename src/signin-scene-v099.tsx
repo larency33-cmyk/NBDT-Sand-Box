@@ -55,6 +55,9 @@ function Delivery(){return <>
   <g className="nb99-system-ready" shapeRendering="crispEdges"><rect x="699" y="186" width="54" height="46" fill="#153b6a"/><rect x="704" y="191" width="44" height="36" fill="#e1f3ff"/><path d="m715 210 8 7 16-18" fill="none" stroke="#00c4d7" strokeWidth="5"/></g>
   <g className="nb99-pack-box"><Box x={738} y={202}/></g>
   <g className="nb99-cart" data-sprite-cart="detailed"><svg x="704" y="178" width="152" height="101" viewBox="826 633 152 101" overflow="hidden"><image href={sprites} width="1671" height="941"/></svg></g>
+  {/* Three additional deliveries per ten 20s cycles = exactly +30% cart trips.
+      Each bonus trip starts AFTER the regular trolley has cleared the route. */}
+  <g className="nb106-extra-cart" data-extra-delivery="true" aria-hidden="true"><svg x="704" y="178" width="152" height="101" viewBox="826 633 152 101" overflow="hidden"><image href={sprites} width="1671" height="941"/></svg></g>
   <g className="nb99-route-pulse"><rect x="570" y="236" width="20" height="20" fill="#c4fbff"/><rect x="575" y="241" width="10" height="10" fill="#00bfd9"/></g>
  </>;}
 function RackIndicators({phase}:{phase:'configure'|'deploy'}){

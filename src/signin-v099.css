@@ -206,3 +206,39 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 .nb99-team-logo{
   transform:translateY(var(--nb105-logo-shift,0px));
 }
+
+
+/* v0.6.106 — visually raise ONLY the SSO control by 80% of the computed
+   subtitle-to-button gap. Keep the same button width, click target and DOM flow.
+   The existing copy/logo and background/scene layout do not move. */
+.nb99-sso,
+.nb99-entry-error{
+  transform:translateY(calc(var(--nb103-button-shift,0px) - var(--nb106-button-lift,0px)));
+}
+
+/* Deliver stage: the original cart keeps its 20-second synchronized journey.
+   Exactly three extra trips occur in each 200-second (10×20s) supercycle:
+   10 original + 3 bonus = 13 trips, or 30% more appearances per unit time.
+   All bonus departures occur just after a regular cart clears the route.
+   The 200-second timing also preserves the existing team/scene loop phase.
+   The shared animation controller handles pause, resume and reduced motion. */
+.nb106-extra-cart{
+  opacity:0;
+  visibility:hidden;
+  animation:nb106-bonus-deliver 200s linear infinite paused;
+}
+@keyframes nb106-bonus-deliver{
+  0%,6.69%{visibility:hidden;opacity:0;transform:translateX(0)}
+  6.7%,6.9%{visibility:visible;opacity:1;transform:translateX(0)}
+  8.7%{visibility:visible;opacity:1;transform:translateX(420px)}
+  8.9%{visibility:hidden;opacity:0;transform:translateX(480px)}
+  8.91%,36.69%{visibility:hidden;opacity:0;transform:translateX(0)}
+  36.7%,36.9%{visibility:visible;opacity:1;transform:translateX(0)}
+  38.7%{visibility:visible;opacity:1;transform:translateX(420px)}
+  38.9%{visibility:hidden;opacity:0;transform:translateX(480px)}
+  38.91%,66.69%{visibility:hidden;opacity:0;transform:translateX(0)}
+  66.7%,66.9%{visibility:visible;opacity:1;transform:translateX(0)}
+  68.7%{visibility:visible;opacity:1;transform:translateX(420px)}
+  68.9%{visibility:hidden;opacity:0;transform:translateX(480px)}
+  68.91%,100%{visibility:hidden;opacity:0;transform:translateX(0)}
+}

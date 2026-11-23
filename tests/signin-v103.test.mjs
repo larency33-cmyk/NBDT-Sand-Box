@@ -9,13 +9,13 @@ test('SSO remains clickable and copy is grouped separately for visual alignment'
   assert.match(page,/<div className="nb103-copy">[\s\S]*?Together, we bring ships to life\.[\s\S]*?From first configuration to first sailing\./);
   assert.doesNotMatch(page,/Your team's deployment workspace/);
 });
-test('viewport alignment uses exact 30px below-button to cloud clearance',()=>{
+test('viewport alignment preserves original 30px cloud anchor before any future button shift',()=>{
   assert.match(page,/cloudTop-30-buttonBox\.bottom/);
   assert.match(page,/scene\.getScreenCTM\(\)/);
   assert.match(page,/sceneOrigin\.matrixTransform\(ctm\)\.y/);
   assert.match(page,/targetCenter=\(logoBottom\+buttonBox\.top\+targetShift\)\/2/);
   assert.match(page,/room<textHeight\+2\*minimalMargin/);
-  assert.match(page,/if\(window\.innerWidth<=720\)\{lowerLogoByGap\(\);return;\}/);
+  assert.match(page,/if\(window\.innerWidth<=720\)\{lowerLogoByGap\(\);liftSsoByGap\(\);return;\}/);
 });
 test('movement uses transforms and preserves image scene dimensions and corporate lockup',()=>{
   assert.match(css,/\.nb103-copy\{[\s\S]*?width:var\(--nb102-column-width\)/);

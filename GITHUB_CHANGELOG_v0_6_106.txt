@@ -1,0 +1,1 @@
+NBDT Hub v0.6.106 — bring SSO 80% closer to the subtitle, leaving 20% gap. Add 3 bonus deliveries per 10 existing 20s cycles (+30% average cart appearances), keeping shared clock and original cart unchanged.
