@@ -1,0 +1,6 @@
+NBDT Hub v0.6.115 — Assignment moves one employee per arrow click
+- Preserve seven visible owner columns on desktop and the pinned Project column.
+- Prev/Next shifts the viewport by one owner: 1–7, 2–8, 3–9, etc.
+- Keep the rightmost Add person column available, without skipping any employee.
+- Guard rapid sequential clicks from intermediate smooth scrolling updates.
+- Preserve all fonts, type sizes, row heights, search, owner assignments and drag/drop.

@@ -8,7 +8,7 @@ const PALETTE=['blue','violet','teal','orange','purple','blue','mint','amber','p
 const prettyDate=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
 const createEmptyPerson=()=>({name:'',position:'ITO',startDate:''});
 
-// Assignment v0.6.114: seven owner columns per desktop viewport.
+// Assignment v0.6.115: seven visible owner columns, one-column navigation steps.
 // The table is deliberately kept intact, rather than slicing the roster,
 // so system and whole-column drag/drop still work across the navigation pages.
 const NB114_MAX_COLUMNS=7;
@@ -22,12 +22,7 @@ export const assignmentPageStarts=(ownerCount:number,includeNewPerson:boolean,vi
  const windowSize=Math.max(1,Math.min(NB114_MAX_COLUMNS,Math.floor(visibleCount)||1));
  const count=Math.max(0,ownerCount)+(includeNewPerson?1:0);
  const lastStart=Math.max(0,count-windowSize);
- const starts=[0];
- for(let next=windowSize;next<count;next+=windowSize){
-  const start=Math.min(next,lastStart);
-  if(start>starts[starts.length-1])starts.push(start);
- }
- return starts;
+ return Array.from({length:lastStart+1},(_,index)=>index);
 };
 
 function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwner,justMoved,draggingPersonId,columnTarget,justReorderedColumns}:any){
@@ -79,6 +74,8 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const [columnTarget,setColumnTarget]=useState<{personId:string,placement:'before'|'after'}|null>(null);
  const [justReorderedColumns,setJustReorderedColumns]=useState<string[]>([]);
  const gridRef=useRef<HTMLDivElement>(null);
+ const scrollTargetRef=useRef<number|null>(null);
+ const navigationIndexRef=useRef(0);
  const [viewport,setViewport]=useState({ownerWidth:167,visibleColumns:7});
  const [pageIndex,setPageIndex]=useState(0);
  const people=useMemo(()=>roster.people.filter((person:any)=>{
@@ -104,26 +101,39 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
   window.addEventListener('resize',measure);
   return ()=>{observer?.disconnect();window.removeEventListener('resize',measure);};
  },[]);
- // A roster/filter/viewport change keeps a valid page selected and its columns aligned.
+ // A roster/filter/viewport change keeps the selected window valid.
  useEffect(()=>{
-  const nextIndex=Math.min(pageIndex,pageStarts.length-1);
+  const nextIndex=Math.min(navigationIndexRef.current,pageStarts.length-1);
+  navigationIndexRef.current=nextIndex;
   if(nextIndex!==pageIndex)setPageIndex(nextIndex);
   const grid=gridRef.current;
+  scrollTargetRef.current=null;
   if(grid)grid.scrollLeft=pageStarts[nextIndex]*viewport.ownerWidth;
  },[people.length,query,isAdmin,viewport.ownerWidth,viewport.visibleColumns]);
  const onMatrixScroll=()=>{
   const grid=gridRef.current;if(!grid||pageStarts.length<2)return;
   const left=grid.scrollLeft;
-  const nearest=pageStarts.reduce((best,start,index)=>
-   Math.abs(start*viewport.ownerWidth-left)<Math.abs(pageStarts[best]*viewport.ownerWidth-left)?index:best,0);
+  if(scrollTargetRef.current!==null){
+   // Intermediate smooth-scroll positions must not override a newer arrow click.
+   if(Math.abs(left-scrollTargetRef.current)>1)return;
+   scrollTargetRef.current=null;
+  }
+  const nearest=Math.max(0,Math.min(pageStarts.length-1,Math.round(left/viewport.ownerWidth)));
+  navigationIndexRef.current=nearest;
   setPageIndex(previous=>previous===nearest?previous:nearest);
  };
  const navigateColumns=(direction:-1|1)=>{
-  const next=Math.min(pageStarts.length-1,Math.max(0,currentPage+direction));
-  if(next===currentPage)return;
+  const previous=navigationIndexRef.current;
+  const next=Math.min(pageStarts.length-1,Math.max(0,previous+direction));
+  if(next===previous)return;
+  navigationIndexRef.current=next;
   setPageIndex(next);
   const grid=gridRef.current;
-  if(grid)grid.scrollTo({left:pageStarts[next]*viewport.ownerWidth,behavior:'smooth'});
+  if(grid){
+   const destination=pageStarts[next]*viewport.ownerWidth;
+   scrollTargetRef.current=destination;
+   grid.scrollTo({left:destination,behavior:'smooth'});
+  }
  };
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:7}}),useSensor(KeyboardSensor));
  const beginEdit=(item:any)=>{if(!isAdmin)return;setEditor({id:item.id,personId:item.personId,original:item.name});setDraft(item.name);setError('');};
@@ -197,9 +207,9 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const seen=new Set<string>();const sharedNames=new Set<string>();roster.items.forEach((i:any)=>{const key=i.name.trim().toLowerCase();if(seen.has(key))sharedNames.add(key);seen.add(key);});
  return <section className="nb52-page nb54-page nb114-page" aria-label="Assignment">
   <header className="nb52-header nb45-primary-header"><div><h1>Assignment</h1><p>System ownership · Team responsibilities</p></div><div className="nb52-kpis"><span><Users size={17}/>{roster.people.length} people</span><span><ClipboardList size={17}/>{roster.items.length} assignments</span></div></header>
-  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span><nav className="nb114-navigation" aria-label="Assignment column navigation"><button type="button" className="nb114-nav-arrow" aria-label="Previous owner columns" title="Previous seven columns" disabled={currentPage===0} onClick={()=>navigateColumns(-1)}><ChevronLeft size={17}/></button><span className="nb114-nav-counter" aria-live="polite">Showing {firstVisible}–{lastVisible} of {people.length}</span><button type="button" className="nb114-nav-arrow nb114-next" aria-label="Next owner columns" title="Next seven columns" disabled={currentPage===pageStarts.length-1} onClick={()=>navigateColumns(1)}><ChevronRight size={17}/></button></nav></div>
+  <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span><nav className="nb114-navigation" aria-label="Assignment column navigation"><button type="button" className="nb114-nav-arrow" aria-label="Previous owner columns" title="Previous employee column" disabled={currentPage===0} onClick={()=>navigateColumns(-1)}><ChevronLeft size={17}/></button><span className="nb114-nav-counter" aria-live="polite">Showing {firstVisible}–{lastVisible} of {people.length}</span><button type="button" className="nb114-nav-arrow nb114-next" aria-label="Next owner columns" title="Next employee column" disabled={currentPage===pageStarts.length-1} onClick={()=>navigateColumns(1)}><ChevronRight size={17}/></button></nav></div>
   <div className="nb52-matrix-frame">
-   <div ref={gridRef} className="nb52-grid-scroll" role="region" aria-label="Assignment matrix — use navigation arrows to browse owner columns" tabIndex={0} onScroll={onMatrixScroll} style={{'--nb114-owner-width':`${viewport.ownerWidth}px`} as React.CSSProperties}>
+   <div ref={gridRef} className="nb52-grid-scroll" role="region" aria-label="Assignment matrix — use navigation arrows to browse owner columns" tabIndex={0} onScroll={onMatrixScroll} onWheel={()=>{scrollTargetRef.current=null}} onTouchStart={()=>{scrollTargetRef.current=null}} onKeyDown={e=>{if(['ArrowLeft','ArrowRight','Home','End','PageUp','PageDown'].includes(e.key))scrollTargetRef.current=null}} style={{'--nb114-owner-width':`${viewport.ownerWidth}px`} as React.CSSProperties}>
     <DndContext sensors={sensors} collisionDetection={assignmentCollision} onDragStart={onDraggingStarted} onDragOver={onDraggingOver} onDragCancel={()=>{setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);}} onDragEnd={onDragFinished}>
      <table className="nb52-table" style={{'--nb54-rows':rowCount} as React.CSSProperties}><thead><tr><th className="nb52-project-th" scope="col"><div className="nb52-project-heading">Project <small>Assigned systems</small></div></th>{people.map((p:any)=><PersonColumnHeader key={p.id} person={p} index={roster.people.findIndex((x:any)=>x.id===p.id)} isAdmin={isAdmin} busy={busy} onEdit={beginPersonEdit} onAdd={beginAdd} dropOwner={dropTarget} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<th scope="col" className="nb54-new-person"><button type="button" onClick={beginPersonAdd} aria-label="Add new team member"><span className="nb54-new-avatar"><UserRoundPlus size={19}/></span><strong>Add person</strong><small>Name · Position · Start date</small><span className="nb54-new-plus"><Plus size={14}/> New team member</span></button></th>}</tr></thead><tbody>{Array.from({length:rowCount},(_,row)=><tr key={row}><th scope="row" className="nb52-project-row">Project {row}</th>{people.map((p:any)=><AssignmentCell key={p.id+':'+row} person={p} item={itemsByPerson[p.id]?.[row]} isAdmin={isAdmin} busy={busy} position={row} onEdit={beginEdit} onAdd={beginAdd} dropOwner={dropTarget} justMoved={justMoved} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<td className="nb54-new-empty"/>}</tr>)}</tbody></table>
      {createPortal(<DragOverlay dropAnimation={{duration:240,easing:'cubic-bezier(.2,.9,.2,1)'}}>{dragged?<div className="nb52-drag-preview"><GripVertical size={15}/><div><strong>{dragged.name}</strong><span>{sourcePerson?.name||'Current owner'} <MoveRight size={12}/> {dropPerson?.name||'Choose new owner'}</span></div></div>:null}{columnPerson?<div className="nb56-column-preview"><span className="nb56-column-preview-avatar">{columnPerson.name[0]}</span><div><strong>{columnPerson.name}</strong><small>{roster.items.filter((item:any)=>item.personId===columnPerson.id).length} systems · Entire column</small><span><ArrowRightLeft size={13}/> {columnDestination&&columnDestination.id!==columnPerson.id?`Insert ${columnTarget?.placement} ${columnDestination.name}`:'Drop at a column edge'}</span></div></div>:null}</DragOverlay>,document.body)}

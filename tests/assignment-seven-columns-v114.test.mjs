@@ -22,12 +22,12 @@ const {assignmentOwnerWidth,assignmentVisibleColumns,assignmentPageStarts,Assign
 const own=x=>Array.from(x);
 const collect=(node,found=[])=>{if(Array.isArray(node)){node.forEach(v=>collect(v,found));return found;}if(!node||typeof node!=='object')return found;if(node.type)found.push(node);collect(node.props?.children,found);return found;};
 
-test('13 owners plus Add person are presented as two groups of exactly seven desktop columns',()=>{
- assert.deepEqual(own(assignmentPageStarts(13,true,7)),[0,7]);
- assert.deepEqual(own(assignmentPageStarts(13,false,7)),[0,6]);
+test('one-column step positions preserve the seven-column desktop viewport',()=>{
+ assert.deepEqual(own(assignmentPageStarts(13,true,7)),[0,1,2,3,4,5,6,7]);
+ assert.deepEqual(own(assignmentPageStarts(13,false,7)),[0,1,2,3,4,5,6]);
  assert.deepEqual(own(assignmentPageStarts(7,true,7)),[0,1]);
  assert.deepEqual(own(assignmentPageStarts(2,true,7)),[0]);
- assert.deepEqual(own(assignmentPageStarts(14,true,7)),[0,7,8]);
+ assert.deepEqual(own(assignmentPageStarts(14,true,7)),[0,1,2,3,4,5,6,7,8]);
 });
 test('seven unchanged-font owner columns fit wide viewports, narrow ones scroll instead of shrinking text',()=>{
  for(const width of [1320,1440,1510,1750]){
