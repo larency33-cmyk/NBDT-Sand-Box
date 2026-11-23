@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.105 (logo 80%-gap refinement).** Starting from the current v0.6.104 welcome layout, the NBDT logo moves downward by **80% of the measured distance** between its bottom edge and the headline. The original v0.6.104 gap is the 100% reference; approximately 20% remains. For safety, unusually short (≤520px height) windows keep their existing spacing. All other elements — headline, subtitle, working SSO button, panorama and Royal Caribbean Group branding — are unchanged. See `RELEASE_NOTES_v0_6_105_RU.md` and `VALIDATION_v0_6_105.md`.
+
 **Current package: v0.6.104 (NBDT logo vertical spacing refinement).** Only the NBDT logo is visually moved downward toward the headline on regular desktop displays, with a smaller/zero offset on mobile and short screens. Its dimensions, all text positions, the SSO button and its behavior, Royal Caribbean Group branding, scene and animations are preserved. See `RELEASE_NOTES_v0_6_104_RU.md` and `VALIDATION_v0_6_104.md`.
 
 **Current package: v0.6.103 (30px cloud clearance and centered hero copy).** The corporate SSO button now aligns 30 CSS pixels above the highest visible SVG cloud while the two text lines sit vertically centered between the NBDT logo and button. Widths of the text, logo, button and corporate footer remain matched. The process illustration and authentication flow are unchanged. See `RELEASE_NOTES_v0_6_103_RU.md` and `VALIDATION_v0_6_103.md`.

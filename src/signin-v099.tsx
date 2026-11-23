@@ -9,6 +9,8 @@ import './signin-v099.css';
  * the CTA 30 CSS pixels above its highest visible cloud (viewBox y=0). The SVG
  * coordinate-to-screen transform accounts for object-fit and responsive scale.
  * All offsets are transforms: they never resize or push the animation scene.
+ * v0.6.105 adjusts the logo by 80% of the visual gap to the headline,
+ * measured AFTER the existing copy/button positions have been calculated.
  */
 export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?:boolean;error?:string}){
   const welcomeRef=useRef<HTMLElement>(null);
@@ -22,17 +24,29 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       if(disposed)return;
       root.style.setProperty('--nb103-button-shift','0px');
       root.style.setProperty('--nb103-copy-shift','0px');
-      // Portrait deployment uses three vertically stacked scenes. Keep its
-      // original spacing so the CTA never overlays the upper portrait stage.
-      if(window.innerWidth<=720)return;
+      root.style.setProperty('--nb105-logo-shift','0px');
       const logo=root.querySelector<SVGSVGElement>('.nb99-team-logo');
       const title=root.querySelector<HTMLElement>('.nb99-hero h1');
       const subtitle=root.querySelector<HTMLElement>('.nb99-subtitle');
       const button=root.querySelector<HTMLButtonElement>('.nb99-sso');
       const scene=root.querySelector<SVGSVGElement>('.nb99-scene-canvas');
-      if(!logo||!title||!subtitle||!button||!scene)return;
+      if(!logo||!title)return;
+      // Start with the exact v0.6.104 rendered gap (logo bottom → headline top),
+      // including its relative CSS top offset. Keep the text and CTA motionless.
+      // A dynamic measurement is essential: that gap varies with viewport size.
+      const lowerLogoByGap=(copyShift=0)=>{
+        const currentGap=Math.max(0,title.getBoundingClientRect().top+copyShift-logo.getBoundingClientRect().bottom);
+        // Short landscape viewports have barely any gap to begin with;
+        // avoid consuming their last pixels of breathing room.
+        const extraShift=window.innerHeight<=520?0:currentGap*0.8;
+        root.style.setProperty('--nb105-logo-shift',`${extraShift.toFixed(2)}px`);
+      };
+      // Portrait deployment uses three vertically stacked scenes. Keep its
+      // original CTA spacing; shift ONLY the logo toward the unchanged text.
+      if(window.innerWidth<=720){lowerLogoByGap();return;}
+      if(!subtitle||!button||!scene){lowerLogoByGap();return;}
       const ctm=scene.getScreenCTM();
-      if(!ctm)return;
+      if(!ctm){lowerLogoByGap();return;}
       const sceneOrigin=scene.createSVGPoint();
       sceneOrigin.x=0;sceneOrigin.y=0;
       const cloudTop=sceneOrigin.matrixTransform(ctm).y;
@@ -50,11 +64,15 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       const minimalMargin=window.innerWidth<=720?12:16;
       // At unusually short/zoomed windows, preserve accessibility: do not
       // overlap the logo, headline or SSO button to chase a pixel-perfect gap.
-      if(room<textHeight+2*minimalMargin)return;
+      if(room<textHeight+2*minimalMargin){lowerLogoByGap();return;}
       const textCenter=(titleBox.top+subtitleBox.bottom)/2;
       const targetCenter=(logoBottom+buttonBox.top+targetShift)/2;
+      const copyShift=targetCenter-textCenter;
+      // Measure before applying copyShift: getBoundingClientRect() would
+      // otherwise include its CSS transform and count the gap twice.
+      lowerLogoByGap(copyShift);
       root.style.setProperty('--nb103-button-shift',`${targetShift.toFixed(2)}px`);
-      root.style.setProperty('--nb103-copy-shift',`${(targetCenter-textCenter).toFixed(2)}px`);
+      root.style.setProperty('--nb103-copy-shift',`${copyShift.toFixed(2)}px`);
     };
     const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(align);};
     const observer=new ResizeObserver(schedule);

@@ -1,0 +1,22 @@
+{
+  "version": "0.6.105",
+  "base": "0.6.104",
+  "branch": "main",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "changed_files": [
+    "src/signin-v099.tsx",
+    "src/signin-v099.css",
+    "package.json",
+    "README.md",
+    "tests/signin-v103.test.mjs",
+    "tests/signin-v105.test.mjs",
+    "RELEASE_NOTES_v0_6_105_RU.md",
+    "VALIDATION_v0_6_105.md",
+    "GITHUB_CHANGELOG_v0_6_105.txt",
+    "NBDT_v0_6_105_GitHub_Manifest.json"
+  ],
+  "new_assets": [],
+  "scene_code_changed": false,
+  "button_changed": false,
+  "rule": "extra logo offset = 0.8 x existing logo-to-title visual gap (except tiny-height safety)"
+}

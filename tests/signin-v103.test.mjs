@@ -15,7 +15,7 @@ test('viewport alignment uses exact 30px below-button to cloud clearance',()=>{
   assert.match(page,/sceneOrigin\.matrixTransform\(ctm\)\.y/);
   assert.match(page,/targetCenter=\(logoBottom\+buttonBox\.top\+targetShift\)\/2/);
   assert.match(page,/room<textHeight\+2\*minimalMargin/);
-  assert.match(page,/if\(window\.innerWidth<=720\)return/);
+  assert.match(page,/if\(window\.innerWidth<=720\)\{lowerLogoByGap\(\);return;\}/);
 });
 test('movement uses transforms and preserves image scene dimensions and corporate lockup',()=>{
   assert.match(css,/\.nb103-copy\{[\s\S]*?width:var\(--nb102-column-width\)/);

@@ -199,3 +199,10 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 @media(max-height:520px){
   .nb99-team-logo{top:0}
 }
+
+/* v0.6.105 — close 80% of the EXISTING visual logo-to-headline gap.
+   This extra transform affects only the logo, not layout, typography, SSO,
+   corporate branding, or the animated panorama. See SignInPage measurement. */
+.nb99-team-logo{
+  transform:translateY(var(--nb105-logo-shift,0px));
+}

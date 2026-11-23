@@ -1,0 +1,6 @@
+NBDT Hub v0.6.105 — logo shifted by 80% of current remaining gap
+- Measure the visible distance from the logo bottom edge to the headline top after v0.6.104 positioning.
+- Shift only the NBDT logo downward by 80% of that gap; keep approximately 20%.
+- Recalculate at load and responsive viewport resize.
+- Retain all original hero typography positions, SSO button, artwork, animations and corporate footer.
+- Use no extra offset on ≤520px high screens to avoid collisions.
