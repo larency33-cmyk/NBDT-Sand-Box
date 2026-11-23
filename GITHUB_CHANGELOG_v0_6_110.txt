@@ -1,0 +1,5 @@
+NBDT Hub v0.6.110 — Registry search border and status dropdown polish
+- Repair continuous blue border around Search systems by preventing inner input white-background overlap.
+- Display exact approved status SVGs in All statuses menu: green solid check, blue open ring, grey empty circle.
+- Remove status-specific legacy icon tile backgrounds and blue SVG override.
+- Keep all filters, stored statuses, and card layout unchanged.

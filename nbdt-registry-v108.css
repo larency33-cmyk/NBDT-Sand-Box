@@ -143,3 +143,60 @@
 .nb-registry-page .nb108-status-filter .nb109-status-glyph-completed{color:#13a05a;}
 .nb-registry-page .nb108-status-filter .nb109-status-glyph-in-progress{color:#0874f6;}
 .nb-registry-page .nb108-status-filter .nb109-status-glyph-not-started{color:#879bb6;}
+
+
+/* v0.6.110 — Search systems complete border and approved STATUS dropdown artwork.
+   Search input must be transparent and strictly inside its outlined label; the
+   broad application input rule previously painted an opaque white rectangle
+   across the 1px top/bottom border. Scope everything to System Registry. */
+.nbdt-redesign main .nb-registry-page .nb-registry-filters .nb-search-field{
+  position:relative;
+  isolation:isolate;
+  min-width:0;
+  border:1px solid #c9dbef;
+  border-radius:8px;
+  background:#fff;
+  overflow:hidden;
+}
+.nbdt-redesign main .nb-registry-page .nb-registry-filters .nb-search-field input{
+  min-width:0;
+  min-height:0!important;
+  height:100%;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+  border-radius:0;
+}
+.nbdt-redesign main .nb-registry-page .nb-registry-filters .nb-search-field:focus-within{
+  border-color:#3588eb;
+  box-shadow:0 0 0 3px rgba(0,110,245,.11);
+  overflow:visible;
+}
+/* Status icons match the accepted mockup: bare, round SVGs without old blue
+   circular backgrounds or inherited blanket-blue color. Device/owner menus
+   are intentionally untouched. */
+.nb-registry-page .nb108-status-filter .nb-type-filter-option-icon.nb110-status-icon-wrap{
+  display:grid;
+  place-items:center;
+  flex:0 0 20px;
+  width:20px;
+  height:20px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent!important;
+  box-shadow:none;
+}
+.nb-registry-page .nb96-dropdown-filter.nb108-status-filter .nb-type-filter-option-icon.nb110-status-icon-wrap>.nb109-status-glyph{
+  width:18px;
+  height:18px;
+  display:block;
+  flex-shrink:0;
+  fill:none;
+  background:transparent;
+}
+.nb-registry-page .nb96-dropdown-filter.nb108-status-filter .nb108-filter-option-completed .nb110-status-icon-wrap>.nb109-status-glyph{color:#13a05a;}
+.nb-registry-page .nb96-dropdown-filter.nb108-status-filter .nb108-filter-option-in-progress .nb110-status-icon-wrap>.nb109-status-glyph{color:#0874f6;}
+.nb-registry-page .nb96-dropdown-filter.nb108-status-filter .nb108-filter-option-not-started .nb110-status-icon-wrap>.nb109-status-glyph{color:#879bb6;}
+

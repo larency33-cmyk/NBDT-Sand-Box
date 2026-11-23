@@ -1282,9 +1282,9 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
     return <button type="button" role="option" aria-selected={value===item.value}
      className={'nb-type-filter-option'+(value===item.value?' selected':'')+(label==='Completion status'?' nb108-filter-option-'+item.value:'')}
      key={item.value} onClick={()=>choose(item.value)}>
-     <span className="nb-type-filter-option-icon nb-tone-blue">{label==='Completion status'
-       ?<RegistryStatusGlyph status={item.value as RegistryStatusKey} size={18} variant="filter"/>
-       :<OptionIcon size={18} aria-hidden="true"/>}</span>
+     {label==='Completion status'
+       ?<span className="nb-type-filter-option-icon nb110-status-icon-wrap"><RegistryStatusGlyph status={item.value as RegistryStatusKey} size={18} variant="filter"/></span>
+       :<span className="nb-type-filter-option-icon nb-tone-blue"><OptionIcon size={18} aria-hidden="true"/></span>}
      <span className="nb96-dropdown-option-text">{item.label}</span>
      {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
     </button>;

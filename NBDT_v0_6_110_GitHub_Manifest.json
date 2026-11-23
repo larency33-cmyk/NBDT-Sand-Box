@@ -1,0 +1,19 @@
+{
+  "version": "0.6.110",
+  "base_version": "0.6.109",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "index.tsx",
+    "nbdt-registry-v108.css",
+    "package.json",
+    "README.md",
+    "tests/registry-search-filter-icons-v110.test.mjs",
+    "RELEASE_NOTES_v0_6_110_RU.md",
+    "VALIDATION_v0_6_110.md",
+    "GITHUB_CHANGELOG_v0_6_110.txt",
+    "NBDT_v0_6_110_GitHub_Manifest.json"
+  ],
+  "scope": "System Registry search border and status dropdown icon appearance only",
+  "production_verified": false
+}
