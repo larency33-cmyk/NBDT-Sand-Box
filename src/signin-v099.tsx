@@ -36,7 +36,11 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       const sceneOrigin=scene.createSVGPoint();
       sceneOrigin.x=0;sceneOrigin.y=0;
       const cloudTop=sceneOrigin.matrixTransform(ctm).y;
-      const logoBottom=logo.getBoundingClientRect().bottom;
+      // The logo is moved visually only in v0.6.104. Exclude its CSS top
+      // offset from the legacy centering formula so the copy and button
+      // stay at their exact pre-existing viewport coordinates.
+      const logoVisualOffset=Number.parseFloat(getComputedStyle(logo).top)||0;
+      const logoBottom=logo.getBoundingClientRect().bottom-logoVisualOffset;
       const titleBox=title.getBoundingClientRect();
       const subtitleBox=subtitle.getBoundingClientRect();
       const buttonBox=button.getBoundingClientRect();

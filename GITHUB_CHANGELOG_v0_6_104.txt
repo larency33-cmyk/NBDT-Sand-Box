@@ -1,0 +1,5 @@
+NBDT Hub v0.6.104 — NBDT logo moved closer to headline
+- Lower only the NBDT logo visually on standard desktop screens (up to 32px).
+- Keep logo artwork, text, and all dimensions unchanged.
+- Preserve original headline, subtitle and corporate SSO button positions by excluding the CSS logo offset from the existing dynamic midpoint calculation.
+- Keep cloud clearance, scene, animation, footer and SSO click handler unchanged.

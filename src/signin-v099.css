@@ -184,3 +184,18 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 }
 .nb99-sso{transform:translateY(var(--nb103-button-shift,0px))}
 .nb99-entry-error{transform:translateY(var(--nb103-button-shift,0px))}
+
+/* v0.6.104 — Lower ONLY the NBDT wordmark toward the hero copy.
+   Relative positioning is paint-only: it does not affect document flow,
+   copy, SSO positioning, footer, or the animated deployment panorama. */
+.nb99-team-logo{
+  position:relative;
+  top:clamp(14px,3.6svh,32px);
+}
+/* The portrait flow already has a tight gap. Keep safe breathing room. */
+@media(max-width:720px){
+  .nb99-team-logo{top:clamp(0px,.7svh,6px)}
+}
+@media(max-height:520px){
+  .nb99-team-logo{top:0}
+}
