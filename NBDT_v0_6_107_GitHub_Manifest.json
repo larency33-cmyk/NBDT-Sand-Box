@@ -1,0 +1,20 @@
+{
+  "version": "0.6.107",
+  "base": "0.6.106",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "index.tsx",
+    "src/registry-metadata.mjs",
+    "nbdt-registry-v107.css",
+    "tests/registry-filter-delete-v096.test.mjs",
+    "tests/registry-description-delete-v107.test.mjs",
+    "package.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_107_RU.md",
+    "GITHUB_CHANGELOG_v0_6_107.txt",
+    "VALIDATION_v0_6_107.md",
+    "NBDT_v0_6_107_GitHub_Manifest.json"
+  ],
+  "scope": "System Registry description editor and delete confirmation only"
+}

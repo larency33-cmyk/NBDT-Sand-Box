@@ -34,6 +34,14 @@ export function registryCardFields(system) {
   };
 }
 
+/** Return exactly the text rendered by a System Registry card. The same text
+ * seeds its inline description editor, including the legacy fallback when a
+ * record has never had its own description saved. */
+export function registryVisibleDescription(system){
+  const saved = registryCardFields(system).description;
+  return saved || `${registryVisualType(system)} configuration and deployment guide.`;
+}
+
 export function registryVisualType(system) {
   const fields = registryCardFields(system);
   const category = fields.category.toLowerCase();

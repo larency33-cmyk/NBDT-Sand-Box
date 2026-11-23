@@ -64,10 +64,11 @@ import './nbdt-lessons-v080.css';
 import './nbdt-lessons-v081.css';
 import './nbdt-registry-v082.css';
 import './nbdt-registry-v096.css';
+import './nbdt-registry-v107.css';
 import './nbdt-tracker-v090.css';
 import {usePocAccess,AccessChip,LoginModal,AdminConsole} from './src/access-control-v047';
 import {IssueTrackerBoard} from './src/issue-tracker-v034';
-import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues} from './src/registry-metadata.mjs';
+import {DEVICE_TYPES,registryCardFields,registryVisualType,guideTechnicalValues,registryVisibleDescription} from './src/registry-metadata.mjs';
 import {DeviceTypeIcon} from './src/device-type-icon';
 import {readAppRoute,sectionPath,guidePath,weekIndexFromIso} from './src/navigation.mjs';
 import {isoWeek} from './src/extended-model.mjs';
@@ -1261,11 +1262,21 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
 
 const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDescription, onAssignOwner, onDeleteSystem, setActiveCheckSheetSys}: any) => {
   const [editingDescription,setEditingDescription]=useState(false);
-  const [descriptionDraft,setDescriptionDraft]=useState(String(sys.description||''));
+  const [descriptionDraft,setDescriptionDraft]=useState(()=>registryVisibleDescription(sys));
   const [descriptionSaving,setDescriptionSaving]=useState(false);
   const [descriptionError,setDescriptionError]=useState('');
   const [confirmDelete,setConfirmDelete]=useState(false);
   const [deletingSystem,setDeletingSystem]=useState(false);
+  const deleteCancelRef=useRef<HTMLButtonElement>(null);
+  useEffect(()=>{
+    if(!confirmDelete)return;
+    deleteCancelRef.current?.focus();
+    const dismiss=(event:KeyboardEvent)=>{
+      if(event.key==='Escape'&&!deletingSystem){event.preventDefault();setConfirmDelete(false);}
+    };
+    document.addEventListener('keydown',dismiss);
+    return()=>document.removeEventListener('keydown',dismiss);
+  },[confirmDelete,deletingSystem]);
   const deleteSelectedSystem=async()=>{
    if(!isAdmin||deletingSystem||descriptionSaving||!confirmDelete)return;
    setDeletingSystem(true);setDescriptionError('');
@@ -1295,12 +1306,18 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
   const fields = registryCardFields(sys);
   const visualType = registryVisualType(sys);
   const tone = getVisualTone(visualType as SystemVisualType);
-  const description = fields.description || `${visualType} configuration and deployment guide.`;
+  const description = registryVisibleDescription(sys);
   return <article className="nb-system-card nb-system-card-template">
     <div className="nb-system-card-top">
       <div className={`nb-device nb-tone-${tone}`}><DeviceGlyph type={visualType} className="nb-device-glyph" /></div>
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
-      {isAdmin && <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} title="Edit description" onClick={()=>{setDescriptionDraft(String(sys.description||''));setDescriptionError('');setConfirmDelete(false);setEditingDescription(true);}}><Edit2 size={16}/></button>}
+      {isAdmin&&<div className="nb107-card-header-actions">
+        {editingDescription&&<button type="button" className="nb107-card-trash-icon" aria-label={`Delete system ${sys.name}`} title="Delete system and all associated data" disabled={descriptionSaving||deletingSystem} onClick={()=>{setDescriptionError('');setConfirmDelete(true);}}><Trash2 size={16}/></button>}
+        <button className="nb-card-edit-icon" type="button" aria-label={`Edit description for ${sys.name}`} aria-pressed={editingDescription} title={editingDescription?'Close description editor':'Edit description'} disabled={descriptionSaving||deletingSystem} onClick={()=>{
+          if(editingDescription){setConfirmDelete(false);setEditingDescription(false);return;}
+          setDescriptionDraft(description);setDescriptionError('');setConfirmDelete(false);setEditingDescription(true);
+        }}><Edit2 size={16}/></button>
+      </div>}
     </div>
     <dl className="nb-spec-list nb-spec-list-template">{[['Device model',fields.model],['OS',fields.os],['Connection',fields.network],['Naming',fields.naming]].map(([k,v]) => <React.Fragment key={k}><dt>{k}</dt><dd title={String(v || '—')}>{v || '—'}</dd></React.Fragment>)}</dl>
     <div className="nb52-owner-in-registry nb86-owner-in-registry">
@@ -1320,18 +1337,20 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
       <div className="nb41-inline-actions nb96-card-edit-actions">
        <button type="button" disabled={descriptionSaving||deletingSystem} className="nb-button nb-primary" onClick={saveDescription}><Check size={15}/> Save</button>
        <button type="button" className="nb-button" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(false);setEditingDescription(false);}}>Cancel</button>
-       <button type="button" className="nb-button nb96-delete-trigger" disabled={descriptionSaving||deletingSystem} onClick={()=>{setConfirmDelete(true);setDescriptionError('');}}><Trash2 size={15}/> Delete system</button>
       </div>
-      {confirmDelete&&<div className="nb96-delete-confirm" role="group" aria-label={'Confirm deletion of '+sys.name}>
-       <strong>Delete “{sys.name}” permanently?</strong>
-       <p>This removes the system, its configuration guide, devices, checklists, history and linked issues. This cannot be undone.</p>
-       <div className="nb96-delete-confirm-actions">
-        <button type="button" className="nb-button" disabled={deletingSystem} onClick={()=>setConfirmDelete(false)}>Keep system</button>
-        <button type="button" className="nb-button nb96-delete-confirm-button" disabled={deletingSystem} onClick={()=>{void deleteSelectedSystem();}}><Trash2 size={15}/>{deletingSystem?'Deleting…':'Yes, delete system'}</button>
-       </div>
-      </div>}
     </div>:<ExpandableRegistryDescription text={description} tone={tone} />}
     <div className="nb-card-actions nb-card-actions-template">{url ? <a className="nb-button" href={url} target="_blank" rel="noopener noreferrer">Documentation</a> : <button className="nb-button" type="button" disabled title="No documentation URL has been linked">Documentation</button>}<button type="button" className="nb-button nb-primary" onClick={()=>setActiveCheckSheetSys(sys)}>Open guide <ArrowRight size={17}/></button></div>
+    {confirmDelete&&createPortal(<div className="nb107-delete-overlay" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget&&!deletingSystem)setConfirmDelete(false);}}>
+      <section className="nb107-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby={'nb107-delete-title-'+sys.id} aria-describedby={'nb107-delete-details-'+sys.id}>
+        <div className="nb107-delete-dialog-heading"><span className="nb107-delete-warning-icon" aria-hidden="true"><AlertCircle size={24}/></span><h2 id={'nb107-delete-title-'+sys.id}>Delete “{sys.name}” permanently?</h2></div>
+        <p id={'nb107-delete-details-'+sys.id}><strong>Warning: the system's data will be permanently destroyed.</strong> This includes its configuration guide, devices, checklists, deployment history and linked issues. This action cannot be undone.</p>
+        {descriptionError&&<p className="nb107-delete-error" role="alert">{descriptionError}</p>}
+        <div className="nb107-delete-dialog-actions">
+          <button type="button" className="nb107-delete-keep" ref={deleteCancelRef} disabled={deletingSystem} onClick={()=>setConfirmDelete(false)}>Keep system</button>
+          <button type="button" className="nb107-delete-confirm-button" disabled={deletingSystem} onClick={()=>{void deleteSelectedSystem();}}><Trash2 size={16}/>{deletingSystem?'Deleting…':'Yes, delete system'}</button>
+        </div>
+      </section>
+    </div>,document.body)}
   </article>;
 };
 const SystemActionButton: React.FC<{

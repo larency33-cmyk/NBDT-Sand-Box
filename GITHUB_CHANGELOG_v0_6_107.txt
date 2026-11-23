@@ -1,0 +1,5 @@
+NBDT v0.6.107 — System Registry: reliable description editing and safe delete
+- Prefill the textarea from exactly the description displayed in the Registry card, including the legacy fallback.
+- Move destructive delete control from editor actions to a red trash icon left of the pencil when editing.
+- Use a distinct, accessible modal with explicit permanent-data-loss warning and confirmation.
+- Retain admin checks and existing deleteRegistrySystem cleanup scope.

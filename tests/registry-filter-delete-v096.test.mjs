@@ -80,11 +80,11 @@ test('Dropdowns allow clearing and keyboard dismissal, preserving the same filte
 
 test('Admin card pencil offers delete only after explicit confirmation',()=>{
  assert.match(app,/const SystemRegistryCard = \(\{[^\n]*onDeleteSystem/);
- assert.match(app,/\{isAdmin && <button className="nb-card-edit-icon"/);
+ assert.match(app,/\{isAdmin&&<div className="nb107-card-header-actions"/);
  assert.match(app,/setConfirmDelete\(true\)/);
- assert.match(app,/\{confirmDelete&&<div className="nb96-delete-confirm"/);
+ assert.match(app,/\{confirmDelete&&createPortal\(<div className="nb107-delete-overlay"/);
  assert.match(app,/Delete “\{sys\.name\}” permanently\?/);
- assert.match(app,/Delete system<\/button>/);
+ assert.match(app,/aria-label=\{`Delete system \${sys\.name}`\}/);
  assert.match(app,/Yes, delete system/);
  assert.match(app,/if\(!isAdmin\|\|deletingSystem\|\|descriptionSaving\|\|!confirmDelete\)return/);
  assert.match(app,/await onDeleteSystem\(sys\.id\)/);
