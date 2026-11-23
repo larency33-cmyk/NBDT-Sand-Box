@@ -269,3 +269,84 @@
  .nb116-page .nb52-pencil,
  .nb116-page .nb52-drag-handle{opacity:.65}
 }
+
+
+/* v0.6.117 — approved Assignment refinement.
+   Keep the 28px initials, owner navigation, row sizing and assignments intact. */
+/* Round the employee headers without resizing the column or avatar. */
+.nb117-page .nb52-person{
+ border-radius:12px 12px 10px 10px;
+ background-clip:padding-box;
+ box-shadow:inset 0 0 0 2px #f8fbff,0 1px 3px #21487612;
+}
+/* 25% increase from v116's 10px task labels, retaining regular weight. */
+.nb117-page .nb52-assignment-name{
+ font-size:12.5px;
+ line-height:1.18;
+ font-weight:400;
+ color:#52627d;
+}
+/* 30% lighter than the v116 empty-cell surface (#f1f5fb -> #f5f8fc). */
+.nb117-page .nb52-add-in-cell,
+.nb117-page .nb52-empty{
+ background:#f5f8fc;
+ border-color:#edf2f9;
+}
+.nb117-page .nb52-cell:hover .nb52-add-in-cell,
+.nb117-page .nb52-cell:focus-within .nb52-add-in-cell{
+ background:#eaf3ff;
+ border-color:#c8ddf7;
+}
+/* Insertion is always BEFORE the exact hovered item/empty slot.
+   A crisp full-width blue bar sits between the two rows; no ambiguous
+   whole-column drop state is needed to identify the intended position. */
+.nb117-page .nb52-cell.nb117-insertion-before,
+.nb117-page .nb52-cell.nb117-insertion-after{
+ position:relative;
+ background:#f7fbff!important;
+ box-shadow:none!important;
+}
+.nb117-page .nb52-cell.nb117-insertion-before::before,
+.nb117-page .nb52-cell.nb117-insertion-after::before{
+ content:"";
+ position:absolute;
+ z-index:24;
+ pointer-events:none;
+ left:6px;
+ right:6px;
+ top:-2px;
+ height:3px;
+ border-radius:999px;
+ background:#0876f9;
+ box-shadow:0 0 0 1px #fff,0 0 8px #0876f960;
+}
+.nb117-page .nb52-cell.nb117-insertion-before::after,
+.nb117-page .nb52-cell.nb117-insertion-after::after{
+ content:"";
+ position:absolute;
+ z-index:25;
+ pointer-events:none;
+ left:3px;
+ top:-5px;
+ height:9px;
+ width:9px;
+ border-radius:50%;
+ background:#0876f9;
+ border:1px solid #fff;
+ box-shadow:0 0 5px #0876f94a;
+}
+/* Use the lower edge when a same-owner move comes from an earlier row. */
+.nb117-page .nb52-cell.nb117-insertion-after::before{top:auto;bottom:-2px}
+.nb117-page .nb52-cell.nb117-insertion-after::after{top:auto;bottom:-5px}
+/* The line, not a full-cell blue fill, defines the destination. */
+.nb117-page .nb52-cell.nb52-cell-drop,
+.nb117-page .nb52-cell.nb54-target-column{box-shadow:none!important}
+.nb117-page .nb52-cell.nb117-insertion-before .nb52-assignment-item,
+.nb117-page .nb52-cell.nb117-insertion-after .nb52-assignment-item{
+ border-color:#9dc7fa;
+ background:#edf6ff;
+}
+@media(prefers-reduced-motion:reduce){
+ .nb117-page .nb52-cell.nb117-insertion-before .nb52-assignment-item,
+ .nb117-page .nb52-cell.nb117-insertion-after .nb52-assignment-item{transition:none}
+}

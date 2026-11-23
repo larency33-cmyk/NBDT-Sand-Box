@@ -1,0 +1,6 @@
+NBDT Hub v0.6.117 — Assignment polish
+- Rounded employee header cards, original initials unchanged at 28x28 px.
+- Increased task-name font size by 25% (10px to 12.5px); regular-weight typography preserved.
+- Lightened unassigned task slots by 30% towards white.
+- Added exact insertion-line feedback for drag-and-drop, including accurate above/below placement for same-owner reordering and empty slots.
+- Kept the seven-owner viewport, single-column arrows, edit/delete/drag operations, row minimums and persistent data.

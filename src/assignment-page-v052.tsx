@@ -25,11 +25,34 @@ export const assignmentPageStarts=(ownerCount:number,includeNewPerson:boolean,vi
  return Array.from({length:lastStart+1},(_,index)=>index);
 };
 
-function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwner,justMoved,draggingPersonId,columnTarget,justReorderedColumns}:any){
+/** Describe the EXACT destination of moveAssignment without modifying the roster.
+ * When moving down within the same owner, moveAssignment removes the dragged
+ * item before inserting by index. The visual line must therefore be BELOW
+ * the hovered card, not above it. Empty distant rows clamp to the end. */
+export const assignmentInsertionMarker=(roster:any,draggedItemId:string|null,hoveredSlot:string|null)=>{
+ const match=String(hoveredSlot||'').match(/^slot:([^:]+):(head|\d+)$/);
+ const active=roster.items.find((item:any)=>item.id===draggedItemId);
+ if(!match||!active)return null;
+ const personId=match[1];
+ if(!roster.people.some((person:any)=>person.id===personId))return null;
+ const targetIndex=match[2]==='head'?0:Number(match[2]);
+ const assignments=roster.items.filter((item:any)=>item.personId===personId).sort((a:any,b:any)=>a.order-b.order);
+ const sourceIndex=assignments.findIndex((item:any)=>item.id===draggedItemId);
+ const sameOwner=active.personId===personId;
+ if(sameOwner&&active.order===targetIndex)return null;
+ const remainingCount=assignments.length-(sameOwner?1:0);
+ const insertionIndex=Math.max(0,Math.min(remainingCount,targetIndex));
+ return sameOwner&&sourceIndex<insertionIndex
+  ?{personId,row:Math.min(insertionIndex,assignments.length-1),edge:'after' as const}
+  :{personId,row:insertionIndex,edge:'before' as const};
+};
+
+function AssignmentCell({item,person,position,isAdmin,busy,onEdit,onAdd,dropOwner,insertionMarker,justMoved,draggingPersonId,columnTarget,justReorderedColumns}:any){
  const targetId=`slot:${person.id}:${position}`;
  const {setNodeRef:isDropRef,isOver}=useDroppable({id:targetId,disabled:!isAdmin});
  const {attributes,listeners,setNodeRef:isDragRef,isDragging}=useDraggable({id:`item:${item?.id||targetId}`,disabled:!isAdmin||!item||busy});
- return <td className={'nb52-cell '+(isOver?'nb52-cell-drop ':'')+(isDragging?'nb52-cell-dragging ':'')+(dropOwner===person.id?'nb54-target-column ':'')+(justMoved===item?.id?'nb54-landed ':'')+(draggingPersonId===person.id?'nb56-column-source ':'')+(columnTarget?.personId===person.id?'nb56-column-destination ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='before'?'nb57-insert-before ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='after'?'nb57-insert-after ':'')+(justReorderedColumns?.includes(person.id)?'nb56-column-landed ':'')} ref={isDropRef} data-owner={person.name}>
+ const insertionEdge=insertionMarker?.personId===person.id&&insertionMarker.row===position?insertionMarker.edge:null;
+ return <td className={'nb52-cell '+(isOver?'nb52-cell-drop ':'')+(insertionEdge==='before'?'nb117-insertion-before ':'')+(insertionEdge==='after'?'nb117-insertion-after ':'')+(isDragging?'nb52-cell-dragging ':'')+(dropOwner===person.id?'nb54-target-column ':'')+(justMoved===item?.id?'nb54-landed ':'')+(draggingPersonId===person.id?'nb56-column-source ':'')+(columnTarget?.personId===person.id?'nb56-column-destination ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='before'?'nb57-insert-before ':'')+(columnTarget?.personId===person.id&&columnTarget.placement==='after'?'nb57-insert-after ':'')+(justReorderedColumns?.includes(person.id)?'nb56-column-landed ':'')} ref={isDropRef} data-owner={person.name}>
   {item?<div className="nb52-assignment-item" ref={isDragRef} title={`${item.name}\nOwner: ${person.name}`}>
    {isAdmin&&<button type="button" className="nb52-drag-handle" {...listeners} {...attributes} aria-label={`Move ${item.name} from ${person.name}`} title="Drag to another owner"><GripVertical size={14}/></button>}
    <span className="nb52-assignment-name">{item.name}</span>
@@ -69,6 +92,7 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const [busy,setBusy]=useState(false);
  const [dragging,setDragging]=useState<any>(null);
  const [dropTarget,setDropTarget]=useState<any>(null);
+ const [dropSlot,setDropSlot]=useState<string|null>(null);
  const [justMoved,setJustMoved]=useState<any>(null);
  const [draggingPersonId,setDraggingPersonId]=useState<string|null>(null);
  const [columnTarget,setColumnTarget]=useState<{personId:string,placement:'before'|'after'}|null>(null);
@@ -149,7 +173,7 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  }catch(e:any){setError(e?.message||'Could not save.');}finally{setBusy(false);}};
  const remove=async()=>{if(!isAdmin||!editor?.id||busy)return;if(!window.confirm(`Remove “${editor.original}” from Assignment?`))return;setBusy(true);try{await onChange((current:any)=>removeAssignment(current,editor.id));setEditor(null);}catch(e:any){setError(e?.message||'Could not remove.');}finally{setBusy(false);}};
  const move=async(evt:any)=>{
-  const sourceId=String(evt.active.id||'');const destinationId=String(evt.over?.id||'');setDragging(null);setDropTarget(null);
+  const sourceId=String(evt.active.id||'');const destinationId=String(evt.over?.id||'');setDragging(null);setDropTarget(null);setDropSlot(null);
   if(!isAdmin||busy||!sourceId.startsWith('item:')||!destinationId.startsWith('slot:'))return;
   const [,personId,index]=destinationId.split(':');const id=sourceId.slice(5);const current=roster.items.find((i:any)=>i.id===id);
   if(!current||!roster.people.some((p:any)=>p.id===personId)||current.personId===personId&&current.order===(index==='head'?0:Number(index)))return;
@@ -175,22 +199,23 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  };
  const onDragFinished=(event:any)=>{
   const isPerson=String(event.active?.id||'').startsWith('person:');
-  setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);
+  setDragging(null);setDropTarget(null);setDropSlot(null);setDraggingPersonId(null);setColumnTarget(null);
   if(isPerson){void reorderColumn(event);return;}
   void move(event);
  };
  const onDraggingStarted=(event:any)=>{
   const id=String(event.active?.id||'');
-  if(id.startsWith('person:')){setDraggingPersonId(id.slice(7));setColumnTarget(null);setDragging(null);setDropTarget(null);}
-  else if(id.startsWith('item:')){setDragging(id.slice(5));setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);}
+  if(id.startsWith('person:')){setDraggingPersonId(id.slice(7));setColumnTarget(null);setDragging(null);setDropTarget(null);setDropSlot(null);}
+  else if(id.startsWith('item:')){setDragging(id.slice(5));setDropTarget(null);setDropSlot(null);setDraggingPersonId(null);setColumnTarget(null);}
  };
  const onDraggingOver=(event:any)=>{
   const id=String(event.over?.id||'');
   if(String(event.active?.id||'').startsWith('person:')){
    const target=id.match(/^person-insert:(.+):(before|after)$/);
    setColumnTarget(target?{personId:target[1],placement:target[2] as 'before'|'after'}:null);
+   setDropSlot(null);
   }
-  else setDropTarget(id.startsWith('slot:')?id.split(':')[1]:null);
+  else {setDropSlot(id.startsWith('slot:')?id:null);setDropTarget(id.startsWith('slot:')?id.split(':')[1]:null);}
  };
  const assignmentCollision=(args:any)=>{
   const prefix=String(args.active?.id||'').startsWith('person:')?'person-insert:':'slot:';
@@ -201,17 +226,18 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  };
  const dragged=dragging?roster.items.find((i:any)=>i.id===dragging):null;
  const sourcePerson=dragged?roster.people.find((p:any)=>p.id===dragged.personId):null;
+ const insertionMarker=assignmentInsertionMarker(roster,dragging,dropSlot);
  const dropPerson=dropTarget?roster.people.find((p:any)=>p.id===dropTarget):null;
  const columnPerson=draggingPersonId?roster.people.find((p:any)=>p.id===draggingPersonId):null;
  const columnDestination=columnTarget?roster.people.find((p:any)=>p.id===columnTarget.personId):null;
  const seen=new Set<string>();const sharedNames=new Set<string>();roster.items.forEach((i:any)=>{const key=i.name.trim().toLowerCase();if(seen.has(key))sharedNames.add(key);seen.add(key);});
- return <section className="nb52-page nb54-page nb114-page nb116-page" aria-label="Assignment">
+ return <section className="nb52-page nb54-page nb114-page nb116-page nb117-page" aria-label="Assignment">
   <header className="nb52-header nb45-primary-header"><div><h1>Assignment</h1><p>System ownership · Team responsibilities</p></div><div className="nb52-kpis"><span><Users size={17}/>{roster.people.length} people</span><span><ClipboardList size={17}/>{roster.items.length} assignments</span></div></header>
   <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span><nav className="nb114-navigation" aria-label="Assignment column navigation"><button type="button" className="nb114-nav-arrow" aria-label="Previous owner columns" title="Previous employee column" disabled={currentPage===0} onClick={()=>navigateColumns(-1)}><ChevronLeft size={17}/></button><span className="nb114-nav-counter" aria-live="polite">Showing {firstVisible}–{lastVisible} of {people.length}</span><button type="button" className="nb114-nav-arrow nb114-next" aria-label="Next owner columns" title="Next employee column" disabled={currentPage===pageStarts.length-1} onClick={()=>navigateColumns(1)}><ChevronRight size={17}/></button></nav></div>
   <div className="nb52-matrix-frame">
    <div ref={gridRef} className="nb52-grid-scroll" role="region" aria-label="Assignment matrix — use navigation arrows to browse owner columns" tabIndex={0} onScroll={onMatrixScroll} onWheel={()=>{scrollTargetRef.current=null}} onTouchStart={()=>{scrollTargetRef.current=null}} onKeyDown={e=>{if(['ArrowLeft','ArrowRight','Home','End','PageUp','PageDown'].includes(e.key))scrollTargetRef.current=null}} style={{'--nb114-owner-width':`${viewport.ownerWidth}px`} as React.CSSProperties}>
-    <DndContext sensors={sensors} collisionDetection={assignmentCollision} onDragStart={onDraggingStarted} onDragOver={onDraggingOver} onDragCancel={()=>{setDragging(null);setDropTarget(null);setDraggingPersonId(null);setColumnTarget(null);}} onDragEnd={onDragFinished}>
-     <table className="nb52-table" style={{'--nb54-rows':rowCount} as React.CSSProperties}><thead><tr><th className="nb52-project-th" scope="col"><div className="nb52-project-heading"><span className="nb116-project-label"><Layers3 size={13} aria-hidden="true"/>Project</span><small>Assigned systems</small></div></th>{people.map((p:any)=><PersonColumnHeader key={p.id} person={p} index={roster.people.findIndex((x:any)=>x.id===p.id)} isAdmin={isAdmin} busy={busy} onEdit={beginPersonEdit} onAdd={beginAdd} dropOwner={dropTarget} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<th scope="col" className="nb54-new-person"><button type="button" onClick={beginPersonAdd} aria-label="Add new team member"><span className="nb54-new-avatar"><UserRoundPlus size={19}/></span><strong>Add person</strong><small>Name · Position · Start date</small><span className="nb54-new-plus"><Plus size={14}/> New team member</span></button></th>}</tr></thead><tbody>{Array.from({length:rowCount},(_,row)=><tr key={row}><th scope="row" className="nb52-project-row"><span className="nb116-project-row-label"><Folder size={12} aria-hidden="true"/>Project {row}</span></th>{people.map((p:any)=><AssignmentCell key={p.id+':'+row} person={p} item={itemsByPerson[p.id]?.[row]} isAdmin={isAdmin} busy={busy} position={row} onEdit={beginEdit} onAdd={beginAdd} dropOwner={dropTarget} justMoved={justMoved} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<td className="nb54-new-empty"/>}</tr>)}</tbody></table>
+    <DndContext sensors={sensors} collisionDetection={assignmentCollision} onDragStart={onDraggingStarted} onDragOver={onDraggingOver} onDragCancel={()=>{setDragging(null);setDropTarget(null);setDropSlot(null);setDraggingPersonId(null);setColumnTarget(null);}} onDragEnd={onDragFinished}>
+     <table className="nb52-table" style={{'--nb54-rows':rowCount} as React.CSSProperties}><thead><tr><th className="nb52-project-th" scope="col"><div className="nb52-project-heading"><span className="nb116-project-label"><Layers3 size={13} aria-hidden="true"/>Project</span><small>Assigned systems</small></div></th>{people.map((p:any)=><PersonColumnHeader key={p.id} person={p} index={roster.people.findIndex((x:any)=>x.id===p.id)} isAdmin={isAdmin} busy={busy} onEdit={beginPersonEdit} onAdd={beginAdd} dropOwner={dropTarget} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<th scope="col" className="nb54-new-person"><button type="button" onClick={beginPersonAdd} aria-label="Add new team member"><span className="nb54-new-avatar"><UserRoundPlus size={19}/></span><strong>Add person</strong><small>Name · Position · Start date</small><span className="nb54-new-plus"><Plus size={14}/> New team member</span></button></th>}</tr></thead><tbody>{Array.from({length:rowCount},(_,row)=><tr key={row}><th scope="row" className="nb52-project-row"><span className="nb116-project-row-label"><Folder size={12} aria-hidden="true"/>Project {row}</span></th>{people.map((p:any)=><AssignmentCell key={p.id+':'+row} person={p} item={itemsByPerson[p.id]?.[row]} isAdmin={isAdmin} busy={busy} position={row} onEdit={beginEdit} onAdd={beginAdd} dropOwner={dropTarget} insertionMarker={insertionMarker} justMoved={justMoved} draggingPersonId={draggingPersonId} columnTarget={columnTarget} justReorderedColumns={justReorderedColumns}/>)}{isAdmin&&<td className="nb54-new-empty"/>}</tr>)}</tbody></table>
      {createPortal(<DragOverlay dropAnimation={{duration:240,easing:'cubic-bezier(.2,.9,.2,1)'}}>{dragged?<div className="nb52-drag-preview"><GripVertical size={15}/><div><strong>{dragged.name}</strong><span>{sourcePerson?.name||'Current owner'} <MoveRight size={12}/> {dropPerson?.name||'Choose new owner'}</span></div></div>:null}{columnPerson?<div className="nb56-column-preview"><span className="nb56-column-preview-avatar">{columnPerson.name[0]}</span><div><strong>{columnPerson.name}</strong><small>{roster.items.filter((item:any)=>item.personId===columnPerson.id).length} systems · Entire column</small><span><ArrowRightLeft size={13}/> {columnDestination&&columnDestination.id!==columnPerson.id?`Insert ${columnTarget?.placement} ${columnDestination.name}`:'Drop at a column edge'}</span></div></div>:null}</DragOverlay>,document.body)}
     </DndContext>
    </div>
