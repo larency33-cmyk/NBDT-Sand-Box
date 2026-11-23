@@ -1,0 +1,42 @@
+{
+  "version": "0.6.101",
+  "base_version": "0.6.100",
+  "files": {
+    "src/signin-v099.tsx": {
+      "sha256": "6353ff8cd8e336f3845b99095b64a1c1f95b52fd8d53c6078c4887f48ae341ac",
+      "size": 2137
+    },
+    "src/signin-scene-v099.tsx": {
+      "sha256": "ba98b4d59470e9affcea08ad62beed524418cad9df8d5804f0c3cdad5d23f9c4",
+      "size": 10960
+    },
+    "src/signin-v099.css": {
+      "sha256": "488f43df1aa4f560b1f8a7f6710ab669e286943c1110aa6ef0ce938749651f8a",
+      "size": 13519
+    },
+    "src/assets/royal-caribbean-group-lockup-v101.png": {
+      "sha256": "08fee4babb4abb1c1472bbd5f558e7f4a3613333b894fbdf7ff6bf06169856ff",
+      "size": 13347
+    },
+    "package.json": {
+      "sha256": "541c4330fb7f2e1a88149e59909a80032841159fbb228dbd7a2d2f050dfa8fb0",
+      "size": 1338
+    },
+    "tests/signin-v101.test.mjs": {
+      "sha256": "750db6202260b2c67ec2ca4ee90a350cb88ef9454633224651443d6e1850a9fd",
+      "size": 1656
+    },
+    "RELEASE_NOTES_v0_6_101_RU.md": {
+      "sha256": "d821d3543aef95c4bcf33c999b0aa044043cd254b66c297b53f6ffc13d57c8d0",
+      "size": 2200
+    },
+    "GITHUB_CHANGELOG_v0_6_101.txt": {
+      "sha256": "c3f5383299bfa353c24934328c72e3183d32fe867737df4ea2c66aee46c5904f",
+      "size": 294
+    },
+    "VALIDATION_v0_6_101.md": {
+      "sha256": "6b759d0836447464a1d9dbadbc0f356532f95554cfe1b631ef8a1117aa5b3d49",
+      "size": 864
+    }
+  }
+}

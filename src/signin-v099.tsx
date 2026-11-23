@@ -1,6 +1,7 @@
 import React from 'react';
 import {ArrowRight,KeyRound} from 'lucide-react';
 import {DeploymentScene,TeamLogo} from './signin-scene-v099';
+import royalCaribbeanGroupLockup from './assets/royal-caribbean-group-lockup-v101.png';
 import './signin-v099.css';
 
 export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?:boolean;error?:string}){
@@ -17,6 +18,6 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       {error&&<p className="nb99-entry-error" role="alert">{error}</p>}
     </section>
     <div className="nb99-panorama"><DeploymentScene/></div>
-    <footer className="nb99-footer"><p className="nb99-group">ROYAL CARIBBEAN GROUP</p><div className="nb99-brands"><span>Royal Caribbean International</span><i aria-hidden="true"/><span>Celebrity Cruises</span><i aria-hidden="true"/><span>Silversea</span></div></footer>
+    <footer className="nb99-footer"><img className="nb101-group-lockup" src={royalCaribbeanGroupLockup} alt="Royal Caribbean Group · Royal Caribbean International · Celebrity Cruises · Silversea" width="2048" height="118" decoding="async" /></footer>
   </main>;
 }

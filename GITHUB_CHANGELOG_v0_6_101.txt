@@ -1,0 +1,5 @@
+NBDT v0.6.101
+- Add uploaded Royal Caribbean brand PNG to footer
+- Implement viewport-height-aware responsive welcome layout
+- Seamless left-to-right cloud track, independently blinking rack LEDs, gentle water glints
+- Keep shared motion pause/reduced-motion timeline and legacy entry behavior

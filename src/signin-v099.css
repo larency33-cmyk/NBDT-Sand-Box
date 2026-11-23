@@ -64,3 +64,60 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 @media(max-height:800px) and (min-width:721px){.nb99-header{padding-top:18px;font-size:24px}.nb99-hero{padding-top:45px}.nb99-team-logo{width:400px}.nb99-hero h1{margin-top:17px;font-size:36px}.nb99-subtitle{font-size:22px;margin-top:8px}.nb99-sso{margin-top:21px;min-height:52px;font-size:18px;width:415px}.nb99-helper{margin-top:8px;font-size:13px}.nb99-panorama{max-width:1480px}.nb99-footer{padding:13px 12px 17px;margin-top:6px}.nb99-group{font-size:17px}.nb99-brands{font-size:13px}}
 @media(max-width:1100px) and (min-width:721px){.nb99-header{font-size:23px;padding:22px}.nb99-hero{padding-top:75px}.nb99-team-logo{width:390px}.nb99-hero h1{font-size:34px}.nb99-subtitle{font-size:22px}.nb99-sso{font-size:18px;width:420px}}
 @media(max-width:720px){.nb99-header{font-size:20px;padding:18px 20px;letter-spacing:-.6px}.nb99-hero{padding:73px 22px 0}.nb99-team-logo{width:350px;max-width:92%}.nb99-hero h1{max-width:440px;font-size:29px;line-height:1.16;margin-top:23px;letter-spacing:-.8px}.nb99-subtitle{font-size:17px;max-width:320px;margin-top:11px}.nb99-sso{width:100%;font-size:16px;gap:12px;margin-top:26px;min-height:55px;border-radius:8px;padding:14px 16px;max-width:370px}.nb99-sso svg{width:20px;height:20px}.nb99-helper{font-size:12px;margin-top:9px}.nb99-panorama{max-width:540px;margin-top:22px;padding-inline:8px}.nb99-phase-label{font-size:30px}.nb99-motion-toggle{right:10px;bottom:5px}.nb99-footer{margin:12px 20px 0;padding:18px 0 24px}.nb99-group{font-size:14px;letter-spacing:2.4px}.nb99-brands{gap:7px 13px;font-size:11px;margin-top:10px}.nb99-brands i{height:11px}.nb99-chart-left{width:70vw}.nb99-chart-right{width:38vw}}
+
+/* v0.6.101: Fit the entire sign-in composition into the viewport, not just its width.
+   The central scene absorbs any remaining vertical space; no page-level cropping. */
+.nb99-signin{height:100svh;min-height:0;overflow:hidden}
+.nb99-header{padding:clamp(10px,2.2svh,22px) clamp(14px,2.5vw,36px);font-size:clamp(16px,2.4svh,26px)}
+.nb99-hero{flex:0 0 auto;padding:clamp(40px,6.5svh,76px) 18px 0}
+.nb99-team-logo{width:clamp(215px,min(34vw,42svh),555px);max-width:86vw}
+.nb99-hero h1{margin-top:clamp(8px,1.8svh,23px);font-size:clamp(18px,min(3.1vw,4.1svh),48px);letter-spacing:-.025em}
+.nb99-subtitle{margin-top:clamp(4px,1.15svh,12px);font-size:clamp(13px,min(2vw,2.65svh),28px)}
+.nb99-sso{width:clamp(265px,34vw,470px);min-height:clamp(37px,6svh,60px);margin-top:clamp(10px,2.4svh,28px);padding:clamp(7px,1.2svh,15px) clamp(12px,1.5vw,23px);font-size:clamp(13px,2.15svh,21px);gap:clamp(9px,1.5vw,17px)}
+.nb99-sso svg{width:clamp(16px,2.5svh,23px);height:clamp(16px,2.5svh,23px)}
+.nb99-helper{margin-top:clamp(4px,1svh,11px);font-size:clamp(10px,1.55svh,15px)}
+.nb99-panorama{flex:1 1 auto;min-height:0;margin:clamp(3px,1.3svh,14px) auto 0;width:100%;max-width:1920px;padding:0;display:flex;align-items:flex-end;justify-content:center}
+.nb99-scene{height:100%;min-height:0;display:flex;align-items:flex-end;justify-content:center}
+.nb99-scene-canvas{display:block;width:100%;height:100%;min-height:0;object-fit:contain;overflow:hidden}
+.nb99-motion-toggle{right:clamp(8px,2vw,28px);bottom:clamp(4px,.6svh,9px)}
+.nb99-footer{flex:0 0 auto;min-height:0;margin:0 clamp(10px,3vw,58px);padding:clamp(5px,.8svh,12px) 10px clamp(6px,.9svh,14px);border-top:1px solid #cbdced;display:flex;align-items:center;justify-content:center}
+.nb101-group-lockup{display:block;width:auto;max-width:min(100%,1120px);height:clamp(26px,7.3svh,62px);object-fit:contain;object-position:center}
+/* Pixel clouds repeat one exact 1670-unit tile. This moves LEFT to RIGHT, never backtracks. */
+.nb100-clouds.nb101-cloud-track{animation:nb101-cloud-right 40s linear infinite paused;will-change:transform}
+@keyframes nb101-cloud-right{from{transform:translateX(0)}to{transform:translateX(1670px)}}
+/* Independent hardware lights: each LED has its own offset but all run on one clock. */
+.nb101-rack-led{fill:#58e7ff;opacity:.5;filter:drop-shadow(0 0 3px #22bfff);animation:nb101-led-status 4s steps(1,end) infinite paused}
+@keyframes nb101-led-status{0%,15%,44%,77%,100%{opacity:.3;fill:#2ea2d8}16%,32%,59%,75%{opacity:1;fill:#a0fcff}33%,43%,76%{opacity:.5;fill:#50cdeb}45%,58%{opacity:.8;fill:#68eaff}}
+.nb101-water-highlight{opacity:.22;animation:nb101-water-glint 4s ease-in-out infinite paused;will-change:opacity,transform}
+@keyframes nb101-water-glint{0%,100%{opacity:.2;transform:translateX(-5px)}50%{opacity:.95;transform:translateX(10px)}}
+@media(max-width:720px){
+ .nb99-header{font-size:clamp(15px,2.4svh,21px);padding:clamp(10px,2svh,17px) 17px}
+ .nb99-hero{padding:clamp(50px,8svh,74px) 12px 0}
+ .nb99-team-logo{width:clamp(190px,min(85vw,36svh),330px);max-width:90vw}
+ .nb99-hero h1{font-size:clamp(17px,3.45svh,29px);margin-top:clamp(7px,1.5svh,15px);max-width:92vw}
+ .nb99-subtitle{font-size:clamp(12px,2.1svh,17px);margin-top:clamp(4px,1svh,9px)}
+ .nb99-sso{width:min(90vw,370px);min-height:clamp(37px,6.1svh,52px);margin-top:clamp(9px,2svh,20px);font-size:clamp(12px,2svh,16px);padding:7px 12px;gap:9px}
+ .nb99-helper{font-size:clamp(10px,1.65svh,12px);margin-top:clamp(3px,.8svh,7px)}
+ .nb99-panorama{width:100%;max-width:540px;min-height:0;margin:clamp(3px,1svh,8px) auto 0;padding:0 4px}
+ .nb99-scene{width:100%;height:100%}
+ .nb99-phase-label{font-size:30px}
+ .nb99-footer{margin:0 8px;padding:clamp(5px,1svh,10px) 0 clamp(6px,1.3svh,12px)}
+ .nb101-group-lockup{width:min(95vw,560px);max-width:100%;height:auto;max-height:clamp(18px,5svh,34px)}
+}
+/* Small landscape displays prioritize keeping ship art and corporate lockup visible. */
+@media(max-height:520px){
+ .nb99-hero{padding-top:clamp(28px,6svh,40px)}
+ .nb99-team-logo{width:clamp(158px,min(34vw,41svh),240px)}
+ .nb99-hero h1{margin-top:6px;font-size:clamp(16px,3.8svh,20px)}
+ .nb99-subtitle{margin-top:2px;font-size:clamp(11px,2.6svh,14px)}
+ .nb99-sso{min-height:32px;margin-top:7px;padding:5px 12px;font-size:clamp(11px,2.4svh,14px)}
+ .nb99-helper{font-size:10px;margin-top:3px}
+ .nb101-group-lockup{height:clamp(19px,7svh,36px)}
+}
+@media(max-height:520px) and (max-width:720px){
+ .nb99-hero{padding-top:42px}
+ .nb99-team-logo{width:min(50svh,72vw)}
+ .nb99-footer{padding:3px 0 4px}
+ .nb101-group-lockup{height:auto;max-height:20px;width:min(95vw,420px)}
+}
+@media(prefers-reduced-motion:reduce){.nb101-cloud-track,.nb101-rack-led,.nb101-water-highlight{animation-play-state:paused!important}}
