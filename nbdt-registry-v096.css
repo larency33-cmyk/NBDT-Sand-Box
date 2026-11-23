@@ -135,3 +135,33 @@
  outline:2px solid #2f7fd7;
  outline-offset:2px;
 }
+
+
+/* v0.6.113 — slim, visible scrollbar inside All owners ONLY.
+   The app-wide v045 rule hides every scrollbar with !important. Override
+   that rule locally, without changing other Registry menus or page scrollbars. */
+.nbdt-redesign.nb-app-root .nb-registry-page .nb113-owner-filter .nb-type-filter-menu{
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-gutter:stable;
+  scrollbar-width:thin!important;
+  scrollbar-color:#9bb7d9 #eef4fb!important;
+  -ms-overflow-style:auto!important;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page .nb113-owner-filter .nb-type-filter-menu::-webkit-scrollbar{
+  display:block!important;
+  width:7px!important;
+  height:7px!important;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page .nb113-owner-filter .nb-type-filter-menu::-webkit-scrollbar-track{
+  background:#eef4fb;
+  border-radius:99px;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page .nb113-owner-filter .nb-type-filter-menu::-webkit-scrollbar-thumb{
+  background:#9bb7d9;
+  border:1px solid #eef4fb;
+  border-radius:99px;
+}
+.nbdt-redesign.nb-app-root .nb-registry-page .nb113-owner-filter .nb-type-filter-menu::-webkit-scrollbar-thumb:hover{
+  background:#6c99cc;
+}

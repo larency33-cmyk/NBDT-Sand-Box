@@ -1,0 +1,5 @@
+fix(registry): reveal a slim scrollbar in All owners (v0.6.113)
+- Owner-only dropdown CSS override for global hidden scrollbars.
+- Subtle 7px blue-gray scrollbar track/thumb, with hover state.
+- Keep native scrolling and existing owner selection/filtering behavior.
+- Other dropdown menus and application page scrollbars remain unchanged.

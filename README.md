@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.113 (visible All owners scrollbar).** The Assignment member list in System Registry → All owners now displays a slim, softly-colored scrollbar whenever names overflow, making more choices visibly discoverable. This exception overrides the global scrollbar-hiding rule only for the owner dropdown. The menu's existing native scroll handling, max height, selection, search ranking, owner filtering, and all other filters are unchanged. See `RELEASE_NOTES_v0_6_113_RU.md` and `VALIDATION_v0_6_113.md`.
+
 **Current package: v0.6.112 (System Registry search relevance).** Search systems results now put all matches in the system name above description-only and other metadata matches. Existing search/filter rules and the relative order within both groups are preserved. See `RELEASE_NOTES_v0_6_112_RU.md` and `VALIDATION_v0_6_112.md`.
 
 **Current package: v0.6.111 (Excel system description import fix).** When importing configuration copied from Excel Online, the third-row text `Hardware deployment and configuration required` is treated strictly as a decorative heading, never as a Description. The importer recognizes and preserves the actual description immediately below it, including long multiline text and styled or merged clipboard cells. Reimport replaces a previously incorrect saved description while retaining checklist/lesson data and all unrelated fields. See `RELEASE_NOTES_v0_6_111_RU.md` and `VALIDATION_v0_6_111.md`.

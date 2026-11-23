@@ -1264,7 +1264,7 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
  const selected=options.find(item=>item.value===value);
  const TriggerIcon=selected?.icon||Icon;
  const choose=(next:string)=>{onChange(next);setOpen(false);};
- return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(label==='Completion status'?' nb108-status-filter':'')+(open?' nb-type-filter-open':'')}>
+ return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(label==='Deployment owner'?' nb113-owner-filter':'')+(label==='Completion status'?' nb108-status-filter':'')+(open?' nb-type-filter-open':'')}>
   <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
    aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
    {label==='Completion status'&&value?<RegistryStatusGlyph status={value as RegistryStatusKey} size={20} variant="filter"/>:<TriggerIcon size={20} aria-hidden="true"/>}

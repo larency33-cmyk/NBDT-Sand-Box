@@ -1,0 +1,18 @@
+{
+  "version": "0.6.113",
+  "base_version": "0.6.112",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "index.tsx",
+    "nbdt-registry-v096.css",
+    "package.json",
+    "README.md",
+    "tests/registry-owner-scrollbar-v113.test.mjs",
+    "RELEASE_NOTES_v0_6_113_RU.md",
+    "GITHUB_CHANGELOG_v0_6_113.txt",
+    "VALIDATION_v0_6_113.md",
+    "NBDT_v0_6_113_GitHub_Manifest.json"
+  ],
+  "scope": "System Registry All owners scrollbar visibility only"
+}
