@@ -43,20 +43,23 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 .nb99-installed-check{animation:nb99-installed 20s linear infinite paused;opacity:0}
 .nb99-rack-lights{animation:nb99-lights 2s steps(2,end) infinite paused}
 .nb99-water{animation:nb99-water 4s ease-in-out infinite paused}
-.nb99-name-bubble{animation:nb99-name 20s linear infinite paused;opacity:0}
+.nb99-name-bubble{animation:nb99-name 8s linear infinite paused;opacity:0}
+.nb99-cart,.nb99-pack-box,.nb99-system-ready,.nb99-route-pulse{visibility:hidden}
+.nb100-clouds{animation:nb100-cloud-drift 40s ease-in-out infinite paused}
 @keyframes nb99-type{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
 @keyframes nb99-nod{0%,75%,100%{transform:translateY(0)}85%{transform:translateY(1px)}}
 @keyframes nb99-code{0%,100%{opacity:.65}50%{opacity:1}}
 @keyframes nb99-ready{0%,18%{opacity:0}22%,32%{opacity:1}36%,100%{opacity:0}}
-@keyframes nb99-system{0%,20%{opacity:0;transform:scale(1)}23%,28%{opacity:1;transform:scale(1)}33%{opacity:0;transform:scale(.6)}34%,100%{opacity:0;transform:scale(1)}}
-@keyframes nb99-pack{0%,28%{opacity:0;transform:scale(.7)}33%,36%{opacity:1;transform:scale(1)}40%,100%{opacity:0;transform:scale(1)}}
-@keyframes nb99-deliver{0%,32%{opacity:0;transform:translateX(0)}37%,40%{opacity:1;transform:translateX(0)}60%{opacity:1;transform:translateX(420px)}65%{opacity:0;transform:translateX(480px)}66%,100%{opacity:0;transform:translateX(0)}}
-@keyframes nb99-pulse{0%,20%{opacity:0;transform:translateX(0)}24%{opacity:1;transform:translateX(0)}64%{opacity:1;transform:translateX(650px)}69%{opacity:0;transform:translateX(690px)}70%,100%{opacity:0;transform:translateX(0)}}
+@keyframes nb99-system{0%,20%{visibility:hidden;opacity:0;transform:scale(1)}23%,28%{visibility:visible;opacity:1;transform:scale(1)}33%{visibility:hidden;opacity:0;transform:scale(.6)}34%,100%{visibility:hidden;opacity:0;transform:scale(1)}}
+@keyframes nb99-pack{0%,28%{visibility:hidden;opacity:0;transform:scale(.7)}33%,36%{visibility:visible;opacity:1;transform:scale(1)}40%,100%{visibility:hidden;opacity:0;transform:scale(1)}}
+@keyframes nb99-deliver{0%,32%{visibility:hidden;opacity:0;transform:translateX(0)}37%,40%{visibility:visible;opacity:1;transform:translateX(0)}60%{visibility:visible;opacity:1;transform:translateX(420px)}65%{visibility:hidden;opacity:0;transform:translateX(480px)}66%,100%{visibility:hidden;opacity:0;transform:translateX(0)}}
+@keyframes nb99-pulse{0%,20%{visibility:hidden;opacity:0;transform:translateX(0)}24%{visibility:visible;opacity:1;transform:translateX(0)}64%{visibility:visible;opacity:1;transform:translateX(650px)}69%{visibility:hidden;opacity:0;transform:translateX(690px)}70%,100%{visibility:hidden;opacity:0;transform:translateX(0)}}
 @keyframes nb99-connect{0%,65%,95%,100%{transform:translate(0,0)}70%,80%,90%{transform:translate(1px,-2px)}75%,85%{transform:translate(0,-1px)}}
 @keyframes nb99-installed{0%,73%{opacity:0}77%,88%{opacity:1}94%,100%{opacity:0}}
 @keyframes nb99-lights{0%,100%{opacity:.65}50%{opacity:1}}
 @keyframes nb99-water{0%,100%{transform:translateX(0);opacity:.75}50%{transform:translateX(10px);opacity:1}}
 @keyframes nb99-name{0%{opacity:0}4%,78%{opacity:1}86%,100%{opacity:0}}
+@keyframes nb100-cloud-drift{0%,100%{transform:translateX(0)}50%{transform:translateX(16px)}}
 @media(min-width:2200px){.nb99-hero{padding-top:clamp(75px,9vh,140px)}.nb99-panorama{padding-top:30px}.nb99-footer{margin-top:15px}}
 @media(max-height:800px) and (min-width:721px){.nb99-header{padding-top:18px;font-size:24px}.nb99-hero{padding-top:45px}.nb99-team-logo{width:400px}.nb99-hero h1{margin-top:17px;font-size:36px}.nb99-subtitle{font-size:22px;margin-top:8px}.nb99-sso{margin-top:21px;min-height:52px;font-size:18px;width:415px}.nb99-helper{margin-top:8px;font-size:13px}.nb99-panorama{max-width:1480px}.nb99-footer{padding:13px 12px 17px;margin-top:6px}.nb99-group{font-size:17px}.nb99-brands{font-size:13px}}
 @media(max-width:1100px) and (min-width:721px){.nb99-header{font-size:23px;padding:22px}.nb99-hero{padding-top:75px}.nb99-team-logo{width:390px}.nb99-hero h1{font-size:34px}.nb99-subtitle{font-size:22px}.nb99-sso{font-size:18px;width:420px}}

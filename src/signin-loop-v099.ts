@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState,type RefObject} from 'react';
-import {DEPLOYMENT_CYCLE_MS} from './signin-model-v099.mjs';
+import {NAME_CYCLE_MS} from './signin-model-v099.mjs';
 
 /** One clock for CSS sprite motion, transport, lights and names. No frame renders. */
 export function useDeploymentLoop(root:RefObject<HTMLDivElement|null>,ready:boolean,layout:string){
@@ -51,8 +51,8 @@ export function useDeploymentLoop(root:RefObject<HTMLDivElement|null>,ready:bool
     let timer:ReturnType<typeof setTimeout>|undefined;
     const next=()=>{
       const value=clock.current.value+performance.now()-clock.current.at;
-      setCycle(Math.floor(value/DEPLOYMENT_CYCLE_MS));
-      timer=setTimeout(next,DEPLOYMENT_CYCLE_MS-(value%DEPLOYMENT_CYCLE_MS)+12);
+      setCycle(Math.floor(value/NAME_CYCLE_MS));
+      timer=setTimeout(next,NAME_CYCLE_MS-(value%NAME_CYCLE_MS)+12);
     };
     if(shouldRun)next();
     return()=>{if(timer)clearTimeout(timer);};

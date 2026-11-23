@@ -27,18 +27,34 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
   assert.deepEqual(await page.evaluate(()=>indexedDB.databases()),[],'welcome does not create an empty incompatible database');
   const running=await page.evaluate(()=>document.querySelector('.nb99-scene').getAnimations({subtree:true}).map(a=>a.playState));
   assert.ok(running.length>15&&running.every(s=>s==='running'),'scene animations run');
+  const initialName=await page.locator('.nb99-name-bubble title').first().textContent();
   await page.getByRole('button',{name:'Pause animation',exact:true}).click();
   const first=await page.evaluate(()=>document.querySelector('.nb99-cart').getAnimations()[0].currentTime);
   await page.waitForTimeout(150);
   const second=await page.evaluate(()=>document.querySelector('.nb99-cart').getAnimations()[0].currentTime);
   assert.ok(Math.abs(first-second)<1,'pause freezes shared clock');
-  const setTime=time=>page.evaluate(t=>document.querySelector('.nb99-scene').getAnimations({subtree:true}).forEach(a=>{a.pause();a.currentTime=t;}),time);
-  await setTime(0);const start=await page.locator('.nb99-scene-canvas').screenshot();
-  await setTime(20000);const end=await page.locator('.nb99-scene-canvas').screenshot();
-  assert.ok(start.equals(end),'visible frame at 20 seconds exactly matches frame zero');
+  // Seeking from a live frame needs a compositor paint before pixel comparison.
+  const setTime=time=>page.evaluate(t=>{
+   document.querySelector('.nb99-scene').getAnimations({subtree:true}).forEach(a=>{a.pause();a.currentTime=t;});
+   return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  },time);
+  // Capture at the integer page origin: fractional SVG-only clips can resample
+  // pixel-art textures differently between consecutive Chromium screenshots.
+  await setTime(0);const start=await page.screenshot({fullPage:true});
+  await setTime(40000);const end=await page.screenshot({fullPage:true});
+  assert.ok(start.equals(end),'complete 20 s delivery / 8 s name / 40 s cloud frame exactly matches frame zero');
+  const durations=await page.locator('.nb99-name-bubble').evaluateAll(nodes=>nodes.map(node=>node.getAnimations()[0].effect.getTiming().duration));
+  assert.ok(durations.every(ms=>ms===8000),'names change 2.5 times faster while delivery stays at 20 seconds');
+  assert.equal(await page.locator('[data-sprite-person]').count(),4,'all four detailed coworkers are present');
+  assert.equal(await page.locator('[data-sprite-cart]').count(),1,'detailed trolley is present');
+  assert.equal(await page.locator('.nb100-landscape').count(),3,'layered mountains and clouds accompany every phase');
   await setTime(9500);const cartBefore=await page.locator('.nb99-cart').boundingBox();
   await setTime(11000);const cartAfter=await page.locator('.nb99-cart').boundingBox();
   assert.ok(cartAfter.x>cartBefore.x+30,'shipment actually moves forward');
+  await page.getByRole('button',{name:'Play animation',exact:true}).click();
+  await page.waitForFunction(name=>Number(document.querySelector('.nb99-scene').dataset.cycle)>=1&&document.querySelector('.nb99-name-bubble title').textContent!==name,initialName,{timeout:11000});
+  const nameChangeTime=await page.locator('.nb99-name-bubble').first().evaluate(el=>el.getAnimations()[0].currentTime);
+  assert.ok(nameChangeTime>=8000&&nameChangeTime<10500,'actual team change occurs at 8 seconds, not 20 seconds');
   for(const viewport of [{width:390,height:844},{width:1366,height:768},{width:3440,height:1440},{width:5120,height:1440}]){
    await page.setViewportSize(viewport);await page.waitForTimeout(80);
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`no horizontal overflow at ${viewport.width}`);
@@ -70,7 +86,7 @@ async function freePort(){const server=net.createServer();await new Promise((ok,
   assert.ok((await page.evaluate(()=>document.querySelector('.nb99-scene').getAnimations({subtree:true}).map(a=>a.playState))).every(s=>s==='paused'),'reduced motion freezes scene');
   assert.deepEqual(errors,[],'no browser runtime errors');
   console.log('PASS welcome: deferred workspace, credential-free entry, preserved deep links and administrator login');
-  console.log('PASS animation: shared pause, forward shipment, exact 0/20-second frame match and reduced motion');
+  console.log('PASS animation: shared pause, 8-second names, forward shipment, exact 0/40-second frame match and reduced motion');
   console.log('PASS layouts: mobile, laptop, ultrawide, 32:9; names read from saved Assignment');
  }finally{if(browser)await browser.close();server.kill('SIGTERM');}
 })().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

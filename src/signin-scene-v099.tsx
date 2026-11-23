@@ -1,28 +1,58 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {Pause,Play} from 'lucide-react';
 import atlas from './assets/nbdt-signin-atlas-v099.png';
+import sprites from './assets/nbdt-signin-sprites-v100.png';
 import {initialLandingNames,namesForCycle,readLandingNames} from './signin-model-v099.mjs';
 import {useDeploymentLoop} from './signin-loop-v099';
 
 export function TeamLogo(){return <svg className="nb99-team-logo" viewBox="545 65 580 155" role="img" aria-label="NBDT — New Build Deployment Team"><image href={atlas} width="1670" height="941"/></svg>;}
 
-function Person({x,y,installer=false}:{x:number;y:number;installer?:boolean}){
-  return <g transform={`translate(${x} ${y}) scale(${installer?2.35:2.8})`} shapeRendering="crispEdges" className="nb99-person">
-    <g className="nb99-head"><path d="M6 0h10v2h3v10h-3v3H6v-2H3V3h3Z" fill="#102c59"/><path d="M7 3h8v2h2v6h-3v3H7v-3H5V5h2Z" fill="#c0e4ff"/><path d="M6 0h10v2h3v3H8v3H3V3h3Z" fill="#235085"/><path d="M8 3h7v2H8Z" fill="#5283b1"/></g>
-    <path d="M7 15h10v3h4v14H4V20h3Z" fill="#133263"/><path d="M8 17h8v3h3v10H6v-9h2Z" fill="#0875ed"/><path d="M7 20h3v8H6v-6h1Z" fill="#4ca9ff"/>
-    <path d="M4 30h16v4h5v5h-5v-4H4Z" fill="#173d72"/><path d="M3 35h6v7h8v3H6v-2H3Z" fill="#122e55"/>
-    <g className={installer?'nb99-arm nb99-arm-install':'nb99-arm'}><path d={installer?'M16 19h5v-5h4v-3h4v4h-3v4h-3v5h-7Z':'M15 19h5v4h7v-2h4v5H18v-3h-3Z'} fill="#12315e"/><path d={installer?'M18 19h2v-4h4v-2h3v2h-2v4h-3v3h-4Z':'M17 20h2v4h9v-2h2v3H19v-2h-2Z'} fill="#b4ddff"/></g>
+type SpriteRect=[number,number,number,number];
+const rectPath=([x,y,w,h]:SpriteRect)=>`M${x} ${y}h${w}v${h}h-${w}Z`;
+const PEOPLE_SPRITES:{body:SpriteRect;head:SpriteRect;arm:SpriteRect}[]=[
+  {body:[124,150,91,131],head:[131,150,54,48],arm:[166,207,49,32]},
+  {body:[265,150,90,131],head:[273,150,54,48],arm:[309,207,46,32]},
+  {body:[397,150,90,131],head:[405,150,54,48],arm:[441,207,46,32]},
+  {body:[1306,170,78,98],head:[1314,170,48,38],arm:[1344,208,40,31]},
+];
+function Person({index,installer=false}:{index:number;installer?:boolean}){
+  const id=useId().replace(/:/g,'');
+  const {body,head,arm}=PEOPLE_SPRITES[index];
+  const picture=<image href={sprites} x="0" y="-470" width="1671" height="941"/>;
+  return <g className="nb99-person" data-sprite-person={index}>
+    <defs>
+      <clipPath id={`${id}-body`}><path d={rectPath(body)+rectPath(head)+rectPath(arm)} clipRule="evenodd"/></clipPath>
+      <clipPath id={`${id}-head`}><path d={rectPath(head)}/></clipPath>
+      <clipPath id={`${id}-arm`}><path d={rectPath(arm)}/></clipPath>
+    </defs>
+    <g clipPath={`url(#${id}-body)`}>{picture}</g>
+    <g className="nb99-head"><g clipPath={`url(#${id}-head)`}>{picture}</g></g>
+    <g className={installer?'nb99-arm nb99-arm-install':'nb99-arm'}><g clipPath={`url(#${id}-arm)`}>{picture}</g></g>
   </g>;
 }
+
+/** The reference's layered, stepped coastline and clouds remain separate from UI. */
+function PixelLandscape(){return <g className="nb100-landscape" aria-hidden="true" shapeRendering="crispEdges">
+  <path d="M-20 166h30v-9h30v-12h27v-10h35v12h30v8h26v15h40v-8h35v-12h30v8h30v12h45v18h50v-10h35v-9h28v12h40v14h40v-9h35v-10h38v-10h35v12h26v10h42v-8h30v-12h30v-10h45v15h28v14h35v11h48v-13h35v-15h29v-13h33v-11h36v12h31v9h40v12h35v-6h40v-13h35v-12h30v13h30v12h36v-8h30v-12h35v-10h30v15h40v12h45v-8h37v-13h30v12h30v13h50v-7h40v-9h35v15h45v-10h40v11h55v92H-20Z" fill="#e1eefa"/>
+  <path d="M-20 215h47v-13h35v-8h31v11h37v13h36v-7h35v-10h32v13h45v12h35v-8h40v-12h35v-8h32v9h30v12h40v9h42v-12h28v-15h31v-11h34v13h32v12h40v11h45v-7h38v-12h30v-8h35v9h33v10h43v10h45v-10h33v-12h38v-11h32v12h35v12h50v9h45v-12h30v-14h37v-10h31v11h39v12h50v10h40v-8h37v-13h29v11h45v10h50v-8h40v-8h40v10h50v-7h50v82H-20Z" fill="#cfe4f9"/>
+  <path d="M-20 258h70v-8h44v-6h45v7h55v9h60v-7h45v-8h45v8h60v9h70v-8h45v-6h50v8h80v8h55v-7h55v-8h45v9h75v7h60v-8h50v-7h45v9h70v8h60v-8h55v-6h50v8h65v7h65v-7h45v-7h55v9h65v7h70v-8h50v-7h50v8h95v49H-20Z" fill="#b7d6f3" opacity=".8"/>
+  <g className="nb100-clouds">
+    {[[80,-54,1],[292,9,.55],[505,39,.45],[770,61,.35],[1185,8,.5],[1478,-48,.85]].map(([x,y,scale],i)=><g key={i} transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path d="M0 40h15V29h22V18h20V6h24V0h28v10h17v13h24v9h20v8h15v8H0Z" fill="#d9eafb" opacity=".8"/>
+      <path d="M0 34h15V24h22V14h20V3h24v-6h28v10h17v13h24v9h20v8h15v5H0Z" fill="#fbfdff"/>
+      <path d="M42 29h20V18h19v-7h19v9h17v9h28v7h-28v-5H84v9H42Z" fill="#e9f4ff"/>
+    </g>)}
+  </g>
+</g>;}
 function WorkScreens(){return <g fill="#41d4ff" shapeRendering="crispEdges">
   {[193,340,474].map((x,i)=><g key={x} className="nb99-screen-lines" style={{animationDelay:`-${i*.2}s`}}>{[0,1,2,3].map(row=><rect key={row} x={x} y={174+row*9} width={[45,32,51,26][(row+i)%4]} height="3"/>)}</g>)}
   <path className="nb99-config-check" d="m352 192 10 10 20-23" fill="none" stroke="#00bcd8" strokeWidth="7"/>
  </g>;}
-function Box({x=0,y=0}:{x?:number;y?:number}){return <g transform={`translate(${x} ${y})`} shapeRendering="crispEdges"><path d="M0 0h88v5h5v48H0Z" fill="#153768"/><path d="M4 5h82v43H4Z" fill="#e8ca98"/><path d="M7 7h28v38H7Z" fill="#f4dcaf"/><path d="M36 5h12v12H36Z" fill="#2385ee"/><path d="M58 22h6l10 11V22h7v22h-7L64 33v11h-6Z" fill="#1257ac"/><path d="M9 8h6v36H9Z" fill="#fff0d3"/></g>;}
+function Box({x=0,y=0}:{x?:number;y?:number}){return <svg x={x} y={y} width="93" height="55" viewBox="870 644 100 59" overflow="hidden"><image href={sprites} width="1671" height="941"/></svg>;}
 function Delivery(){return <>
   <g className="nb99-system-ready" shapeRendering="crispEdges"><rect x="699" y="186" width="54" height="46" fill="#153b6a"/><rect x="704" y="191" width="44" height="36" fill="#e1f3ff"/><path d="m715 210 8 7 16-18" fill="none" stroke="#00c4d7" strokeWidth="5"/></g>
   <g className="nb99-pack-box"><Box x={738} y={202}/></g>
-  <g className="nb99-cart" shapeRendering="crispEdges"><path d="M717 253h134v9H717v-3h-7v-55h-7v-9h10v7h6v51Z" fill="#102f60"/><path d="M721 253h126v5H721Z" fill="#609ed9"/><Box x={741} y={201}/><g className="nb99-wheel"><rect x="732" y="263" width="17" height="13" fill="#12315b"/><rect x="736" y="266" width="8" height="7" fill="#9fc8e7"/><rect x="820" y="263" width="17" height="13" fill="#12315b"/><rect x="824" y="266" width="8" height="7" fill="#9fc8e7"/></g></g>
+  <g className="nb99-cart" data-sprite-cart="detailed"><svg x="704" y="178" width="152" height="101" viewBox="826 633 152 101" overflow="hidden"><image href={sprites} width="1671" height="941"/></svg></g>
   <g className="nb99-route-pulse"><rect x="570" y="236" width="20" height="20" fill="#c4fbff"/><rect x="575" y="241" width="10" height="10" fill="#00bfd9"/></g>
  </>;}
 function NameBubble({name,x}:{name:string;x:number}){return <g transform={`translate(${x} 92)`} className="nb99-name-bubble"><title>{name}</title><path d="M0 0h116v6h6v29h-6v5H53l-7 7v-7H0v-5h-6V6h6Z" fill="#d0e5fa"/><path d="M1 1h113v5h5v27h-5v5H1v-5h-5V6h5Z" fill="#fff"/><circle cx="17" cy="19" r="12" fill="#0066f5"/><text x="17" y="24" textAnchor="middle" fill="#fff" fontSize="15" fontWeight="700">{name.charAt(0)}</text><text x="36" y="24" fill="#081c4a" fontSize={name.length>10?'13':'16'} fontWeight="600">{name.length>12?name.slice(0,11)+'…':name}</text></g>;}
@@ -40,8 +70,8 @@ export function DeploymentScene(){
   useEffect(()=>{if(!ready)setShown(namesForCycle(people,cycle));},[people,ready,cycle]);
   useEffect(()=>{
     let live=true;
-    const img=new Image();img.src=atlas;
-    Promise.all([img.decode().catch(()=>{}),readLandingNames()]).then(([,names])=>{
+    const images=[atlas,sprites].map(src=>{const img=new Image();img.src=src;return img.decode().catch(()=>{});});
+    Promise.all([Promise.all(images),readLandingNames()]).then(([,names])=>{
       if(live){setPeople(names);setShown(namesForCycle(names,0));setReady(true);}
     });
     const media=matchMedia('(max-width: 720px)');const resize=()=>setPortrait(media.matches);
@@ -54,13 +84,17 @@ export function DeploymentScene(){
     <svg className="nb99-scene-canvas" viewBox={portrait?'0 0 620 940':'0 0 1670 370'} role="img" aria-labelledby={`${unique}-title ${unique}-desc`}>
       <title id={`${unique}-title`}>One team, from configuration to deployment</title>
       <desc id={`${unique}-desc`}>A pixel-art team configures computers, packs a system, delivers it to a cruise ship and installs it. Team names are drawn from the local Assignment directory.</desc>
-      <defs>{clips.map(c=><clipPath key={c.key} id={`${unique}-${c.key}`}><rect x={c.from} y="0" width={c.width} height="325"/></clipPath>)}</defs>
+      <defs>{clips.map(c=>{
+        const skyTop=portrait?(c.key==='configure'?0:c.key==='deliver'?115:35):-140;
+        return <React.Fragment key={c.key}><clipPath id={`${unique}-${c.key}`}><rect x={c.from} y="0" width={c.width} height="325"/></clipPath><clipPath id={`${unique}-${c.key}-sky`}><rect x={c.from} y={skyTop} width={c.width} height={325-skyTop}/></clipPath></React.Fragment>;
+      })}</defs>
       {portrait&&<path d="M13 150v700" stroke="#a4caed" strokeWidth="3" strokeDasharray="5 8"/>}
       {clips.map((c,index)=><g key={c.key} transform={transform(c.key)} className={`nb99-phase nb99-phase-${c.key}`}>
+        <g clipPath={`url(#${unique}-${c.key}-sky)`}><PixelLandscape/></g>
         <g clipPath={`url(#${unique}-${c.key})`}><image href={atlas} x="0" y="-470" width="1670" height="941"/></g>
-        {c.key==='configure'&&<><WorkScreens/><Person x={126} y={154}/><Person x={276} y={154}/><Person x={424} y={154}/>{[0,1,2].map(i=><g key={i} visibility={shown[i]?'visible':'hidden'}><NameBubble name={shown[i]||''} x={[145,295,445][i]}/></g>)}</>}
+        {c.key==='configure'&&<><WorkScreens/><Person index={0}/><Person index={1}/><Person index={2}/>{[0,1,2].map(i=><g key={i} visibility={shown[i]?'visible':'hidden'}><NameBubble name={shown[i]||''} x={[145,295,445][i]}/></g>)}</>}
         {c.key==='deliver'&&<Delivery/>}
-        {c.key==='deploy'&&<><Person x={1326} y={174} installer/><g className="nb99-installed-check"><rect x="1433" y="186" width="23" height="22" fill="#e4fcff"/><path d="m1437 196 6 6 12-15" stroke="#00bbce" strokeWidth="5" fill="none"/></g><g className="nb99-rack-lights" fill="#58f3ff">{[0,1,2,3].map(i=><rect key={i} x="1382" y={183+i*14} width="8" height="4"/>)}</g></>}
+        {c.key==='deploy'&&<><Person index={3} installer/><g className="nb99-installed-check"><rect x="1433" y="186" width="23" height="22" fill="#e4fcff"/><path d="m1437 196 6 6 12-15" stroke="#00bbce" strokeWidth="5" fill="none"/></g><g className="nb99-rack-lights" fill="#58f3ff">{[0,1,2,3].map(i=><rect key={i} x="1382" y={183+i*14} width="8" height="4"/>)}</g></>}
         <g className="nb99-water" fill="#d9f5ff" shapeRendering="crispEdges">{[0,1,2,3,4].map(i=><rect key={i} x={c.from+25+i*c.width/5} y={294+(i%2)*11} width={26+(i%3)*8} height="3"/>)}</g>
         <text x={c.from+c.width/2} y="348" textAnchor="middle" className="nb99-phase-label"><tspan fill="#0066f5">0{index+1}</tspan><tspan dx="14">{['Configure','Deliver','Deploy'][index]}</tspan></text>
       </g>)}

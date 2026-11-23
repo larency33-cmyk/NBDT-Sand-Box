@@ -3,6 +3,9 @@ import {initialAssignmentRoster,ASSIGNMENT_STORAGE_KEY} from './assignment-roste
 // This flag records dismissal of a welcome screen, NOT authentication or a role.
 export const WELCOME_SESSION_KEY='nbdt_welcome_entered_v099';
 export const DEPLOYMENT_CYCLE_MS=20000;
+export const NAME_CYCLE_MS=8000;
+// Delivery repeats in 20 s; 8 s name fades and 40 s cloud drift align every 40 s.
+export const VISUAL_LOOP_MS=40000;
 
 export function hasEnteredWelcome(storage){
   try{return storage?.getItem(WELCOME_SESSION_KEY)==='1';}catch{return false;}
