@@ -108,7 +108,6 @@ Navigation,
   History,
   CheckCircle2,
   Circle,
-  CircleDot,
   Check,
   Square,
   CheckSquare,
@@ -1214,6 +1213,34 @@ const DeviceTypeFilter = ({value, onChange}: {value: string, onChange: (next: st
   </div>;
 };
 
+/**
+ * NBDT v0.6.109 — status glyphs matched to the approved Registry mockup.
+ * Finished sections use a SOLID green circle with white tick; the overview
+ * badge uses an OUTLINED green check. Work in progress is a blue partially
+ * traced circular ring (never a center dot). The unstarted ring stays empty.
+ * This component is purely visual: it cannot change or save any status.
+ */
+type RegistryStatusKey = 'completed' | 'in-progress' | 'not-started';
+const RegistryStatusGlyph = ({status,size=16,variant='stage'}:{
+  status:RegistryStatusKey,size?:number,variant?:'stage'|'badge'|'filter'
+})=>{
+  const outlinedComplete=variant==='badge';
+  return <svg className={`nb109-status-glyph nb109-status-glyph-${status} nb109-status-glyph-${variant}`}
+    width={size} height={size} viewBox="0 0 24 24" fill="none"
+    focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    {status==='completed'?<>
+      <circle cx="12" cy="12" r="8.75" fill={outlinedComplete?'none':'currentColor'}
+        stroke={outlinedComplete?'currentColor':'none'} strokeWidth={outlinedComplete?2.3:0}/>
+      <path d="M7.9 12.1l2.9 2.9 5.5-5.8" stroke={outlinedComplete?'currentColor':'#fff'}
+        strokeWidth="2.45" strokeLinecap="round" strokeLinejoin="round"/>
+    </>:status==='in-progress'?<>
+      <circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="2.0" opacity=".3"/>
+      <path d="M12 3.4a8.6 8.6 0 1 1-8.6 8.6" stroke="currentColor"
+        strokeWidth="2.5" strokeLinecap="round"/>
+    </>:<circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="2.05"/>}
+  </svg>;
+};
+
 /** Consistent custom listbox styling for System Registry filters.
  * Mirrors Device Type while preserving the original exact filter values.
  */
@@ -1239,7 +1266,7 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
  return <div ref={root} className={'nb-type-filter nb96-dropdown-filter'+(label==='Completion status'?' nb108-status-filter':'')+(open?' nb-type-filter-open':'')}>
   <button type="button" className="nb-type-filter-trigger" aria-label={label} aria-expanded={open}
    aria-haspopup="listbox" onClick={()=>setOpen(current=>!current)}>
-   <TriggerIcon size={20} aria-hidden="true"/>
+   {label==='Completion status'&&value?<RegistryStatusGlyph status={value as RegistryStatusKey} size={20} variant="filter"/>:<TriggerIcon size={20} aria-hidden="true"/>}
    <span className="nb-type-filter-label">{selected?.label||placeholder}</span>
    <ChevronDown size={17} className="nb-type-filter-chevron" aria-hidden="true"/>
   </button>
@@ -1255,7 +1282,9 @@ const RegistryDropdownFilter = ({label,placeholder,value,onChange,options,icon:I
     return <button type="button" role="option" aria-selected={value===item.value}
      className={'nb-type-filter-option'+(value===item.value?' selected':'')+(label==='Completion status'?' nb108-filter-option-'+item.value:'')}
      key={item.value} onClick={()=>choose(item.value)}>
-     <span className="nb-type-filter-option-icon nb-tone-blue"><OptionIcon size={18} aria-hidden="true"/></span>
+     <span className="nb-type-filter-option-icon nb-tone-blue">{label==='Completion status'
+       ?<RegistryStatusGlyph status={item.value as RegistryStatusKey} size={18} variant="filter"/>
+       :<OptionIcon size={18} aria-hidden="true"/>}</span>
      <span className="nb96-dropdown-option-text">{item.label}</span>
      {value===item.value&&<Check size={16} className="nb-type-filter-check" aria-hidden="true"/>}
     </button>;
@@ -1319,7 +1348,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
       <div className="nb-system-title-wrap"><h3>{sys.name}</h3></div>
       <div className="nb108-card-actions-heading">
         <span className={`nb108-overall-status nb108-status-${progress.status}${progress.status==='in-progress'&&progress.completedCount===3?' nb108-near-complete':''}`} aria-label={`Overall system status: ${statusLabel}`} title={`${progress.completedCount} of 4 sections completed`}>
-          {progress.status==='completed'?<CheckCircle2 size={14} aria-hidden="true"/>:progress.status==='in-progress'?<CircleDot size={14} aria-hidden="true"/>:<Circle size={14} aria-hidden="true"/>}
+          <RegistryStatusGlyph status={progress.status} size={15} variant="badge"/>
           {statusLabel}
         </span>
       {isAdmin&&<div className="nb107-card-header-actions">
@@ -1355,7 +1384,7 @@ const SystemRegistryCard = ({sys, project, assignmentRoster, isAdmin, onUpdateDe
           const label=detail.status==='completed'?'Completed':detail.status==='in-progress'?'In progress':'Not started';
           const tooltip=`${section.name}: ${label} · ${detail.done}/${detail.total} ${section.key==='lessons'?'confirmed':'checked'}${section.key!=='lessons'&&detail.accepted?' · accepted':''}`;
           return <span key={section.key} role="listitem" className={`nb108-stage nb108-stage-${detail.status}`} aria-label={`${section.name}: ${label}`} title={tooltip}>
-            {detail.status==='completed'?<CheckCircle2 size={15} aria-hidden="true"/>:detail.status==='in-progress'?<CircleDot size={15} aria-hidden="true"/>:<Circle size={15} aria-hidden="true"/>}
+            <RegistryStatusGlyph status={detail.status} size={15} variant="stage"/>
             <span>{section.shortLabel}</span>
           </span>;
         })}
@@ -3090,7 +3119,7 @@ const App = () => {
                 options={assignmentRoster.people.map((person:any)=>({value:person.id,label:person.name}))}/>
               <RegistryDropdownFilter label="Completion status" placeholder="All statuses" icon={CheckCircle2}
                 value={systemStatusFilter} onChange={setSystemStatusFilter}
-                options={[{value:'completed',label:'Completed',icon:CheckCircle2},{value:'in-progress',label:'In progress',icon:CircleDot},{value:'not-started',label:'Not started',icon:Circle}]}/>
+                options={[{value:'completed',label:'Completed',icon:CheckCircle2},{value:'in-progress',label:'In progress',icon:Circle},{value:'not-started',label:'Not started',icon:Circle}]}/>
             </div>
             <div className="nb-registry-meta-row"><p className="nb-registry-inline-summary">{systemStatusFilter||activeFilters.length||systemOwnerFilter||systemSearch.trim()||deviceTypeFilter?`Showing ${filteredSystems.length} of ${project.systems.length} systems`:`Showing all ${filteredSystems.length} systems`}</p></div>
             <div className="nb51-registry-scroll" role="region" aria-label="Systems list" tabIndex={0}>

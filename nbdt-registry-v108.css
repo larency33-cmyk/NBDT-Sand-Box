@@ -119,3 +119,27 @@
 @media(prefers-reduced-motion:reduce){
   .nb-registry-page .nb108-track>span{transition:none}
 }
+
+/* v0.6.109 — approved icon shapes: check on filled circle; arc on open circle.
+   Align across the card badges, the four stage chips and status dropdown.
+   These rules are visual-only; do not touch progression or filter logic. */
+.nb-registry-page .nb109-status-glyph{
+  flex:none;display:inline-block;vertical-align:middle;overflow:visible;
+}
+.nb-registry-page .nb108-stage-completed{color:#078144;}
+.nb-registry-page .nb108-stage-completed .nb109-status-glyph,
+.nb-registry-page .nb108-filter-option-completed .nb109-status-glyph{color:#13a05a;}
+.nb-registry-page .nb108-stage-in-progress .nb109-status-glyph,
+.nb-registry-page .nb108-filter-option-in-progress .nb109-status-glyph{color:#0874f6;}
+.nb-registry-page .nb108-stage-not-started .nb109-status-glyph,
+.nb-registry-page .nb108-filter-option-not-started .nb109-status-glyph{color:#879bb6;}
+.nb-registry-page .nb108-overall-status .nb109-status-glyph{flex:none;}
+.nb-registry-page .nb108-stage .nb109-status-glyph{width:15px;height:15px;}
+@media(max-width:410px){
+  .nb-registry-page .nb108-stage .nb109-status-glyph{width:12px;height:12px;}
+}
+
+/* The selected status icon in the closed filter also retains its status tone. */
+.nb-registry-page .nb108-status-filter .nb109-status-glyph-completed{color:#13a05a;}
+.nb-registry-page .nb108-status-filter .nb109-status-glyph-in-progress{color:#0874f6;}
+.nb-registry-page .nb108-status-filter .nb109-status-glyph-not-started{color:#879bb6;}

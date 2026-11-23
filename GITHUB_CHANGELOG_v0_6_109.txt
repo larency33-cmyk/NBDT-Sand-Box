@@ -1,0 +1,6 @@
+NBDT Hub v0.6.109 — exact progress status icons from approved mockup
+- Completed stage/filter: solid green circle + white check.
+- Completed overall badge: outlined green ring + check.
+- In progress across card/filter/chips: partially traced blue ring, no center dot.
+- Not started: empty muted ring.
+- No status data, filter behavior or progress calculations changed.

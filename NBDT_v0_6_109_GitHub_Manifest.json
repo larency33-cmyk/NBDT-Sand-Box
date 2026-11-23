@@ -1,0 +1,18 @@
+{
+  "version": "0.6.109",
+  "base_version": "0.6.108",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "index.tsx",
+    "nbdt-registry-v108.css",
+    "package.json",
+    "README.md",
+    "tests/registry-status-icons-v109.test.mjs",
+    "RELEASE_NOTES_v0_6_109_RU.md",
+    "VALIDATION_v0_6_109.md",
+    "GITHUB_CHANGELOG_v0_6_109.txt",
+    "NBDT_v0_6_109_GitHub_Manifest.json"
+  ],
+  "scope": "Visual status icons only; no progress data mutations"
+}
