@@ -1,0 +1,21 @@
+{
+  "version": "0.6.114",
+  "base_version": "0.6.113",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "src/assignment-page-v052.tsx",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "README.md",
+    "tests/assignment-v054.test.mjs",
+    "tests/runtime-release-gate-v055.test.mjs",
+    "tests/assignment-seven-columns-v114.test.mjs",
+    "RELEASE_NOTES_v0_6_114_RU.md",
+    "VALIDATION_v0_6_114.md",
+    "GITHUB_CHANGELOG_v0_6_114.txt",
+    "NBDT_v0_6_114_GitHub_Manifest.json"
+  ],
+  "change_scope": "Assignment board navigation and aligned tests only",
+  "production_build_verified": false
+}

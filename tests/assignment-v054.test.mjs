@@ -56,7 +56,9 @@ test('Assignment UI has header editing, add-person column and enhanced drag targ
  assert.match(component,/editAssignmentPerson/);
  assert.match(component,/onDragOver=/);
  assert.match(component,/DragOverlay dropAnimation=/);
- assert.match(component,/nb54-horizontal-rail/);
+ assert.match(component,/nb114-navigation/);
+ assert.match(component,/Previous owner columns/);
+ assert.match(component,/Next owner columns/);
  assert.doesNotMatch(component,/All positions/);
 });
 
@@ -68,9 +70,10 @@ test('Navigation places Assignment after Configuration Report and removes Collab
  assert.match(nav,/setActiveTab\('assignment'\)/);
 });
 
-test('Assignment provides a custom horizontal scrollbar even though app hides native scrollbars',()=>{
+test('Assignment retains scroll support and replaces the exposed scrollbar with one arrow pair',()=>{
  const css=file('../nbdt-assignment-v052.css');
- assert.match(css,/nb54-horizontal-rail/);
+ assert.match(css,/nb114-navigation/);
+ assert.match(css,/nb54-horizontal-rail\{display:none/);
  assert.match(css,/nb54-horizontal-thumb/);
  assert.match(css,/scrollbar-width:none!important/);
  assert.match(css,/nb54-person-actions/);

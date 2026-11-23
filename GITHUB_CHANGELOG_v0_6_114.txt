@@ -1,0 +1,7 @@
+NBDT Hub v0.6.114 — Assignment 7-column navigation
+- Display a maximum of seven employee columns on desktop, plus the pinned Project column.
+- Add one pair of Prev/Next arrows and a Showing X–Y of N indicator above the matrix.
+- Keep all employee columns in the DOM to preserve cross-owner drag/drop and column insertion.
+- Show the Add person column on the final page for administrators.
+- Hide the redundant bottom scrollbar without disabling wheel or keyboard horizontal scrolling.
+- Preserve original fonts, font sizes, row heights and all saved Assignment data.

@@ -112,3 +112,23 @@
 .nb54-page .nb52-person.nb57-insert-before::before{box-shadow:0 0 0 1px white,0 0 12px #227cf68a}
 .nb54-page .nb52-person.nb57-insert-after::after{box-shadow:0 0 0 1px white,0 0 12px #227cf68a}
 @media(prefers-reduced-motion:reduce){.nb54-page .nb56-column-landed{animation:none}}
+
+/* v0.6.114: approved seven-employee Assignment viewport and one navigation pair.
+   Typography, original 111px header and 49px minimum row heights are unchanged. */
+.nb114-page .nb52-person,.nb114-page .nb52-cell,
+.nb114-page .nb54-new-person,.nb114-page .nb54-new-empty{
+ width:var(--nb114-owner-width);min-width:var(--nb114-owner-width);max-width:var(--nb114-owner-width);
+}
+.nb114-page .nb54-horizontal-rail{display:none}
+.nb114-page .nb52-grid-scroll{overscroll-behavior-x:contain}
+.nb114-navigation{margin-left:8px;display:flex;align-items:center;justify-content:flex-end;gap:9px;flex:none;white-space:nowrap}
+.nb114-nav-counter{font-size:11px;font-weight:700;color:#294a7c;font-variant-numeric:tabular-nums;min-width:110px;text-align:center}
+.nb114-nav-arrow{display:grid;place-items:center;width:34px;height:34px;border:1px solid #c9ddf7;border-radius:9px;background:linear-gradient(#fff,#f4f8fe);color:#31659e;cursor:pointer;box-shadow:0 2px 5px #163d6b12;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.nb114-nav-arrow:hover:not(:disabled){border-color:#8fbaf1;background:#e8f2ff;box-shadow:0 3px 8px #125ab51c}
+.nb114-nav-arrow:focus-visible{outline:2px solid #207bf5;outline-offset:2px}
+.nb114-nav-arrow:disabled{opacity:.46;cursor:default;box-shadow:none}
+.nb114-nav-arrow.nb114-next:not(:disabled){background:#0968ed;color:#fff;border-color:#0968ed;box-shadow:0 3px 7px #075cc02e}
+.nb114-nav-arrow.nb114-next:hover:not(:disabled){background:#0758d1}
+@media(max-width:1100px){.nb114-page .nb52-toolbar-tip{display:none}.nb114-navigation{margin-left:auto}}
+@media(max-width:600px){.nb114-page .nb52-search{min-width:0;flex-basis:100%;max-width:none}.nb114-navigation{width:100%;justify-content:flex-end}}
+@media(prefers-reduced-motion:reduce){.nb114-nav-arrow{transition:none}}

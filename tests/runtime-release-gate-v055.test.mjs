@@ -24,8 +24,11 @@ test('runtime symbol gate catches use-before-declaration errors (TS2448), not ju
 });
 test('Assignment hook dependencies are declared before they are evaluated',()=>{
  const assignment=text('src/assignment-page-v052.tsx');
- assert.ok(assignment.indexOf('const people=useMemo(')<assignment.indexOf('},[roster.people.length,people.length,rowCount])'));
- assert.ok(assignment.indexOf('const rowCount=Math.max(')<assignment.indexOf('},[roster.people.length,people.length,rowCount])'));
+ const deps='},[people.length,query,isAdmin,viewport.ownerWidth,viewport.visibleColumns]);';
+ assert.ok(assignment.includes(deps),'Assignment navigation must track current roster and viewport');
+ assert.ok(assignment.indexOf('const people=useMemo(')<assignment.indexOf(deps));
+ assert.ok(assignment.indexOf('const rowCount=Math.max(')<assignment.indexOf(deps));
+ assert.ok(assignment.indexOf('const [viewport,setViewport]')<assignment.indexOf(deps));
 });
 test('React render errors show a recovery screen instead of blank page',()=>{
  const entry=text('index.tsx');
