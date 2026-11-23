@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const read=(name)=>readFileSync(new URL(name,import.meta.url),'utf8');
 const jsx=read('../src/assignment-page-v052.tsx');
 const css=read('../nbdt-assignment-v052.css');
-const scoped=css.split('/* v0.6.116 —')[1]??'';
+const scoped=(css.split('/* v0.6.116 —')[1]??'').split('/* v0.6.117 —')[0];
 
 test('approved hierarchy is scoped only to Assignment',()=>{
  assert.match(jsx,/nb52-page nb54-page nb114-page nb116-page/);

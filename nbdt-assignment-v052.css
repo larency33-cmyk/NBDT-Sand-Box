@@ -350,3 +350,52 @@
  .nb117-page .nb52-cell.nb117-insertion-before .nb52-assignment-item,
  .nb117-page .nb52-cell.nb117-insertion-after .nb52-assignment-item{transition:none}
 }
+
+
+/* v0.6.118 — owner header legibility and seamless pastel panels.
+   Names +35% (10 → 13.5px), initials badges +20% (28 → 33.6px).
+   Do not change column widths, task typography, navigation or drag targets. */
+.nb118-page .nb52-person strong{
+ font-size:13.5px;
+ line-height:1.17;
+ font-weight:700;
+}
+.nb118-page .nb52-person .nb52-avatar{
+ width:33.6px;
+ height:33.6px;
+ font-size:15.6px;
+}
+/* Replace the gray lines and inset framing with a continuation of each
+   employee header's own pastel color, including its rounded corners. */
+.nb118-page .nb52-person{
+ background-clip:border-box;
+ border-right-color:#edf5ff;
+ border-bottom-color:#edf5ff;
+ box-shadow:none;
+}
+.nb118-page .nb52-person.nb52-person-violet,
+.nb118-page .nb52-person.nb52-person-purple,
+.nb118-page .nb52-person.nb52-person-lavender{
+ border-right-color:#f2efff;
+ border-bottom-color:#f2efff;
+}
+.nb118-page .nb52-person.nb52-person-teal,
+.nb118-page .nb52-person.nb52-person-mint,
+.nb118-page .nb52-person.nb52-person-cyan{
+ border-right-color:#ebfaf8;
+ border-bottom-color:#ebfaf8;
+}
+.nb118-page .nb52-person.nb52-person-orange,
+.nb118-page .nb52-person.nb52-person-amber{
+ border-right-color:#fff7ed;
+ border-bottom-color:#fff7ed;
+}
+.nb118-page .nb52-person.nb52-person-pink,
+.nb118-page .nb52-person.nb52-person-rose{
+ border-right-color:#fff0f6;
+ border-bottom-color:#fff0f6;
+}
+/* Larger badges and text may need a little more space in the header only.
+   Leave every assignment row at its existing height. */
+.nb118-page .nb52-table thead th{height:123px}
+.nb118-page .nb56-header-inner{min-height:123px}

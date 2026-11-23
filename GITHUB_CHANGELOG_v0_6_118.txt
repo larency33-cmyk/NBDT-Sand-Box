@@ -1,0 +1,6 @@
+NBDT Hub v0.6.118 — Assignment employee header readability
+- Increase employee names 35% to 13.5px.
+- Increase circular employee initial badges 20% to 33.6px; glyphs 20% to 15.6px.
+- Remove neutral-gray outlines and inset shadows from rounded owner headers; match each border to its pastel background.
+- Slightly raise header height only to prevent text collisions.
+- Preserve tasks, seven-owner viewport, one-column navigation, drag-and-drop and storage.
