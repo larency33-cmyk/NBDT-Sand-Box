@@ -1,0 +1,6 @@
+NBDT v0.6.102 — Welcome screen column alignment
+- Keep Sign in with corporate SSO button and its current click handler.
+- Remove only “Your team's deployment workspace.” below the button.
+- Match headline, subtitle, button and Royal Caribbean Group PNG width to the NBDT logo.
+- Space the SSO button vertically between the subtitle and top of the illustrated cloud area.
+- Preserve Configure, Deliver, Deploy artwork and animations.

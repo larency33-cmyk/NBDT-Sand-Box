@@ -14,7 +14,6 @@ export function SignInPage({onEnter,busy=false,error=''}:{onEnter:()=>void;busy?
       <h1 id="nb99-welcome-title">Together, we bring ships to life.</h1>
       <p className="nb99-subtitle">From first configuration to first sailing.</p>
       <button type="button" className="nb99-sso" onClick={onEnter} disabled={busy} aria-busy={busy}><KeyRound size={23} strokeWidth={2.5}/><span>{busy?'Opening workspace…':'Sign in with corporate SSO'}</span><ArrowRight size={23}/></button>
-      <p className="nb99-helper">Your team's deployment workspace.</p>
       {error&&<p className="nb99-entry-error" role="alert">{error}</p>}
     </section>
     <div className="nb99-panorama"><DeploymentScene/></div>

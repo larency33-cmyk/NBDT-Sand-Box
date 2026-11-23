@@ -1,0 +1,23 @@
+{
+  "version": "0.6.102",
+  "base_version": "0.6.101",
+  "branch": "main",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "changed_files": [
+    "src/signin-v099.tsx",
+    "src/signin-v099.css",
+    "package.json",
+    "README.md",
+    "tests/signin-v102.test.mjs",
+    "RELEASE_NOTES_v0_6_102_RU.md",
+    "VALIDATION_v0_6_102.md",
+    "GITHUB_CHANGELOG_v0_6_102.txt",
+    "NBDT_v0_6_102_GitHub_Manifest.json"
+  ],
+  "preserved": [
+    "SSO button/onEnter",
+    "deployment scene and animations",
+    "other site pages"
+  ],
+  "production_verified": false
+}
