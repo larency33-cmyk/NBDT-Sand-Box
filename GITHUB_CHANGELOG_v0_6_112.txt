@@ -1,0 +1,5 @@
+NBDT Hub v0.6.112 — System Registry search result priority
+- Search systems: show system NAME matches first, then description/technical metadata matches.
+- Keep previous relative order within each group; do not change other filters.
+- Keep existing search matching semantics and all system data unchanged.
+- Add regression tests for mixed name/description hits, case folding and filter compatibility.

@@ -1,0 +1,18 @@
+{
+  "version": "0.6.112",
+  "base_version": "0.6.111",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "index.tsx",
+    "src/registry-search-order.mjs",
+    "tests/registry-search-priority-v112.test.mjs",
+    "package.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_112_RU.md",
+    "GITHUB_CHANGELOG_v0_6_112.txt",
+    "VALIDATION_v0_6_112.md",
+    "NBDT_v0_6_112_GitHub_Manifest.json"
+  ],
+  "behavior": "name-matching results first; existing order within categories; all filters unchanged"
+}

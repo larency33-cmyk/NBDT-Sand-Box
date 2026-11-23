@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.112 (System Registry search relevance).** Search systems results now put all matches in the system name above description-only and other metadata matches. Existing search/filter rules and the relative order within both groups are preserved. See `RELEASE_NOTES_v0_6_112_RU.md` and `VALIDATION_v0_6_112.md`.
+
 **Current package: v0.6.111 (Excel system description import fix).** When importing configuration copied from Excel Online, the third-row text `Hardware deployment and configuration required` is treated strictly as a decorative heading, never as a Description. The importer recognizes and preserves the actual description immediately below it, including long multiline text and styled or merged clipboard cells. Reimport replaces a previously incorrect saved description while retaining checklist/lesson data and all unrelated fields. See `RELEASE_NOTES_v0_6_111_RU.md` and `VALIDATION_v0_6_111.md`.
 
 **Current package: v0.6.110 (Search systems border + approved dropdown status icons).** Restores a continuous thin blue outline around the System Registry search field by stopping the inner white input background from covering the top/bottom border. The All statuses dropdown now displays the approved bare status glyphs (solid green completed check, open blue in-progress ring, grey not-started outline) with no circular badge background or blanket-blue legacy override. No changes to progress computation, stored data or filtering logic. See `RELEASE_NOTES_v0_6_110_RU.md` and `VALIDATION_v0_6_110.md`.

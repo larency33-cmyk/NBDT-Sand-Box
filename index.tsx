@@ -1,6 +1,7 @@
 import {prepareReportMetadataImport} from './src/report-import.mjs';
 import {deleteRegistrySystem} from './src/registry-delete.mjs';
 import {registrySystemProgress,registryMatchesStatus,REGISTRY_PROGRESS_SECTIONS} from './src/registry-progress.mjs';
+import {prioritizeRegistrySearchResults} from './src/registry-search-order.mjs';
 import {deriveProjectActivity,deriveAssignmentActivity,mergeActivity} from './src/activity-log.mjs';
 import {normalizeCyberStatus} from './src/cyber-status.mjs';
 import {counts as reportDeviceCounts} from './src/model.mjs';
@@ -2731,7 +2732,7 @@ const App = () => {
   };
 
   const filteredSystems = useMemo(() => {
-    return project.systems.filter(s => {
+    const matchesAllFilters = project.systems.filter(s => {
       const guideFields = registryCardFields(s);
       const normalizedSearch = systemSearch.trim().toLowerCase();
       const matchesSearch = !normalizedSearch || [s.name,guideFields.model,guideFields.os,guideFields.network,guideFields.naming,guideFields.description]
@@ -2766,6 +2767,9 @@ const App = () => {
 
       return matchesSearch && deviceTypeMatch && osMatch && netMatch && assigneeMatch && progressMatch;
     });
+    // Name hits always precede description/technical-field hits. Keep original
+    // relative order among equally ranked systems and preserve other filters.
+    return prioritizeRegistrySearchResults(matchesAllFilters, systemSearch);
   }, [project.systems, project.id, assignmentRoster, systemSearch, activeFilters, systemOwnerFilter, deviceTypeFilter, systemStatusFilter]);
 
 
