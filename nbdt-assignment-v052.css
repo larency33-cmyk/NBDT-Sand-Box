@@ -132,3 +132,140 @@
 @media(max-width:1100px){.nb114-page .nb52-toolbar-tip{display:none}.nb114-navigation{margin-left:auto}}
 @media(max-width:600px){.nb114-page .nb52-search{min-width:0;flex-basis:100%;max-width:none}.nb114-navigation{width:100%;justify-content:flex-end}}
 @media(prefers-reduced-motion:reduce){.nb114-nav-arrow{transition:none}}
+
+
+/* v0.6.116 — approved quiet Assignment hierarchy, scoped to this screen.
+   Keep the original 28px initials, 49px row minimums, 7 visible owners,
+   single-column arrows, edit/drag hit targets, and data behavior intact. */
+.nb116-page .nb52-person strong{
+ color:#142f60;
+ font-weight:700;
+}
+/* Project labels are secondary context, not the visual focal point. */
+.nb116-page .nb52-table th.nb52-project-th,
+.nb116-page .nb52-project-row{
+ background:#f1f5fb!important;
+ box-shadow:2px 0 4px #173a6607;
+ border-right-color:#e2eaf4;
+}
+.nb116-page .nb52-project-heading{
+ color:#5c728f;
+ font-weight:600;
+ padding:10px 9px;
+}
+.nb116-project-label,
+.nb116-project-row-label{
+ display:flex;
+ align-items:center;
+ gap:5px;
+ white-space:nowrap;
+}
+.nb116-project-label svg,
+.nb116-project-row-label svg{
+ flex:none;
+ color:#8ca1ba;
+ stroke-width:1.65;
+}
+.nb116-page .nb52-project-heading small{
+ color:#93a3b7;
+ font-weight:400;
+}
+.nb116-page .nb52-project-row{
+ font-weight:400;
+ color:#667b98;
+ padding:0 7px!important;
+}
+/* Light individual task surfaces, rather than bold blue type on raw cells. */
+.nb116-page .nb52-cell{
+ padding:3px 4px;
+ border-right-color:#e6edf7;
+ border-bottom-color:#e8eef7;
+}
+.nb116-page .nb52-assignment-item{
+ height:100%;
+ min-height:41px;
+ padding:3px 3px;
+ border:1px solid #dfe8f4;
+ border-radius:7px;
+ background:#ffffffd9;
+ box-shadow:0 1px 2px #1a49720b;
+ color:#566781;
+}
+.nb116-page .nb52-assignment-name{
+ font-size:10px;
+ font-weight:400;
+ color:#52627d;
+ line-height:1.3;
+}
+/* Keep edit/drag actions discoverable on hover/focus, quiet otherwise. */
+.nb116-page .nb52-pencil,
+.nb116-page .nb52-drag-handle{
+ color:#8da7c4;
+ opacity:.30;
+}
+.nb116-page .nb52-pencil:hover,
+.nb116-page .nb52-drag-handle:hover{
+ background:#edf5ff;
+ color:#2e73c5;
+}
+.nb116-page .nb52-cell:hover .nb52-pencil,
+.nb116-page .nb52-cell:focus-within .nb52-pencil,
+.nb116-page .nb52-cell:hover .nb52-drag-handle,
+.nb116-page .nb52-cell:focus-within .nb52-drag-handle{
+ opacity:.75;
+}
+.nb116-page .nb52-pencil:focus-visible,
+.nb116-page .nb52-drag-handle:focus-visible{
+ opacity:1;
+ outline:2px solid #2675e6;
+ outline-offset:1px;
+}
+/* Empty slots are softly filled; reveal the existing Add action on hover. */
+.nb116-page .nb52-add-in-cell{
+ min-height:41px;
+ height:41px;
+ opacity:1;
+ border:1px solid #e5edf8;
+ background:#f1f5fb;
+ border-radius:7px;
+ color:#8698b0;
+ position:relative;
+}
+.nb116-page .nb52-add-in-cell::before{
+ content:'—';
+ position:absolute;
+ inset:0;
+ display:grid;
+ place-items:center;
+ font-size:11px;
+}
+.nb116-page .nb52-add-in-cell svg{visibility:hidden}
+.nb116-page .nb52-cell:hover .nb52-add-in-cell,
+.nb116-page .nb52-cell:focus-within .nb52-add-in-cell{
+ background:#eaf3ff;
+ border-color:#c8ddf7;
+ color:#3472bf;
+}
+.nb116-page .nb52-cell:hover .nb52-add-in-cell::before,
+.nb116-page .nb52-cell:focus-within .nb52-add-in-cell::before{content:none}
+.nb116-page .nb52-cell:hover .nb52-add-in-cell svg,
+.nb116-page .nb52-cell:focus-within .nb52-add-in-cell svg{visibility:visible}
+.nb116-page .nb52-empty{
+ display:grid;
+ place-items:center;
+ min-height:41px;
+ background:#f1f5fb;
+ border:1px solid #e5edf8;
+ border-radius:7px;
+ color:#8698b0;
+}
+/* Existing drag, landing and drop feedback must remain strong when active. */
+.nb116-page .nb52-cell-drop .nb52-assignment-item,
+.nb116-page .nb54-target-column .nb52-assignment-item{
+ background:#eaf3ff;
+ border-color:#86b9fa;
+}
+@media(hover:none){
+ .nb116-page .nb52-pencil,
+ .nb116-page .nb52-drag-handle{opacity:.65}
+}

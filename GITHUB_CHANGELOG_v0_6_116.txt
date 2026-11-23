@@ -1,0 +1,6 @@
+NBDT Hub v0.6.116 — approved light Assignment board
+- Muted normal-weight task names, lightweight bordered assignment cards.
+- Project labels less prominent, with small folder/layers icons.
+- Discreet but accessible edit and drag handles; quiet empty slots.
+- Avatar initials original 28x28; original 49px rows preserved.
+- Keep 7-owner viewport, arrow step of 1, roster and all interactions unchanged.

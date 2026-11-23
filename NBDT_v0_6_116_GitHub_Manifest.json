@@ -1,0 +1,26 @@
+{
+  "version": "0.6.116",
+  "base_version": "0.6.115",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "src/assignment-page-v052.tsx",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "README.md",
+    "tests/assignment-visual-hierarchy-v116.test.mjs",
+    "RELEASE_NOTES_v0_6_116_RU.md",
+    "VALIDATION_v0_6_116.md",
+    "GITHUB_CHANGELOG_v0_6_116.txt",
+    "NBDT_v0_6_116_GitHub_Manifest.json"
+  ],
+  "kept_unchanged": [
+    "original 28px avatar circles",
+    "all font sizes",
+    "49px minimum row height",
+    "seven-column one-step navigation",
+    "drag and edit functionality",
+    "persistent data"
+  ],
+  "production_bundle_verified": false
+}
