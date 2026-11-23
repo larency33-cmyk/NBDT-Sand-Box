@@ -171,3 +171,16 @@ html:has(.nb99-signin),body:has(.nb99-signin){margin:0;background:#f1f7ff;min-wi
 @media(max-height:520px){
   .nb99-sso{margin-top:clamp(6px,1.8svh,13px)}
 }
+
+/* v0.6.103 — align text between logo and SSO; keep the button 30px above
+   the first visible cloud. JS sets only transform offsets (no scene reflow). */
+.nb103-copy{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:var(--nb102-column-width);
+  max-width:100%;
+  transform:translateY(var(--nb103-copy-shift,0px));
+}
+.nb99-sso{transform:translateY(var(--nb103-button-shift,0px))}
+.nb99-entry-error{transform:translateY(var(--nb103-button-shift,0px))}

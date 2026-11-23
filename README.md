@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.103 (30px cloud clearance and centered hero copy).** The corporate SSO button now aligns 30 CSS pixels above the highest visible SVG cloud while the two text lines sit vertically centered between the NBDT logo and button. Widths of the text, logo, button and corporate footer remain matched. The process illustration and authentication flow are unchanged. See `RELEASE_NOTES_v0_6_103_RU.md` and `VALIDATION_v0_6_103.md`.
+
 **Current package: v0.6.102 (welcome layout alignment).** The NBDT logo, headline/subtitle, corporate SSO button and the supplied Royal Caribbean Group image now share one responsive centered column. Only the helper line below the SSO button was removed. The button remains functional with its original handler, and extra vertical space separates it from the subtitle and the pixel clouds. The Configure → Deliver → Deploy illustration, animations and existing entry behavior are unchanged. See `RELEASE_NOTES_v0_6_102_RU.md` and `VALIDATION_v0_6_102.md`.
 
 **Previous v0.6.101 (corporate footer + ambient animation).** The supplied transparent Royal Caribbean Group PNG replaced the text footer. Viewport-aware layout, seamless rightward clouds, animated rack LEDs and subtle water reflections were introduced. See `RELEASE_NOTES_v0_6_101_RU.md`.

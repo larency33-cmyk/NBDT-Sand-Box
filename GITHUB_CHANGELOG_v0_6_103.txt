@@ -1,0 +1,6 @@
+NBDT Hub 0.6.103 — final hero alignment
+- Keep corporate SSO button and all login handlers unchanged.
+- Align button bottom about 30 CSS pixels above the highest visible cloud using SVG screen coordinates.
+- Center title and subtitle as one group between NBDT logo bottom and button top.
+- Preserve same width for logo, copy, SSO button and Royal Caribbean Group footer.
+- Preserve all pixel-art scenes and animations, except no scene changes are needed.
