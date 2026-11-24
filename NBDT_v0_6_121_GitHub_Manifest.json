@@ -1,0 +1,18 @@
+{
+  "version": "0.6.121",
+  "base_version": "0.6.120",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "changed_files": [
+    "src/assignment-page-v052.tsx",
+    "nbdt-assignment-v052.css",
+    "package.json",
+    "README.md",
+    "RELEASE_NOTES_v0_6_121_RU.md",
+    "VALIDATION_v0_6_121.md",
+    "GITHUB_CHANGELOG_v0_6_121.txt",
+    "tests/assignment-gutters-dates-v121.test.mjs",
+    "NBDT_v0_6_121_GitHub_Manifest.json"
+  ],
+  "production_verified": false
+}

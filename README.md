@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.121 (uniform employee card gutters and fixed dates).** Assignment owner headers now share one white horizontal gutter size: the gap from the Project column to the first employee equals the gap between every adjacent pastel employee card. A reserved two-line name row keeps each start date separate from the bottom Move column control even when a name wraps. No font or avatar sizes, roster data, navigation or drag/drop behavior changed. See `RELEASE_NOTES_v0_6_121_RU.md` and `VALIDATION_v0_6_121.md`.
+
 **Current package: v0.6.120 (visible white gaps between Assignment employee headers).** Each pastel employee header now has a dedicated rounded inner color panel with a narrow white gutter on both sides. Unlike v0.6.119, the table cell itself is white, so the gutters actually remain visible between neighboring colored cards. The larger employee names and initials, task cards, seven-owner navigation, editing, and dragging remain unchanged. See `RELEASE_NOTES_v0_6_120_RU.md` and `VALIDATION_v0_6_120.md`.
 
 **Current package: v0.6.119 (Assignment header card separation).** The colored rounded employee header cards in **Assignment** now have a small left/right gap between each other, so the boundaries of every person card are easier to read at a glance. The current **larger names**, **larger initial badges**, pastel fills, rounded corners, quiet assignment cards, one-column navigation and data behavior are preserved. See `RELEASE_NOTES_v0_6_119_RU.md` and `VALIDATION_v0_6_119.md`.

@@ -1,0 +1,1 @@
+v0.6.121: Assignment owner cards — equal white gaps matching first-card left gap and fixed date position for two-line names. No assignment data or interaction changes.

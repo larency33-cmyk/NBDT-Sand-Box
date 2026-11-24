@@ -458,3 +458,52 @@
 .nb120-page .nb52-person.nb56-column-source .nb120-header-card{background:#e0ecff!important}
 .nb120-page .nb52-person.nb56-column-destination .nb120-header-card{background:#dcf4ff!important}
 .nb120-page .nb52-person.nb54-person-target .nb120-header-card{background:#dcecff!important}
+
+
+/* v0.6.121 — match the white gap at the left of the first blue owner card.
+   Each adjacent employee has 2px on either side = one uniform 4px gap.
+   The first owner receives 4px left, the same as every pair of headers.
+   The pastel color remains on the inset inner card; table cells stay white. */
+.nb121-page .nb120-header-card{
+  margin-inline:2px;
+}
+.nb121-page .nb52-project-th + .nb52-person .nb120-header-card{
+  margin-left:4px;
+}
+/* Reserve a fixed name row large enough for TWO lines, then a separate
+   role/date row above the grip. Name wrapping can no longer push the date
+   down onto the Move column handle. Preserve badge and font sizes. */
+.nb121-page .nb120-header-card .nb56-header-inner{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:34px 33px 12px 14px;
+  justify-items:center;
+  align-content:start;
+  padding:5px 5px 25px;
+  height:123px;
+  min-height:0;
+}
+.nb121-page .nb120-header-card .nb52-avatar{margin:0}
+.nb121-page .nb120-header-card .nb52-person-name-placeholder{margin:0}
+.nb121-page .nb120-header-card .nb56-header-inner > strong{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  max-height:33px;
+  padding:0 4px;
+  margin:0;
+  overflow:hidden;
+  line-height:1.17;
+}
+.nb121-page .nb120-header-card .nb56-header-inner > .nb52-position{
+  margin:0;
+  align-self:center;
+}
+.nb121-page .nb120-header-card .nb56-header-inner > small{
+  margin:0;
+  align-self:center;
+  line-height:1.15;
+}
