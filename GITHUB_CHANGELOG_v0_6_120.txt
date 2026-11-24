@@ -1,0 +1,1 @@
+v0.6.120: Show actual white side-gutters between pastel employee header cards; keep assignment behavior and prior typography unchanged. Includes uncommitted v0.6.119 refinement.

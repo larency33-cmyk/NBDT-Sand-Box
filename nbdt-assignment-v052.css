@@ -399,3 +399,62 @@
    Leave every assignment row at its existing height. */
 .nb118-page .nb52-table thead th{height:123px}
 .nb118-page .nb56-header-inner{min-height:123px}
+
+
+/* v0.6.119 — subtle horizontal separation between rounded employee header cards.
+   Keep current header typography, badge sizes, row heights and interactions. */
+.nb119-page .nb52-person{
+ padding-left:3px;
+ padding-right:3px;
+ background-clip:content-box;
+ border-right-color:transparent;
+ border-bottom-color:transparent;
+ box-shadow:none;
+}
+
+
+/* v0.6.120 — REAL visible gutter between separate pastel employee header cards.
+   Previous padding/background-clip on <th> cannot reliably expose gaps in a
+   table, because the cell itself still paints its background.  The pastel
+   surface is therefore moved into the nested rounded header card instead. */
+.nb120-page .nb52-person,
+.nb120-page .nb52-person.nb52-person-violet,
+.nb120-page .nb52-person.nb52-person-purple,
+.nb120-page .nb52-person.nb52-person-lavender,
+.nb120-page .nb52-person.nb52-person-teal,
+.nb120-page .nb52-person.nb52-person-mint,
+.nb120-page .nb52-person.nb52-person-cyan,
+.nb120-page .nb52-person.nb52-person-orange,
+.nb120-page .nb52-person.nb52-person-amber,
+.nb120-page .nb52-person.nb52-person-pink,
+.nb120-page .nb52-person.nb52-person-rose{
+  background:#fff!important;
+  background-clip:border-box;
+  padding:0;
+  border-right-color:#fff;
+  border-bottom-color:#fff;
+  border-radius:0;
+  box-shadow:none;
+}
+.nb120-page .nb120-header-card{
+  box-sizing:border-box;
+  position:relative;
+  height:123px;
+  margin:0 4px;
+  border-radius:12px;
+  background:#edf5ff;
+}
+.nb120-page .nb52-person-violet .nb120-header-card,
+.nb120-page .nb52-person-purple .nb120-header-card,
+.nb120-page .nb52-person-lavender .nb120-header-card{background:#f2efff}
+.nb120-page .nb52-person-teal .nb120-header-card,
+.nb120-page .nb52-person-mint .nb120-header-card,
+.nb120-page .nb52-person-cyan .nb120-header-card{background:#ebfaf8}
+.nb120-page .nb52-person-orange .nb120-header-card,
+.nb120-page .nb52-person-amber .nb120-header-card{background:#fff7ed}
+.nb120-page .nb52-person-pink .nb120-header-card,
+.nb120-page .nb52-person-rose .nb120-header-card{background:#fff0f6}
+/* Preserve the existing colored drag feedback, but apply it to the visible card. */
+.nb120-page .nb52-person.nb56-column-source .nb120-header-card{background:#e0ecff!important}
+.nb120-page .nb52-person.nb56-column-destination .nb120-header-card{background:#dcf4ff!important}
+.nb120-page .nb52-person.nb54-person-target .nb120-header-card{background:#dcecff!important}

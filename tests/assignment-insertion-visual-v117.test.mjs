@@ -45,7 +45,7 @@ test('DnD exposes and resets the exact hovered slot while retaining existing mov
  assert.match(source,/nb117-insertion-after/);
 });
 test('approved new visual layout is scoped and preserves original initials sizes',()=>{
- assert.equal(packageInfo.version,'0.6.118');
+ assert.ok(Number(packageInfo.version.split('.').at(-1))>=118);
  assert.match(source,/nb52-page nb54-page nb114-page nb116-page nb117-page/);
  assert.match(css,/\.nb117-page \.nb52-person\{[^}]*border-radius:12px 12px 10px 10px/);
  assert.match(css,/\.nb117-page \.nb52-assignment-name\{[^}]*font-size:12\.5px;[^}]*font-weight:400/);

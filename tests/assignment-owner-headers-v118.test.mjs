@@ -7,7 +7,7 @@ const jsx=read('../src/assignment-page-v052.tsx');
 const pkg=JSON.parse(read('../package.json'));
 const section=css.split('/* v0.6.118 —')[1]??'';
 test('version 118 is scoped to Assignment and retains existing header markup',()=>{
- assert.equal(pkg.version,'0.6.118');
+ assert.ok(Number(pkg.version.split('.').at(-1))>=118);
  assert.match(jsx,/nb52-page nb54-page nb114-page nb116-page nb117-page nb118-page/);
  assert.match(jsx,/className="nb52-avatar" aria-hidden="true"/);
  assert.match(jsx,/className="nb56-column-grip"/);

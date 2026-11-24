@@ -70,6 +70,7 @@ function PersonColumnHeader({person,index,isAdmin,busy,onAdd,onEdit,dropOwner,dr
  const insertionSide=destination?columnTarget.placement:null;
  return <th ref={setPersonDrag} scope="col" data-person-id={person.id} className={`nb52-person nb52-person-${PALETTE[index%PALETTE.length]} ${(dropOwner===person.id||itemIsOver)?'nb54-person-target':''} ${source?'nb56-column-source':''} ${destination?'nb56-column-destination':''} ${insertionSide==='before'?'nb57-insert-before':''} ${insertionSide==='after'?'nb57-insert-after':''} ${justReorderedColumns?.includes(person.id)?'nb56-column-landed':''}`}>
   {isAdmin&&<><div ref={setBeforeTarget} className="nb57-insertion-zone nb57-insertion-before" aria-hidden="true"/><div ref={setAfterTarget} className="nb57-insertion-zone nb57-insertion-after" aria-hidden="true"/></>}
+  <div className="nb120-header-card">
   <div ref={setItemTarget} className="nb56-header-inner">
    <div className="nb52-avatar" aria-hidden="true">{person.name[0]}</div>
    <strong title={person.name}>{person.name}</strong><span className="nb52-position">{person.position}</span><small>{prettyDate(person.startDate)}</small>
@@ -79,6 +80,7 @@ function PersonColumnHeader({person,index,isAdmin,busy,onAdd,onEdit,dropOwner,dr
    <button type="button" className="nb52-column-plus" aria-label={`Add system to ${person.name}`} title={`Add system to ${person.name}`} onClick={()=>onAdd(person)}><Plus size={12}/></button>
   </div>}
   {isAdmin&&<button type="button" className="nb56-column-grip" {...attributes} {...listeners} disabled={busy} aria-label={`Move entire column for ${person.name}`} title={`Drag ${person.name} and drop on the left or right half of another employee header`}><GripVertical size={15}/><span>Move column</span></button>}
+  </div>
  </th>;
 }
 
@@ -231,7 +233,7 @@ export function AssignmentPage({roster,isAdmin,onChange,onAuth}:any){
  const columnPerson=draggingPersonId?roster.people.find((p:any)=>p.id===draggingPersonId):null;
  const columnDestination=columnTarget?roster.people.find((p:any)=>p.id===columnTarget.personId):null;
  const seen=new Set<string>();const sharedNames=new Set<string>();roster.items.forEach((i:any)=>{const key=i.name.trim().toLowerCase();if(seen.has(key))sharedNames.add(key);seen.add(key);});
- return <section className="nb52-page nb54-page nb114-page nb116-page nb117-page nb118-page" aria-label="Assignment">
+ return <section className="nb52-page nb54-page nb114-page nb116-page nb117-page nb118-page nb119-page nb120-page" aria-label="Assignment">
   <header className="nb52-header nb45-primary-header"><div><h1>Assignment</h1><p>System ownership · Team responsibilities</p></div><div className="nb52-kpis"><span><Users size={17}/>{roster.people.length} people</span><span><ClipboardList size={17}/>{roster.items.length} assignments</span></div></header>
   <div className="nb52-toolbar"><label className="nb52-search"><Search size={17}/><input type="search" placeholder="Search people or assigned systems..." value={query} onChange={e=>setQuery(e.target.value)} aria-label="Search assignments"/></label><span className="nb52-toolbar-tip"><ArrowRightLeft size={15}/>{isAdmin?'Drag systems between owners · Drag employee headers between columns':'System owners are managed here'}</span><nav className="nb114-navigation" aria-label="Assignment column navigation"><button type="button" className="nb114-nav-arrow" aria-label="Previous owner columns" title="Previous employee column" disabled={currentPage===0} onClick={()=>navigateColumns(-1)}><ChevronLeft size={17}/></button><span className="nb114-nav-counter" aria-live="polite">Showing {firstVisible}–{lastVisible} of {people.length}</span><button type="button" className="nb114-nav-arrow nb114-next" aria-label="Next owner columns" title="Next employee column" disabled={currentPage===pageStarts.length-1} onClick={()=>navigateColumns(1)}><ChevronRight size={17}/></button></nav></div>
   <div className="nb52-matrix-frame">

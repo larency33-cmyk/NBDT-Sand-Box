@@ -1,0 +1,12 @@
+{
+  "version": "0.6.120",
+  "base_version": "0.6.118",
+  "repository": "larency33-cmyk/NBDT-Sand-Box",
+  "branch": "main",
+  "includes_uncommitted": "0.6.119",
+  "features": [
+    "white visible gap between pastel owner header cards",
+    "preserve existing owner avatar/name sizing and navigation"
+  ],
+  "production_verified": false
+}
