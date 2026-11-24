@@ -1,0 +1,12 @@
+{
+  "version": "0.6.122",
+  "files": {
+    "nbdt-assignment-v052.css": "35c30be4ba927ebac70b7130d0200ecaa5f0523dcfd6f914656215ef583d0037",
+    "src/assignment-page-v052.tsx": "a3680f443ad7a6c3b7882919e159615420c15fc1a105169e99bf1f4636158c67",
+    "package.json": "c654e21f5a255d86b4a3063e84c7e84fd2eb4e3d90d4bcfda7828587a574a79b",
+    "README.md": "9fd75fedbb943aaca4178d7b7e3eb3430f007d947c72b250b1068778439acb69",
+    "RELEASE_NOTES_v0_6_122_RU.md": "676bfcc9a1ccb826f18f0871522668099e7892afe29eea77fc3669811d88d6e2",
+    "VALIDATION_v0_6_122.md": "3f75fb7c61c3a00a5f6e133a2916b2b0fecbcc8114d0287fbd2826f531beb652",
+    "tests/assignment-header-gutters-v122.test.mjs": "3c03c5486f9948954291ac0d172b4182060bdeadb9296d9ec6930460f9850b1a"
+  }
+}

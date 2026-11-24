@@ -507,3 +507,13 @@
   align-self:center;
   line-height:1.15;
 }
+
+
+/* v0.6.122 — the same 4px white gutter above and below every pastel header
+   as the v0.6.121 gap between adjacent owner cards. The header row grows
+   by 8px rather than compressing the fixed two-line name / date / drag layout. */
+.nb122-page .nb52-table thead th{height:131px}
+.nb122-page .nb120-header-card{
+  margin-block:4px;
+  height:123px;
+}
