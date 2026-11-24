@@ -32,7 +32,7 @@ test('Desktop Overview has five blocks in exactly two CSS grid rows',()=>{
 });
 
 test('Overview links use the existing route identifiers',()=>{
- for(const route of ["'issues'","'roadmap'","'config-report'","'assignment'"]){
+ for(const route of ["'issues'","'roadmap'","'config-report'","'systems'"]){
   assert.ok(overview.includes(`onNavigate(${route})`),`Missing route ${route}`);
  }
 });

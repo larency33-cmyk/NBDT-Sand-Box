@@ -1,0 +1,33 @@
+.nb-overview-premium .nb-overview-layout-v062>.nb123-lessons{grid-column:10 / span 3;grid-row:2}
+.nb-overview-premium .nb123-lessons{min-width:0}
+.nb-overview-premium .nb123-lessons .nb-overview-card-head{margin-bottom:8px}
+.nb-overview-premium .nb123-lessons-hero{display:flex;align-items:center;gap:15px;padding:3px 0 8px}
+.nb-overview-premium .nb123-lessons-donut{width:99px;height:99px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.nb-overview-premium .nb123-lessons-donut>span{width:73px;height:73px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.nb-overview-premium .nb123-lessons-donut strong{font-size:25px;font-weight:750;line-height:1;color:#183763}
+.nb-overview-premium .nb123-lessons-donut small{font-size:10px;color:#8699b4}
+.nb-overview-premium .nb123-lessons-breakdown{display:flex;flex:1;min-width:0;flex-direction:column;gap:8px}
+.nb-overview-premium .nb123-lessons-breakdown>div{display:flex;align-items:center;gap:7px;min-width:0;font-size:10.5px;color:#66809e}
+.nb-overview-premium .nb123-lessons-breakdown strong{margin-left:auto;color:#244566;font-size:11.5px}
+.nb-overview-premium .nb123-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;background:#a3b4ca}
+.nb-overview-premium .nb123-dot--confirmed{background:#12a98e}
+.nb-overview-premium .nb123-dot--working{background:#3284e9}
+.nb-overview-premium .nb123-dot--pending{background:#b8c8d9}
+.nb-overview-premium .nb123-lessons-summary{font-size:10.5px;color:#536f90;border-radius:8px;background:#f3f8fe;padding:8px 9px;line-height:1.4}
+.nb-overview-premium .nb123-lessons-summary strong{font-weight:750;color:#1d538d}
+.nb-overview-premium .nb123-lessons-summary>span{padding:0 4px;color:#a4b7cc}
+.nb-overview-premium .nb123-lessons-subhead{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:12px 0 4px}
+.nb-overview-premium .nb123-lessons-subhead>span{font-size:11px;font-weight:700;color:#263e60}
+.nb-overview-premium .nb123-lessons-subhead small{font-size:9px;color:#7e92ae;text-align:right}
+.nb-overview-premium .nb123-lessons-examples{display:flex;flex-direction:column;gap:0;min-width:0}
+.nb-overview-premium .nb123-lessons-example{display:flex;align-items:center;text-align:left;gap:6px;width:100%;border:0;border-bottom:1px solid #edf2f9;background:transparent;padding:6px 2px;color:#264465;cursor:pointer;min-width:0}
+.nb-overview-premium .nb123-lessons-example:last-child{border-bottom:0}
+.nb-overview-premium .nb123-lessons-example:hover{background:#f6faff}
+.nb-overview-premium .nb123-lessons-example:focus-visible{outline:2px solid #3684eb;outline-offset:1px}
+.nb-overview-premium .nb123-lessons-example-copy{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1}
+.nb-overview-premium .nb123-lessons-example-copy strong{font-size:10.5px;font-weight:660;color:#294a78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nb-overview-premium .nb123-lessons-example-copy small{font-size:9.5px;color:#7187a5}
+.nb-overview-premium .nb123-lessons-example svg{flex:none;color:#7ca3d7}
+.nb-overview-premium .nb123-lessons-clear{margin:8px 0;font-size:11px;color:#6a819f;line-height:1.4}
+@media(max-width:1280px){.nb-overview-premium .nb-overview-layout-v062>.nb123-lessons{grid-column:auto;grid-row:auto}}
+@media(max-width:850px){.nb-overview-premium .nb123-lessons-hero{gap:18px}}

@@ -56,6 +56,7 @@ import './nbdt-overview-v070.css';
 import './nbdt-overview-v071.css';
 import './nbdt-overview-v072.css';
 import './nbdt-overview-v073.css';
+import './nbdt-overview-lessons-v123.css';
 import './nbdt-lessons-v074.css';
 import './nbdt-guide-excel-v075.css';
 import './nbdt-lessons-v076.css';
@@ -3044,7 +3045,7 @@ const App = () => {
         {routeError&&<section className="nb-route-error" role="alert"><h1>Link unavailable</h1><p>{routeError}</p><button className="nb-button nb-primary" onClick={()=>{setRouteError('');setActiveTab('overview');}}>Open current project overview</button></section>}
         {activeTab==='administration' && (isSuperAdmin&&access.user?<AdminConsole user={access.user} onSessionChange={access.refresh}/>:<section className="nb47-not-authorized"><Lock size={23}/><h2>Super Admin only</h2><p>Sign in as Super Admin to manage accounts.</p><button onClick={openLogin}>Sign in</button></section>)}
         {activeTab==='assignment' && <AssignmentPage roster={assignmentRoster} isAdmin={isAdmin} onAuth={openLogin} onChange={changeAssignment}/>}
-        {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab}/> }
+        {activeTab==='overview' && <Overview project={displayProject} onNavigate={setActiveTab} onOpenSystem={(systemId:string)=>{const sys=displayProject.systems.find((item:any)=>item.id===systemId);if(sys)openGuide(sys);else setActiveTab('systems');}}/> }
         {activeTab === 'roadmap' && isWeeklyFocus && <WeeklyTracker project={trackerProject} isAdmin={isAdmin}
         onQuickTaskReassign={async(taskId:string,personId:string)=>{
           if(!isAdmin)throw Error('Admin sign-in required to reassign historical tasks.');

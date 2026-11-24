@@ -6,6 +6,7 @@ import {parseClipboardAssignments} from './tracker-actions.mjs';
 import {normalizeLesson,serializeLessons,isLessonPopulated} from './lessons-learned.mjs';
 import {setLessonReview,lessonReviewCounts} from './lesson-review.mjs';
 import {getAttentionRows} from './overview-attention.mjs';
+import {overviewLessonsStats} from './overview-lessons-v123.mjs';
 import {ProjectStartPicker} from './project-start-picker';
 import {UNASSIGNED_MEMBER_ID,memberInitial} from './members.mjs';
 import {isTrackerNotOnSite,trackerDropPlacement,unlinkedTrackerTasks} from './tracker-team.mjs';
@@ -20,7 +21,7 @@ import {DeviceTypeIcon} from './device-type-icon';
 import {guideReviewKey,loadGuideReview,changeGuideCheck,acceptGuideReviewStage} from './guide-review.mjs';
 import {validateAggregateMetrics,reportCounts} from './reference-report.mjs';
 import {CYBER_STATUSES,normalizeCyberStatus} from './cyber-status.mjs';
-import React,{useState,useEffect,useRef} from 'react';
+import React,{useState,useEffect,useRef,useMemo} from 'react';
 import {createPortal} from 'react-dom';
 import {Monitor,AppWindow,Plug,Network,Globe,LockKeyhole,UserRoundKey,Workflow,ShieldCheck,LayoutGrid,Tag,UserRound,MoreVertical,ClipboardCheck,BookOpen,FileText,ExternalLink,ChevronLeft,ChevronRight,ChevronDown,Settings2,Rocket,Layers3,Flag,CalendarDays,Search,Users,AlertCircle,Pencil,Trash2,Plus,Check,X,GripVertical,MapPinOff} from 'lucide-react';
 import {STAGES,LABELS,uid,weekRange,safeUrl,validateGuide,newGuide,runFor,canAccept,setCheck,acceptStage,counts,assignments} from './model.mjs';
@@ -1210,7 +1211,7 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
 }
 
 
-export function Overview({project,onNavigate}:any){
+export function Overview({project,onNavigate,onOpenSystem}:any){
  const [historyOpen,setHistoryOpen]=useState(false);
  const reportSummary=reportCounts(project,counts);
  const timezone=project.timezone||'Europe/Paris';
@@ -1240,13 +1241,7 @@ export function Overview({project,onNavigate}:any){
  const setupRows=allSetupRows.slice(0,3);
  const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,5);
  const activityItems=Array.isArray(project.activityLog)?project.activityLog:[];
- const ownership=(project.systems||[]).reduce((acc:any,sys:any)=>{
-  const label=ownerName(sys);
-  if(!label||label==='Not matched'||label==='Unassigned')acc.unmatched+=1;
-  else acc.assigned+=1;
-  return acc;
- },{assigned:0,multiple:0,unmatched:0});
- const totalSystems=Math.max(1,(project.systems||[]).length);
+ const lessonsOverview=useMemo(()=>overviewLessonsStats(project),[project]);
  const formatDate=(value:string)=>{
   if(!value)return '—';
   try{return new Date(value+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch{return value;}
@@ -1453,21 +1448,28 @@ export function Overview({project,onNavigate}:any){
      </div>
     </section>
 
-    <section className="nb-overview-card nb-overview-ownership">
+    <section className="nb-overview-card nb-overview-ownership nb123-lessons" aria-label="Lessons Learned overview">
      <div className="nb-overview-card-head">
-      <div>
-       <h2>Ownership coverage</h2>
-       <p>Visibility of assigned system owners in this project.</p>
-      </div>
-      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('assignment')}>Assignment ↗</button>
+      <div><h2>Lessons Learned</h2><p>Current-project reviews from System Registry</p></div>
+      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('systems')}>Systems ↗</button>
      </div>
-     <div className="nb-overview-coverage">
-      <div className="nb-overview-coverage-ring" style={{background:`conic-gradient(#2c77f4 ${Math.round(ownership.assigned/totalSystems*100)}%, #e4edf7 0)`}}><span><strong>{project.systems.length}</strong><small>systems</small></span></div>
-      <div className="nb-overview-coverage-legend">
-       <div><i className="is-assigned"/>Assigned uniquely <strong>{ownership.assigned}</strong></div>
-       <div><i className="is-multiple"/>Multiple owners <strong>{ownership.multiple}</strong></div>
-       <div><i className="is-unmatched"/>No exact match <strong>{ownership.unmatched}</strong></div>
+     <div className="nb123-lessons-hero">
+      <div className="nb123-lessons-donut" role="img" aria-label={lessonsOverview.total?String(lessonsOverview.confirmed)+' of '+lessonsOverview.total+' lessons confirmed':'No lessons recorded'} style={{background:lessonsOverview.total?'conic-gradient(#12a98e '+lessonsOverview.percent+'%, #e3edf8 0)':'#e3edf8'}}>
+       <span><strong>{lessonsOverview.total}</strong><small>lessons</small></span>
       </div>
+      <div className="nb123-lessons-breakdown">
+       <div><span className="nb123-dot nb123-dot--confirmed"/>Confirmed <strong>{lessonsOverview.confirmed}</strong></div>
+       <div><span className="nb123-dot nb123-dot--working"/>In progress <strong>{lessonsOverview.inProgress}</strong></div>
+       <div><span className="nb123-dot nb123-dot--pending"/>Pending review <strong>{lessonsOverview.pending}</strong></div>
+      </div>
+     </div>
+     <div className="nb123-lessons-summary"><strong>{lessonsOverview.remaining}</strong> lessons to review <span aria-hidden="true">·</span> <strong>{lessonsOverview.withoutLessons}</strong> systems without lessons</div>
+     <div className="nb123-lessons-subhead"><span>Where attention is needed</span><small>{lessonsOverview.systemsNeedingReview} in review · {lessonsOverview.withoutLessons} empty</small></div>
+     <div className="nb123-lessons-examples">
+      {lessonsOverview.needingAttention.slice(0,3).map((row:any)=><button key={row.id} type="button" className="nb123-lessons-example" onClick={()=>onOpenSystem?onOpenSystem(row.id):onNavigate('systems')} title={'Open '+row.name+' in System Registry'}>
+       <span className="nb123-lessons-example-copy"><strong>{row.name}</strong><small>{row.kind==='missing'?'Add Lessons Learned':row.inProgress?row.inProgress+' in progress · '+row.pending+' pending':row.pending+' awaiting review'}</small></span><ChevronRight size={15}/>
+      </button>)}
+      {!lessonsOverview.needingAttention.length&&<p className="nb123-lessons-clear">{lessonsOverview.systemCount?'All systems have confirmed Lessons Learned.':'No systems registered yet.'}</p>}
      </div>
     </section>
   </div>

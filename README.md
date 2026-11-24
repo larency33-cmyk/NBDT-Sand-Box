@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.123 (live Lessons Learned overview).** Replaces the former Ownership coverage card in the actual Overview with a project-scoped Lessons Learned summary sourced from each System Registry entry. Shows recorded lessons, current-project confirmed/in-progress/pending review counts, unreviewed lessons, systems without lessons, and up to three actionable system links. Does not create independent flags or modify stored lesson records. See `RELEASE_NOTES_v0_6_123_RU.md` and `VALIDATION_v0_6_123.md`.
+
 **Current package: v0.6.122 (Assignment balanced vertical gaps).** The pastel employee header cards now have 4px of visible white space above and below, matching the existing 4px horizontal gap. The table header row grows by 8px to preserve the fixed two-line name layout, date clearance, Move column control, initials and all task row dimensions. See `RELEASE_NOTES_v0_6_122_RU.md` and `VALIDATION_v0_6_122.md`.
 
 **Current package: v0.6.121 (uniform employee card gutters and fixed dates).** Assignment owner headers now share one white horizontal gutter size: the gap from the Project column to the first employee equals the gap between every adjacent pastel employee card. A reserved two-line name row keeps each start date separate from the bottom Move column control even when a name wraps. No font or avatar sizes, roster data, navigation or drag/drop behavior changed. See `RELEASE_NOTES_v0_6_121_RU.md` and `VALIDATION_v0_6_121.md`.
