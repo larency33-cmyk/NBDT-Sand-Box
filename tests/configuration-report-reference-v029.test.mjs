@@ -24,7 +24,8 @@ test('Dashboard uses computed progress and identifies sample benchmark totals',(
   assert.match(report,/reportCounts\(project,counts\)/);
   assert.match(report,/No registered device data/);
   assert.doesNotMatch(report,/Reference demo:/);
-  assert.match(report,/--report-kpi-accent/);
+  assert.match(report,/nb70-liquid-ring/);
+  assert.match(report,/nb66-liquid-svg/);
 });
 test('Table includes grounded Venue and AW values, without six-row paging',()=>{
   assert.match(report,/Venue','Base','Ready','Deployed','AW','Cyber','Owner/);

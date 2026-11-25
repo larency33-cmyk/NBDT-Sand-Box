@@ -23,7 +23,7 @@ test('Main report actions export live system readiness, not legacy aggregates',(
 });
 test('Dashboard matches reference information hierarchy',()=>{
  assert.match(report, /Deployment overview/);
- assert.ok(report.indexOf('nb-kpis')<report.indexOf('nb-readiness-heading'));
+ assert.ok(report.indexOf('nb125-report-kpi-grid')<report.indexOf('nb-readiness-heading'));
  assert.ok(report.indexOf('nb-readiness-heading')<report.indexOf('nb-report-filters'));
  assert.doesNotMatch(report,/className="nb-report-column-picker"/);
  assert.ok(report.indexOf('nb-report-table')<report.indexOf('nb-report-continuous-footer'));

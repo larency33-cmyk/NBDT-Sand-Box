@@ -7,7 +7,7 @@ const css=readFileSync(new URL('../redesign.css',import.meta.url),'utf8');
 test('NBDT report shows KPIs, controls and a continuous table without an obsolete Columns picker',()=>{
  const start=w.indexOf('export function Report');
  const substr=w.slice(start,w.indexOf('export function Overview',start));
- const selectors=['className="nb-kpis"','className="nb-readiness-heading"','className="nb-toolbar nb-report-filters"','className="nb-report-table nb-report-continuous"'];
+ const selectors=['className="nb-overview-kpi-grid nb125-report-kpi-grid"','className="nb-readiness-heading"','className="nb-toolbar nb-report-filters"','className="nb-report-table nb-report-continuous"'];
  const positions=selectors.map(k=>substr.indexOf(k));
  assert.ok(positions.every(p=>p>=0));
  assert.deepEqual(positions,[...positions].sort((a,b)=>a-b));

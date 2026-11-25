@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.125 (Configuration Report liquid KPI parity).** Four Configuration Report summary cards now use the exact v0.6.124 Overview SVG water treatment, five-shade palette, responsive typography, bubbles and perpetual motion. All values still come from the existing report totals, and the report table/filter/editor logic is untouched. See `RELEASE_NOTES_v0_6_125_RU.md`.
+
 **Current package: v0.6.124 (Project overview dashboard redesign).** This release applies the approved Overview mockup to the running application: four KPI cards with the existing moving five-shade liquid, two-column Needs attention, a task-completion matrix, report-driven readiness heatmap, activity timeline and actionable Lessons Learned card. All numbers come from live project state, not the reference image. No changes to System Registry, Assignment or backend storage. See `RELEASE_NOTES_v0_6_124_RU.md` and `VALIDATION_v0_6_124.md`.
 
 **Current package: v0.6.123 (live Lessons Learned overview).** Replaces the former Ownership coverage card in the actual Overview with a project-scoped Lessons Learned summary sourced from each System Registry entry. Shows recorded lessons, current-project confirmed/in-progress/pending review counts, unreviewed lessons, systems without lessons, and up to three actionable system links. Does not create independent flags or modify stored lesson records. See `RELEASE_NOTES_v0_6_123_RU.md` and `VALIDATION_v0_6_123.md`.

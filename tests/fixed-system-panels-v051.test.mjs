@@ -14,7 +14,7 @@ test('v0.6.51 keeps filter/navigation controls outside the System Registry scrol
   assert.match(section,/role="region" aria-label="Systems list" tabIndex=\{0\}/);
 });
 test('Report separates stationary title, KPI and filter panels from vertically scrolling rows',()=>{
-  assert.ok(report.indexOf('nb-page-header nb45-primary-header')<report.indexOf('<div className="nb-kpis">'));
+  assert.ok(report.indexOf('nb-page-header nb45-primary-header')<report.indexOf('nb125-report-kpi-scope'));
   assert.ok(report.indexOf('<div className="nb-readiness-heading">')<report.indexOf('nb-report-filters'));
   assert.ok(report.indexOf('nb-report-filters')<report.indexOf('nb-report-table nb-report-continuous'));
   assert.match(css,/nb-report-readiness-panel\s*>\s*\.nb-report-table\s*\{[^}]*overflow-y:auto!important/s);

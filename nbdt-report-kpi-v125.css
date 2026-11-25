@@ -1,0 +1,32 @@
+/* NBDT v0.6.125 — exact v0.6.124 Overview KPI language in Configuration Report.
+   The report uses the original five-shade SVG water and the same keyframe waves
+   from Overview CSS v69–v71. Only the wrapper/sizing differs between pages. */
+.nb-report-shell .nb125-report-kpi-scope{width:100%;max-width:none;margin:13px 0 21px;display:block}
+.nb-report-shell .nb125-report-kpi-grid{margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.nb-report-shell .nb125-report-kpi-grid > .nb-overview-kpi-card{cursor:default;text-align:left;min-width:0;min-height:150px}
+.nb-report-shell .nb125-report-kpi-grid > .nb-overview-kpi-card:hover{transform:none;box-shadow:0 5px 18px rgba(55,76,150,.075),0 1px 2px rgba(55,76,150,.04);border-color:#e2e7fa}
+.nb-report-shell .nb125-report-kpi-grid .nb64-kpi-card .nb-overview-kpi-card__content{min-height:148px}
+.nb-report-shell .nb125-report-kpi-grid .nb64-liquid-ring{aspect-ratio:1;max-width:100%}
+/* Preserve legible percentages and the untouched system table on narrower screens. */
+@media(max-width:1500px){
+ .nb-report-shell .nb125-report-kpi-grid .nb64-kpi-card .nb-overview-kpi-card__content{grid-template-columns:minmax(0,1fr) 92px;gap:6px;padding:15px 12px 14px}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-liquid-ring{width:98px!important;height:98px!important;flex-basis:98px!important}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-kpi-symbol{width:36px!important;height:36px!important;flex-basis:36px!important}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-kpi-symbol svg{width:25px;height:25px}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-kpi-figures strong{font-size:30px}
+}
+@media(max-width:1120px){
+ .nb-report-shell .nb125-report-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-kpi-card .nb-overview-kpi-card__content{grid-template-columns:minmax(0,1fr) 107px}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-liquid-ring{width:110px!important;height:110px!important;flex-basis:110px!important}
+}
+@media(max-width:640px){
+ .nb-report-shell .nb125-report-kpi-grid{grid-template-columns:1fr}
+ .nb-report-shell .nb125-report-kpi-grid .nb64-liquid-ring{width:106px!important;height:106px!important;flex-basis:106px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .nb-report-shell .nb125-report-kpi-grid .nb70-water-stack,
+ .nb-report-shell .nb125-report-kpi-grid .nb69-water-wave,
+ .nb-report-shell .nb125-report-kpi-grid .nb70-water-wave,
+ .nb-report-shell .nb125-report-kpi-grid .nb70-water-bubble{animation:none!important}
+}

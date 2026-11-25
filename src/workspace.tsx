@@ -1131,11 +1131,11 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  const allVenues=[...new Set(project.systems.map((s:any)=>displayVenue(s)).filter((s:string)=>s!=='—'))].sort();
  const allOwners=[...new Set(project.systems.map(memberName))].sort();
  const kpis=[
-  ['Base Configuration','base',reportSummary.base,reportSummary.total,Settings2],
-  ['Ready for Deployment','ready',reportSummary.ready,reportSummary.total,Rocket],
-  ['Deployed','deployed',reportSummary.deployed,reportSummary.total,Layers3],
-  ['Cyber Approved','cyber',reportSummary.cyberApproved,reportSummary.cyberApplicable,ShieldCheck],
- ] as any[];
+  {label:'Base Configuration',value:reportSummary.total?Math.round(reportSummary.base/reportSummary.total*100):0,count:reportSummary.total?`${reportSummary.base.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`:'No registered device data',tab:'config-report',accent:'base',Icon:Settings2,colors:{primary:'#2377f3',light:'#78c7ff',dark:'#0b58d7',track:'#dcecff',shades:['#f7fbff','#dff1ff','#bcdfff','#84c7ff','#2377f3']}},
+  {label:'Ready for Deployment',value:reportSummary.total?Math.round(reportSummary.ready/reportSummary.total*100):0,count:reportSummary.total?`${reportSummary.ready.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`:'No registered device data',tab:'config-report',accent:'ready',Icon:Rocket,colors:{primary:'#8065ed',light:'#c8b4ff',dark:'#5743d5',track:'#eee9ff',shades:['#fbf9ff','#efe5ff','#dac9ff','#b292ff','#8065ed']}},
+  {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:reportSummary.total?`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`:'No deployment records',tab:'config-report',accent:'deployed',Icon:Layers3,colors:{primary:'#10b2cc',light:'#7fe7ed',dark:'#068ca7',track:'#d9f6fa',shades:['#f2feff','#d8fbff','#b2f3fa','#76e1eb','#10b2cc']}},
+  {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:reportSummary.cyberApplicable?`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`:'No applicable systems',tab:'config-report',accent:'cyber',Icon:ShieldCheck,colors:{primary:'#12ab87',light:'#75eac4',dark:'#07886b',track:'#dcf8ee',shades:['#f2fffb','#dbfff1','#baf7e0','#7be6bc','#12ab87']}},
+ ];
  const progress=(n:number,t:number)=> t>0?<span className="nb-report-progress"><span className="nb-progress-label"><small>{n.toLocaleString('en-US')}</small><strong>{Math.round(n/t*100)}%{n===t?' ✓':''}</strong></span><progress max={t} value={n} aria-label={`${n} out of ${t} completed`}/></span>:<span className="nb-muted">—<small>No device inventory</small></span>;
  const openEditor=(sys?:any)=>{if(!isAdmin){onRequestAdmin?.();return;}setFormError('');setSaveMessage('');setConfirmDeleteId(null);setEditor(sys?{...sys,reportMetrics:{...counts(sys)},reportVenue:displayVenue(sys)==='—'?'':displayVenue(sys),reportAW:displayAw(sys)==='—'?'':displayAw(sys),reportOwnerName:memberName(sys)==='Unassigned'?'':memberName(sys)}:{id:uid(),name:'',deviceType:'',deviceCategory:'PC',os:'Other',osVersion:'',network:'',vlan:'',serviceAccount:'',userAccount:'',logonType:'',ipScope:'',ipReservation:'',domainOU:'',airWatchTags:'',status:'Active',devices:[],deviceRuns:[],reportMode:'aggregate-sample',reportMetrics:{total:0,base:0,ready:0,deployed:0},reportVenue:'',reportAW:'Pending',reportOwnerName:'',cyberStatus:'Not Started'});};
  const saveEditor=async(e?:any)=>{e?.preventDefault?.();if(!editor||saving)return;setFormError('');
@@ -1187,7 +1187,97 @@ export function Report({project,isAdmin,onSystemChange,onSystemCreate,onSystemDe
  const changeMetric=(key:string,v:string)=>setEditor((old:any)=>({...old,reportMetrics:{...old.reportMetrics,[key]:v}}));
  return <section className="nb-report nb-report-reference-v032">
   <header className="nb-page-header nb45-primary-header"><div><h1>Configuration Report</h1><p>Legend of the Seas · Deployment overview</p></div><div className="nb-actions"/></header>
-  <div className="nb-kpis">{kpis.map(([label,key,n,t,Icon]:any)=><article className="nb-kpi" key={key}><div><span className={'nb-kpi-icon nb-kpi-icon-'+key}><Icon size={24} strokeWidth={2}/></span><h3>{label}</h3><strong>{t?Math.round(n/t*100)+'%':'—'}</strong><div className={'nb-kpi-ring nb-kpi-ring-'+key} role="img" aria-label={`${label}: ${n} of ${t}`} style={{background:`conic-gradient(var(--report-kpi-accent) ${t?n/t*100:0}%, #e4edf8 0)`}}><span/></div><p>{t?`${n.toLocaleString('en-US')} / ${t.toLocaleString('en-US')} ${key==='cyber'?'applicable systems':'devices'}`:key==='deployed'?'No deployment records':'No registered device data'}</p></div></article>)}</div>
+  {/* Identical v124 liquid KPI cards; only report values are used. */}
+  <div className="nb-overview-premium nb124-overview nb125-report-kpi-scope">
+  <div className="nb-overview-kpi-grid nb125-report-kpi-grid">
+   {kpis.map((item:any)=>{
+    const percent=Math.max(0,Math.min(100,Number(item.value)||0));
+    const circumference=2*Math.PI*48;
+    const innerCircumference=2*Math.PI*41.5;
+    const ringId=`nb64-ring-${item.accent}`;
+    const waterline=100-percent*.8;
+    const bubbleDepth=Math.max(7,100-waterline);
+    const bubbles=[
+     {x:31,depth:.84,r:2.6},{x:44,depth:.51,r:1.7},
+     {x:55,depth:.91,r:2.4},{x:67,depth:.65,r:1.6},
+     {x:77,depth:.81,r:2.3},{x:88,depth:.56,r:1.9},
+     {x:60,depth:.35,r:1.5},{x:39,depth:.72,r:1.8},
+     {x:73,depth:.42,r:1.9}
+    ];
+    return <article key={item.label} className={`nb-overview-kpi-card nb-overview-kpi-card--${item.accent} nb64-kpi-card`}>
+     <div className="nb-overview-kpi-card__gloss" aria-hidden="true"/>
+     <div className="nb-overview-kpi-card__reflection" aria-hidden="true"/>
+     <div className="nb-overview-kpi-card__content">
+      <div className="nb-overview-kpi-copy nb64-kpi-copy">
+       <h3>{item.label}</h3>
+       <div className="nb64-kpi-reading">
+        <span className="nb64-kpi-symbol" aria-hidden="true" style={{width:50,height:50,flex:'0 0 50px',display:'grid',placeItems:'center',color:item.colors.primary,background:`linear-gradient(145deg,#ffffff,${item.colors.track})`,border:`1px solid ${item.colors.track}`,borderRadius:14,boxShadow:'0 3px 11px rgba(23,60,110,.10)'}}><item.Icon size={37} color={item.colors.primary} strokeWidth={1.9}/></span>
+        <div className="nb64-kpi-figures"><strong>{percent}%</strong><p>{item.count}</p></div>
+       </div>
+      </div>
+      <span className={`nb64-liquid-ring nb64-liquid-ring--${item.accent} nb66-liquid-ring nb70-liquid-ring nb70-liquid-ring--${item.accent} ${percent===0?'nb66-liquid-ring--empty':''}`} role="img" aria-label={`${item.label}: ${percent}% complete`} style={{'--nb66-primary':item.colors.primary,'--nb66-light':item.colors.light,'--nb66-track':item.colors.track,'--nb66-fill':`${percent}%`} as React.CSSProperties}>
+       <span className="nb66-liquid-chamber" aria-hidden="true">
+        <span className="nb66-liquid-fill">
+         <span className="nb66-liquid-surface nb66-liquid-surface--back"/>
+         <span className="nb68-liquid-refraction"/>
+         <span className="nb66-liquid-surface nb66-liquid-surface--front"/>
+         <span className="nb68-liquid-undertow"/>
+         <span className="nb66-bubble nb66-bubble--one"/>
+         <span className="nb66-bubble nb66-bubble--two"/>
+         <span className="nb66-bubble nb66-bubble--three"/>
+        </span>
+        <span className="nb66-liquid-gloss"/>
+        <span className="nb68-glass-reflection"/>
+        <span className="nb68-glass-rim"/>
+       </span>
+       <svg className="nb66-liquid-svg" viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" focusable="false">
+        <defs>
+         <linearGradient id={ringId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={item.colors.light}/>
+          <stop offset="45%" stopColor={item.colors.primary}/>
+          <stop offset="100%" stopColor={item.colors.dark}/>
+         </linearGradient>
+         {/* The underlying water gradient spans only the actual filled part
+             of the circle, so even 12% visibly contains all five shades. */}
+         <linearGradient id={`${ringId}-water-five`} x1="15" y1="0" x2="92" y2={Math.max(8,100-waterline)} gradientUnits="userSpaceOnUse">
+          {item.colors.shades.map((shade:string,index:number)=><stop key={index} offset={`${index*25}%`} stopColor={shade}/>)}
+         </linearGradient>
+         <radialGradient id={`${ringId}-water-bubble`} cx="30%" cy="24%" r="75%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity=".82"/>
+          <stop offset="52%" stopColor={item.colors.shades[1]} stopOpacity=".42"/>
+          <stop offset="100%" stopColor={item.colors.shades[4]} stopOpacity=".38"/>
+         </radialGradient>
+        </defs>
+        {/* Flat, animated, theme-colored water: exactly one smooth ring. */}
+        <clipPath id={`${ringId}-water-clip`}><circle cx="60" cy="60" r="39.4"/></clipPath>
+        <circle className="nb69-water-background" cx="60" cy="60" r="39.4" fill={item.colors.track}/>
+        {percent>0&&<g className="nb69-water-window" clipPath={`url(#${ringId}-water-clip)`}>
+         <g transform={`translate(0 ${waterline.toFixed(3)})`}>
+          <g className="nb70-water-stack">
+          <path className="nb70-water-base" fill={`url(#${ringId}-water-five)`} d="M -170 0 H 274 V 160 H -170 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade1" fill={item.colors.shades[0]} fillOpacity=".48" d="M -170 -3 C -148 -11 -126 -10 -104 -3 S -60 6 -38 -2 S 10 -10 32 -3 S 76 6 98 -2 S 142 -11 164 -3 S 208 6 230 -1 S 252 -9 274 -2 L 274 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade2" fill={item.colors.shades[1]} fillOpacity=".42" d="M -170 6 C -148 -2 -126 -2 -104 6 S -60 14 -38 6 S 10 -2 32 6 S 76 14 98 6 S 142 -2 164 6 S 208 14 230 6 S 252 -2 274 6 L 274 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade3" fill={item.colors.shades[2]} fillOpacity=".40" d="M -170 14 C -146 6 -122 6 -98 14 S -50 22 -26 14 S 22 6 46 14 S 94 22 118 14 S 166 6 190 14 S 238 22 262 14 L 262 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade4 nb69-water-wave nb69-water-wave--back" fill={item.colors.shades[3]} fillOpacity=".47" d="M -170 22 C -146 14 -122 14 -98 22 S -50 30 -26 22 S 22 14 46 22 S 94 30 118 22 S 166 14 190 22 S 238 30 262 22 L 262 160 L -170 160 Z"/>
+          <path className="nb70-water-wave nb70-water-wave--shade5 nb69-water-wave nb69-water-wave--front" fill={item.colors.shades[4]} fillOpacity=".53" d="M -170 29 C -144 38 -118 38 -92 29 S -40 20 -14 29 S 38 38 64 29 S 116 20 142 29 S 194 38 220 29 S 246 20 272 29 L 272 160 L -170 160 Z"/>
+          {bubbles.map((bubble,index)=><circle key={index} className={`nb70-water-bubble nb70-water-bubble--${index%6}`} cx={bubble.x} cy={Math.max(5,bubbleDepth*bubble.depth)} r={bubble.r} fill={`url(#${ringId}-water-bubble)`} stroke="#ffffff" strokeOpacity=".52" strokeWidth=".6" style={{animationDelay:`-${(index*1.11+{base:0,ready:1.4,deployed:2.7,cyber:4.2}[item.accent as 'base'|'ready'|'deployed'|'cyber']).toFixed(2)}s`,animationDuration:`${(3.7+(index%4)*.72+({base:0,ready:.45,deployed:1.1,cyber:.7}[item.accent as 'base'|'ready'|'deployed'|'cyber'])).toFixed(2)}s`}}/>)}
+          </g>
+         </g>
+        </g>}
+        <circle className="nb69-water-outline" cx="60" cy="60" r="39.4" fill="none" stroke={item.colors.track} strokeWidth=".8"/>
+        {/* Single non-overlaid progress arc; no duplicate highlights or jagged joins. */}
+        <circle cx="60" cy="60" r="48" fill="none" stroke={item.colors.track} strokeWidth="8"/>
+        {percent>0&&<circle className="nb68-secondary-arc" cx="60" cy="60" r="41.5" fill="none" stroke={item.colors.light} strokeOpacity=".76" strokeWidth="2.6" strokeDasharray={`${(percent/100*innerCircumference).toFixed(3)} ${innerCircumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
+        {percent>0&&<circle className="nb69-progress-arc" cx="60" cy="60" r="48" fill="none" stroke={item.colors.primary} strokeWidth="8" strokeDasharray={`${(percent/100*circumference).toFixed(3)} ${circumference.toFixed(3)}`} strokeLinecap={percent>=100?'butt':'round'} transform="rotate(-90 60 60)"/>}
+        <path d="M 30 42 A 39 39 0 0 1 62 22" fill="none" stroke="#ffffff" strokeOpacity=".72" strokeWidth="2.2" strokeLinecap="round"/>
+        <path d="M 91 75 A 37 37 0 0 1 66 96" fill="none" stroke="#ffffff" strokeOpacity=".3" strokeWidth="1.4" strokeLinecap="round"/>
+       </svg>
+      </span>
+     </div>
+    </article>;
+   })}
+  </div>
+  </div>
   <section className="nb-report-readiness-panel" aria-label="System readiness">
    <div className="nb-readiness-heading"><h2>System readiness <small>{systems.length} systems</small></h2><div className="nb-scope-tabs" role="group" aria-label="Readiness scope">{['All','In progress','Not started'].map(v=><B key={v} aria-pressed={scope===v} onClick={()=>setScope(v)}>{v}</B>)}</div><div className="nb-report-manage-actions">{isAdmin&&<B onClick={()=>openEditor()} className="nb-report-add-system"><Plus size={16}/> Add system</B>}</div></div>
    <div className="nb-toolbar nb-report-filters">
