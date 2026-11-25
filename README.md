@@ -1,5 +1,7 @@
 # NBDT — Newbuild Deployment Tool
 
+**Current package: v0.6.127 (exact KPI / System readiness edge alignment).** Fixed the mistaken ±24px bleed in Configuration Report. Both sections now fill their shared parent content width, with identical left and right edges at desktop, tablet, and mobile sizes. No changes to liquid animations, report metrics, filters, or system data. See `RELEASE_NOTES_v0_6_127_RU.md` and `VALIDATION_v0_6_127.md`.
+
 **Current package: v0.6.126 (full-width Configuration Report KPI alignment).** Aligns the four animated liquid KPI cards with the outer left/right edges of the System readiness panel. Preserves wave animations, KPI data, report filters, and the table. See `RELEASE_NOTES_v0_6_126_RU.md` and `VALIDATION_v0_6_126.md`.
 
 **Current package: v0.6.125 (Configuration Report liquid KPI parity).** Four Configuration Report summary cards now use the exact v0.6.124 Overview SVG water treatment, five-shade palette, responsive typography, bubbles and perpetual motion. All values still come from the existing report totals, and the report table/filter/editor logic is untouched. See `RELEASE_NOTES_v0_6_125_RU.md`.
