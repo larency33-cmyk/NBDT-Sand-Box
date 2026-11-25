@@ -57,6 +57,7 @@ import './nbdt-overview-v071.css';
 import './nbdt-overview-v072.css';
 import './nbdt-overview-v073.css';
 import './nbdt-overview-lessons-v123.css';
+import './nbdt-overview-v124.css';
 import './nbdt-lessons-v074.css';
 import './nbdt-guide-excel-v075.css';
 import './nbdt-lessons-v076.css';

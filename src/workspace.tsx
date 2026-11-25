@@ -1239,9 +1239,17 @@ export function Overview({project,onNavigate,onOpenSystem}:any){
  // message must ALL come from the same actionable rollout stage.
  const allSetupRows=getAttentionRows(project.systems||[],counts);
  const setupRows=allSetupRows.slice(0,3);
- const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,5);
+ const readinessRows=[...(project.systems||[])].sort((a:any,b:any)=>{const ca=counts(a),cb=counts(b);return (cb.total-ca.total)||String(a.name).localeCompare(String(b.name));}).slice(0,3);
  const activityItems=Array.isArray(project.activityLog)?project.activityLog:[];
  const lessonsOverview=useMemo(()=>overviewLessonsStats(project),[project]);
+ const weekTotal=weekStats.planned+weekStats.active+weekStats.blocked+weekStats.done;
+ const weekPercent=weekTotal?Math.round(weekStats.done/ weekTotal*100):0;
+ // At most 27 visual cells, distributed in the same proportions as the actual
+ // task status counts. The numeric totals above are always exact.
+ const weekTiles=Array.from({length:Math.min(27,weekTotal)},(_,index)=>{
+  const slot=Math.floor((index+.5)*weekTotal/Math.min(27,weekTotal));
+  return slot<weekStats.done?'done':slot<weekStats.done+weekStats.active?'active':slot<weekStats.done+weekStats.active+weekStats.blocked?'blocked':'planned';
+ });
  const formatDate=(value:string)=>{
   if(!value)return '—';
   try{return new Date(value+'T12:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch{return value;}
@@ -1258,12 +1266,17 @@ export function Overview({project,onNavigate,onOpenSystem}:any){
   {label:'Deployed',value:reportSummary.total?Math.round(reportSummary.deployed/reportSummary.total*100):0,count:`${reportSummary.deployed.toLocaleString('en-US')} / ${reportSummary.total.toLocaleString('en-US')} devices`,tab:'config-report',accent:'deployed',Icon:Layers3,colors:{primary:'#10b2cc',light:'#7fe7ed',dark:'#068ca7',track:'#d9f6fa',shades:['#f2feff','#d8fbff','#b2f3fa','#76e1eb','#10b2cc']}},
   {label:'Cyber Approved',value:reportSummary.cyberApplicable?Math.round(reportSummary.cyberApproved/reportSummary.cyberApplicable*100):0,count:`${reportSummary.cyberApproved.toLocaleString('en-US')} / ${reportSummary.cyberApplicable.toLocaleString('en-US')} applicable systems`,tab:'config-report',accent:'cyber',Icon:ShieldCheck,colors:{primary:'#12ab87',light:'#75eac4',dark:'#07886b',track:'#dcf8ee',shades:['#f2fffb','#dbfff1','#baf7e0','#7be6bc','#12ab87']}},
  ];
+ const heatCell=(completed:number,total:number,stage:'base'|'ready'|'deployed')=>{
+  if(!total)return <span className="nb124-heat nb124-heat--empty" aria-label="No report quantity">—</span>;
+  const percent=Math.min(100,Math.max(0,Math.round(completed/total*100)));
+  return <span className={`nb124-heat nb124-heat--${stage} ${percent>=80?'nb124-heat--strong':''}`} style={{'--nb124-strength':`${Math.max(.08,percent/100)}`} as React.CSSProperties} title={`${completed} of ${total} devices`} aria-label={`${percent}% complete`}>{percent}%</span>;
+ };
  const miniProgress=(value:number,total:number,variant:string)=> <div className="nb-overview-progress"><span>{total>0?`${Math.round(value/total*100)}%`:'—'}</span><div className="nb-overview-progress-track"><i className={`nb-overview-progress-fill nb-overview-progress-fill--${variant}`} style={{width:`${total>0?Math.max(4,Math.min(100,Math.round(value/total*100))):0}%`}}/></div></div>;
- return <section className="nb-overview nb-overview-premium">
+ return <section className="nb-overview nb-overview-premium nb124-overview">
   <header className="nb-page-header nb-overview-header">
    <div>
-    <h1>Overview</h1>
-    <p>{project.name} · Project status at a glance</p>
+    <h1>Project overview</h1>
+    <p>{project.name} · Deployment snapshot</p>
    </div>
    <div className="nb-overview-header-meta">
     <div className="nb-overview-meta-card nb63-project-start">
@@ -1367,113 +1380,80 @@ export function Overview({project,onNavigate,onOpenSystem}:any){
    })}
   </div>
 
-  <div className="nb-overview-layout nb-overview-layout-v062">
-   <section className="nb-overview-card nb-overview-attention nb63-attention">
-    <div className="nb-overview-card-head">
-     <div><h2>Systems requiring attention</h2><p>Issues and unfinished deployment, clearly separated.</p></div>
-    </div>
-    <div className="nb63-attention-split">
-     <div className="nb63-attention-group nb63-attention-issues">
-      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-issues"><AlertCircle size={14}/></span><strong>Open issues</strong></div><span className="nb63-attention-count">{openIssues.length}</span></div>
-      <div className="nb63-attention-rows">
-       {issueRows.length?issueRows.map(({issue,system,severity}:any)=><div className="nb63-attention-item" key={issue.id}>
-        <div className="nb63-attention-item-top"><strong title={system?.name||'Unlinked issue'}>{system?.name||'Unlinked issue'}</strong><span className={`nb63-issue-severity nb63-severity-${severity||'unknown'}`}>{issue.severity||'Open'}</span></div>
-        <p title={issue.title}>{issue.title||'Issue reported'}</p>
-       </div>):<div className="nb63-attention-empty">No open issues.</div>}
+  <div className="nb-overview-layout nb-overview-layout-v062 nb124-dashboard-grid">
+   <section className="nb-overview-card nb-overview-attention nb124-attention" aria-label="Needs attention">
+    <header className="nb124-section-head nb124-attention-head">
+     <div className="nb124-headline"><h2>Needs attention</h2><span>{openIssues.length} {openIssues.length===1?'issue':'issues'} · {allSetupRows.length} incomplete systems</span></div>
+    </header>
+    <div className="nb124-attention-columns">
+     <div className="nb124-issues-column">
+      <div className="nb124-column-head"><h3>Open issues</h3><span className="nb124-count nb124-count--issue">{openIssues.length}</span></div>
+      <div className="nb124-issue-list">
+       {issueRows.length?issueRows.map(({issue,system,severity}:any)=><button type="button" key={issue.id} className="nb124-issue-row" onClick={()=>onNavigate('issues')} title={`View issue: ${issue.title||'Issue reported'}`}>
+        <span className={`nb124-issue-pill nb124-issue-pill--${severity||'open'}`}>{issue.severity||'Open'}</span>
+        <span className="nb124-issue-copy"><strong>{system?.name||'Unlinked issue'}</strong><small>{issue.title||'Issue reported'}</small></span>
+        <ChevronRight size={16} aria-hidden="true"/>
+       </button>):<p className="nb124-empty">No open issues.</p>}
       </div>
-      <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('issues')}>View Issue Tracker <ChevronRight size={13}/></button>
+      <button type="button" className="nb124-text-link nb124-footer-link" onClick={()=>onNavigate('issues')}>Open Issue Tracker <span aria-hidden="true">→</span></button>
      </div>
-     <div className="nb63-attention-group nb63-attention-progress">
-      <div className="nb63-attention-head"><div><span className="nb63-attention-mark nb63-mark-progress"><Settings2 size={14}/></span><strong>Configuration remaining</strong></div><span className="nb63-attention-count">{allSetupRows.length}</span></div>
-      <div className="nb63-attention-rows">
-       {setupRows.length?setupRows.map(({sys,stage}:any)=><div className={`nb63-attention-item nb73-attention-stage--${stage.className}`} key={sys.id}>
-        <div className="nb63-attention-item-top"><strong title={sys.name}>{sys.name}</strong><span className="nb63-setup-percent" title={`${stage.label}: ${stage.complete} / ${stage.total}`}>{stage.percent}%</span></div>
-        <div className="nb63-setup-bar" role="progressbar" aria-label={`${sys.name} — ${stage.label}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={stage.percent}><span style={{width:`${stage.percent}%`}}/></div>
-        <p><span className="nb73-stage-label">{stage.label}</span><span aria-hidden="true"> · </span>{stage.description}</p>
-       </div>):<div className="nb63-attention-empty">All device deployment stages are complete.</div>}
+     <div className="nb124-config-column">
+      <div className="nb124-column-head"><div><h3>Configuration remaining</h3><p>Devices still requiring configuration</p></div><span className="nb124-count nb124-count--config">{allSetupRows.length} systems</span></div>
+      <div className="nb124-config-list">
+       {setupRows.length?setupRows.map(({sys,stage}:any)=><button type="button" key={sys.id} className="nb124-config-row" onClick={()=>onOpenSystem?onOpenSystem(sys.id):onNavigate('config-report')} title={`Open ${sys.name} · ${stage.label}`}>
+        <div className="nb124-config-row-head"><strong>{sys.name}</strong><span><strong>{stage.pending} left</strong><small>{stage.percent}% {stage.key==='base'?'configured':stage.key==='ready'?'ready':'deployed'}</small></span></div>
+        <span className="nb124-bar" role="progressbar" aria-label={`${sys.name} ${stage.label}`} aria-valuenow={stage.percent} aria-valuemin={0} aria-valuemax={100}><i style={{width:`${stage.percent}%`}}/></span>
+       </button>):<p className="nb124-empty">All device deployment stages are complete.</p>}
       </div>
-      <button type="button" className="nb63-attention-footer-link" onClick={()=>onNavigate('config-report')}>Open Configuration Report <ChevronRight size={13}/></button>
+      <button type="button" className="nb124-text-link nb124-footer-link" onClick={()=>onNavigate('config-report')}>View Configuration Report <span aria-hidden="true">→</span></button>
      </div>
-    </div>
-   </section>
-
-    <section className="nb-overview-card nb-overview-week">
-     <div className="nb-overview-card-head">
-      <div>
-       <h2>This week</h2>
-       <p>{`Week ${activeWeek+1} · ${weekRange(project.startDate,activeWeek)}`}</p>
-      </div>
-      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('roadmap')}>Tracker ↗</button>
-     </div>
-     <div className="nb-overview-week-stats">
-      <article><strong>{weekStats.planned}</strong><span>Planned</span></article>
-      <article><strong>{weekStats.active}</strong><span>Active</span></article>
-      <article><strong>{weekStats.blocked}</strong><span>Blocked</span></article>
-      <article><strong>{weekStats.done}</strong><span>Done</span></article>
-     </div>
-     <div className="nb-overview-placeholder">
-      {currentWeekMilestones.length?currentWeekMilestones.slice(0,3).map((milestone:any)=><div key={milestone.id} className="nb-overview-bullet-row"><strong>{milestone.label}</strong><span>{`Week ${milestone.startWeek+1}`}</span></div>):<p>No milestones scheduled for this and next week.</p>}
-     </div>
-    </section>
-
-   <section className="nb-overview-card nb-overview-readiness">
-    <div className="nb-overview-card-head">
-     <div>
-      <h2>System readiness</h2>
-      <p>Largest inventoried systems · figures from Configuration Report.</p>
-     </div>
-     <button type="button" className="nb-overview-link" onClick={()=>onNavigate('config-report')}>All systems ↗</button>
-    </div>
-    <div className="nb-overview-readiness-table">
-     <div className="nb-overview-readiness-head"><span>System · Venue</span><span>Qty</span><span>Base</span><span>Ready</span><span>Deployed</span></div>
-     {readinessRows.map((sys:any)=>{const c=counts(sys);return <div key={sys.id} className="nb-overview-readiness-row">
-      <div><strong>{sys.name}</strong><small>{venueName(sys)}</small></div>
-      <div>{c.total}</div>
-      <div>{miniProgress(c.base,c.total,'base')}</div>
-      <div>{miniProgress(c.ready,c.total,'ready')}</div>
-      <div>{miniProgress(c.deployed,c.total,'deployed')}</div>
-     </div>;})}
     </div>
    </section>
-    <section className="nb-overview-card nb-overview-activity">
-     <div className="nb-overview-card-head">
-      <div>
-       <h2>Recorded activity</h2>
-       <p>Saved changes in NBDT.</p>
-      </div>
-      {activityItems.length>0&&<button type="button" className="nb63-history-link" onClick={()=>setHistoryOpen(true)}>History <ChevronRight size={12}/></button>}
-     </div>
-     <div className="nb-overview-activity-list">
-      {activityItems.length?activityItems.slice(0,3).map((item:any)=><div key={item.id} className="nb-overview-activity-row"><i/><div><strong title={item.title}>{item.title}</strong><small title={item.detail}>{item.detail||item.section||''}</small></div><span>{formatDateTime(item.at)}</span></div>):<p className="nb-overview-empty">New saved changes will appear here.</p>}
-     </div>
-    </section>
 
-    <section className="nb-overview-card nb-overview-ownership nb123-lessons" aria-label="Lessons Learned overview">
-     <div className="nb-overview-card-head">
-      <div><h2>Lessons Learned</h2><p>Current-project reviews from System Registry</p></div>
-      <button type="button" className="nb-overview-link" onClick={()=>onNavigate('systems')}>Systems ↗</button>
-     </div>
-     <div className="nb123-lessons-hero">
-      <div className="nb123-lessons-donut" role="img" aria-label={lessonsOverview.total?String(lessonsOverview.confirmed)+' of '+lessonsOverview.total+' lessons confirmed':'No lessons recorded'} style={{background:lessonsOverview.total?'conic-gradient(#12a98e '+lessonsOverview.percent+'%, #e3edf8 0)':'#e3edf8'}}>
-       <span><strong>{lessonsOverview.total}</strong><small>lessons</small></span>
-      </div>
-      <div className="nb123-lessons-breakdown">
-       <div><span className="nb123-dot nb123-dot--confirmed"/>Confirmed <strong>{lessonsOverview.confirmed}</strong></div>
-       <div><span className="nb123-dot nb123-dot--working"/>In progress <strong>{lessonsOverview.inProgress}</strong></div>
-       <div><span className="nb123-dot nb123-dot--pending"/>Pending review <strong>{lessonsOverview.pending}</strong></div>
-      </div>
-     </div>
-     <div className="nb123-lessons-summary"><strong>{lessonsOverview.remaining}</strong> lessons to review <span aria-hidden="true">·</span> <strong>{lessonsOverview.withoutLessons}</strong> systems without lessons</div>
-     <div className="nb123-lessons-subhead"><span>Where attention is needed</span><small>{lessonsOverview.systemsNeedingReview} in review · {lessonsOverview.withoutLessons} empty</small></div>
-     <div className="nb123-lessons-examples">
-      {lessonsOverview.needingAttention.slice(0,3).map((row:any)=><button key={row.id} type="button" className="nb123-lessons-example" onClick={()=>onOpenSystem?onOpenSystem(row.id):onNavigate('systems')} title={'Open '+row.name+' in System Registry'}>
-       <span className="nb123-lessons-example-copy"><strong>{row.name}</strong><small>{row.kind==='missing'?'Add Lessons Learned':row.inProgress?row.inProgress+' in progress · '+row.pending+' pending':row.pending+' awaiting review'}</small></span><ChevronRight size={15}/>
-      </button>)}
-      {!lessonsOverview.needingAttention.length&&<p className="nb123-lessons-clear">{lessonsOverview.systemCount?'All systems have confirmed Lessons Learned.':'No systems registered yet.'}</p>}
-     </div>
-    </section>
+   <section className="nb-overview-card nb-overview-week nb124-week" aria-label="Weekly summary">
+    <header className="nb124-section-head"><h2>This week</h2><span>{`Week ${activeWeek+1} · ${weekRange(project.startDate,activeWeek)}`}</span></header>
+    <div className="nb124-week-score"><strong>{weekStats.done} / {weekTotal}</strong><span>tasks completed</span><b>{weekPercent}%</b></div>
+    {weekTotal>0?<div className="nb124-week-viz"><div className="nb124-week-tiles" role="img" aria-label={`${weekStats.done} done, ${weekStats.planned} planned, ${weekStats.active} active, ${weekStats.blocked} blocked out of ${weekTotal} tasks`}>
+     {weekTiles.map((tone,index)=><span key={index} className={`nb124-tile nb124-tile--${tone}`}/>)}
+    </div><div className="nb124-week-legend"><span><i className="nb124-tile--done"/>{weekStats.done} Done</span><span><i className="nb124-tile--planned"/>{weekStats.planned} Planned</span></div></div>:<div className="nb124-week-viz nb124-week-viz--empty">No tasks scheduled for this week.</div>}
+    <div className="nb124-week-secondary">{weekStats.active} Active <span>·</span> {weekStats.blocked} Blocked</div>
+    <div className="nb124-week-milestones">{currentWeekMilestones.length?currentWeekMilestones.slice(0,2).map((item:any)=><div key={item.id}><CalendarDays size={15}/><span>{item.label}</span><small>{`Week ${item.startWeek+1}`}</small></div>):<div><CalendarDays size={15}/><span>No milestones this or next week.</span></div>}</div>
+    <button type="button" className="nb124-text-link nb124-footer-link" onClick={()=>onNavigate('roadmap')}>Open Weekly Tracker <span aria-hidden="true">→</span></button>
+   </section>
+
+   <section className="nb-overview-card nb-overview-readiness nb124-readiness" aria-label="System readiness">
+    <header className="nb124-section-head"><div><h2>System readiness</h2><p>Device completion by stage</p></div><button type="button" className="nb124-text-link" onClick={()=>onNavigate('config-report')}>View report →</button></header>
+    <div className="nb124-readiness-table">
+     <div className="nb124-readiness-table-head"><span>System</span><span>Base</span><span>Ready</span><span>Deployed</span></div>
+     {readinessRows.length?readinessRows.map((sys:any)=>{const c=counts(sys);return <div className="nb124-readiness-row" key={sys.id}>
+       <span className="nb124-readiness-name" title={sys.name}>{sys.name}</span>{heatCell(c.base,c.total,'base')}{heatCell(c.ready,c.total,'ready')}{heatCell(c.deployed,c.total,'deployed')}
+      </div>}):<p className="nb124-empty">No systems available yet.</p>}
+    </div>
+    <div className="nb124-readiness-key"><span>0%</span><div className="nb124-key-item"><small>Base</small><i className="nb124-key-bar nb124-key-bar--base"/></div><div className="nb124-key-item"><small>Ready</small><i className="nb124-key-bar nb124-key-bar--ready"/></div><div className="nb124-key-item"><small>Deployed</small><i className="nb124-key-bar nb124-key-bar--deployed"/></div><span>100%</span></div>
+   </section>
+
+   <section className="nb-overview-card nb-overview-activity nb124-activity" aria-label="Recorded activity">
+    <header className="nb124-section-head"><h2>Recorded activity</h2>{activityItems.length>0&&<button type="button" className="nb124-text-link" onClick={()=>setHistoryOpen(true)}>History →</button>}</header>
+    <div className="nb124-activity-timeline">{activityItems.length?activityItems.slice(0,3).map((item:any)=><div className="nb124-activity-event" key={item.id}>
+       <div><time>{formatDateTime(item.at)}</time><strong>{item.title}</strong><small>{item.detail||item.section||''}</small>{item.section&&<span className="nb124-activity-section">{item.section}</span>}</div>
+      </div>):<p className="nb124-empty">No recorded changes yet.</p>}</div>
+   </section>
+
+   <section className="nb-overview-card nb-overview-ownership nb123-lessons nb124-lessons" aria-label="Lessons learned summary">
+    <header className="nb124-section-head"><h2>Lessons learned</h2></header>
+    {lessonsOverview.total===0?<>
+      <div className="nb124-lessons-zero"><strong>0</strong><span>lessons recorded</span></div>
+      <div className="nb124-lessons-missing">{lessonsOverview.withoutLessons} {lessonsOverview.withoutLessons===1?'system has':'systems have'} no lessons yet.</div>
+      <div className="nb124-lessons-empty-tiles" aria-hidden="true">{Array.from({length:Math.min(8,lessonsOverview.withoutLessons)},(_,i)=><span key={i}/>)}</div>
+    </>:<>
+     <div className="nb124-lessons-filled"><div className="nb124-lessons-count"><strong>{lessonsOverview.total}</strong><span>lessons recorded</span></div><div className="nb124-lessons-progress" style={{background:`conic-gradient(#14a587 ${lessonsOverview.percent}%,#e5eaf5 0)`}} role="img" aria-label={`${lessonsOverview.confirmed} of ${lessonsOverview.total} confirmed`}><span>{lessonsOverview.percent}%</span></div></div>
+     <div className="nb124-lessons-note">{lessonsOverview.withoutLessons} {lessonsOverview.withoutLessons===1?'system needs':'systems need'} lessons · {lessonsOverview.remaining} awaiting review</div>
+    </>}
+    <div className="nb124-lessons-stats"><span>Confirmed <strong>{lessonsOverview.confirmed}</strong></span><span>In progress <strong>{lessonsOverview.inProgress}</strong></span><span>Review <strong>{lessonsOverview.pending}</strong></span></div>
+    {lessonsOverview.total>0&&lessonsOverview.needingAttention.length>0&&<div className="nb124-lessons-action-list">{lessonsOverview.needingAttention.slice(0,2).map((row:any)=><button type="button" key={row.id} onClick={()=>onOpenSystem?onOpenSystem(row.id):onNavigate('systems')}>{row.name}<ChevronRight size={14}/></button>)}</div>}
+    <button type="button" className="nb124-lessons-cta" onClick={()=>onNavigate('systems')}>{lessonsOverview.total?'Review lessons':'Review systems'} <span aria-hidden="true">→</span></button>
+   </section>
   </div>
-
   {historyOpen&&createPortal(<div className="nb63-activity-backdrop" onMouseDown={(e:any)=>{if(e.target===e.currentTarget)setHistoryOpen(false);}}>
    <section className="nb63-activity-dialog" role="dialog" aria-modal="true" aria-label="Recorded activity history">
     <header><div><h2>Recorded activity</h2><p>Recent saved changes · {activityItems.length} entries</p></div><button type="button" onClick={()=>setHistoryOpen(false)} aria-label="Close activity history"><X size={19}/></button></header>

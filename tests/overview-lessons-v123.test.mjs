@@ -29,7 +29,7 @@ test('does not count incomplete or blank lesson records as content',()=>{
 test('actual Overview uses live stats and direct System Registry navigation',()=>{
  const ui=readFileSync(new URL('../src/workspace.tsx',import.meta.url),'utf8');
  const entry=readFileSync(new URL('../index.tsx',import.meta.url),'utf8');
- assert.match(ui,/overviewLessonsStats\(project\)/);assert.match(ui,/Where attention is needed/);
+ assert.match(ui,/overviewLessonsStats\(project\)/);assert.match(ui,/nb124-lessons-action-list/);
  assert.match(ui,/onOpenSystem\?onOpenSystem\(row.id\)/);
  assert.match(entry,/onOpenSystem=\{\(systemId:string\)/);
  assert.match(entry,/nbdt-overview-lessons-v123\.css/);

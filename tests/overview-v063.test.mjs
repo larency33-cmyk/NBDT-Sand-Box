@@ -16,8 +16,8 @@ test('new Overview uses report icons, compact dates, the blue active week and no
  assert.doesNotMatch(index,/activeTab==='overview' && <><Overview.*<DataTools/);
 });
 test('issues and configuration attention are separate groups but retain the two-row dashboard',()=>{
- assert.match(overview,/nb63-attention-split/);assert.match(overview,/nb63-attention-issues/);
- assert.match(overview,/nb63-attention-progress/);assert.match(overview,/openIssues\.map/);
+ assert.match(overview,/nb124-attention-columns/);assert.match(overview,/nb124-issues-column/);
+ assert.match(overview,/nb124-config-column/);assert.match(overview,/openIssues\.map/);
  assert.match(overview,/setupRows\.length/);assert.match(css,/grid-template-columns:1fr 1fr/);
 });
 test('configuration report edits are captured via central project write',()=>{

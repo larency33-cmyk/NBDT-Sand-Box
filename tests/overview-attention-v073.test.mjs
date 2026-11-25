@@ -59,7 +59,7 @@ test('Top attention count includes deployment-only remaining work',()=>{
   assert.deepEqual(rows.map(x=>x.sys.id),['2','1']);
   assert.match(overview,/allSetupRows\.length/);
   assert.match(overview,/stage\.percent/);
-  assert.match(overview,/stage\.description/);
+  assert.match(overview,/stage\.pending/);
   assert.match(overview,/stage\.label/);
   assert.doesNotMatch(overview,/Math\.round\(c\.base\/c\.total\*100\)/);
 });
